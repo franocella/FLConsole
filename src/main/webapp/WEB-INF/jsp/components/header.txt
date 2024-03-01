@@ -1,0 +1,8 @@
+<header class="cust-header">
+    <nav class="navbar bg-custom-c1 p-3">
+        <div class="container-fluid">
+            <img src="Images/UNIPI_LOGO_SCONTORNATO.png" alt="Logo" width="80" height="80">
+            <h4 class="navbar-brand" style="color: #346bab;">Federated Learning Console</h4>
+        </div>
+    </nav>
+</header>
