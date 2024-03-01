@@ -1,33 +1,31 @@
 package it.unipi.mdwt.flconsole.controller;
 
 import it.unipi.mdwt.flconsole.service.AuthenticationService;
-import it.unipi.mdwt.flconsole.utils.Validator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 @Controller
 public class MainController {
 
+    private final AuthenticationService authenticationService;
 
-    AuthenticationService authenticationService = new AuthenticationService();
+    @Autowired
+    public MainController(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
+    }
 
     @GetMapping("/login")
     public String loginGET() {
-
         return "login";
     }
 
     @PostMapping("/login")
     public String loginPOST(HttpServletRequest request, HttpServletResponse response, Model model) {
-
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
@@ -38,6 +36,7 @@ public class MainController {
             return "login";
         }
 
+        //TODO: implement cookie creation with user email
 
         return "redirect:/home";
     }
@@ -46,5 +45,4 @@ public class MainController {
     public String home() {
         return "main";
     }
-
 }

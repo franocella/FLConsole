@@ -4,9 +4,12 @@ import it.unipi.mdwt.flconsole.utils.Validator;
 
 import javax.naming.AuthenticationException;
 
+import org.springframework.stereotype.Service;
+
 /**
  * Service class for handling authentication operations.
  */
+@Service
 public class AuthenticationService {
 
     /**
