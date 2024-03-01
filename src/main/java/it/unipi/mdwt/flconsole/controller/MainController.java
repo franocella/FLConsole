@@ -1,6 +1,7 @@
 package it.unipi.mdwt.flconsole.controller;
 
 import it.unipi.mdwt.flconsole.service.AuthenticationService;
+import it.unipi.mdwt.flconsole.service.ExpRunnerService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +18,12 @@ import java.util.List;
 public class MainController {
 
     private final AuthenticationService authenticationService;
+    private final ExpRunnerService expRunnerService;
 
     @Autowired
-    public MainController(AuthenticationService authenticationService) {
+    public MainController(AuthenticationService authenticationService, ExpRunnerService expRunnerService) {
         this.authenticationService = authenticationService;
+        this.expRunnerService = expRunnerService;
     }
 
     @GetMapping("/login")
@@ -40,12 +43,13 @@ public class MainController {
             return "login";
         }
 
-        //TODO: implement cookie creation with user email
+        // TODO: implement cookie creation with user email
 
         return "redirect:/home";
     }
 
-    @GetMapping("/home")
+
+    @GetMapping("/")
     public String home() {
         return "main";
     }
@@ -72,6 +76,23 @@ public class MainController {
     }*/
         return null;
     }
+
+
+    @GetMapping("testWebSocket")
+    public String testWebSocket() {
+        return "testWebSocket";
+    }
+
+    @PostMapping("/start-task")
+    public ResponseEntity<?> startTask() {
+        try {
+            expRunnerService.runExp();
+            return ResponseEntity.ok("Task started successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error starting the task");
+        }
+    }
+
 
 
 }
