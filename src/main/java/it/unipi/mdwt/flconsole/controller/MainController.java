@@ -72,29 +72,6 @@ public class MainController {
         }
     }
 
-    @GetMapping("/allConfig")
-    public ResponseEntity<?> getConfig() {
-    /*
-    try {
-        // TODO: Call the creation Config service
-        // Simulating success
-        boolean success = true;
-        if (success) {
-            // If the new configuration is successful, fetch user configurations
-            List<String> userConfigurations = expConfigService.getUsersConfigList();
-            return ResponseEntity.ok(userConfigurations);
-        } else {
-            // If the new configuration fails, return an error message
-            String errorMessage = "Error during new configuration";
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
-        }
-    } catch (Exception e) {
-        // If an exception occurs during the process, return a server error message
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
-    }*/
-        return null;
-    }
-
     @GetMapping("/newConfig")
     public ResponseEntity<?> newConfig() {
     try {
