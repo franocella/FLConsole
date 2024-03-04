@@ -10,6 +10,6 @@ public interface UserDAO extends MongoRepository<User, String> {
     // No need to provide implementations for CRUD methods,
     // Spring Data MongoDB will automatically generate them.
 
-    // Custom queries can be added here if needed.
+    // Custom queries
     User findByEmail(String email);
 }

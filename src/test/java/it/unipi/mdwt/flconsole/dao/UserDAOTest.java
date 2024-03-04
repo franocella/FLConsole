@@ -4,14 +4,22 @@ import it.unipi.mdwt.flconsole.model.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.dao.DataIntegrityViolationException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * This class contains JUnit tests for the UserDAO class.
+ */
 @DataMongoTest
 class UserDAOTest {
 
     @Autowired
-    private UserDAO userRepository; // Assuming UserRepository is your DAO
+    private UserDAO userRepository;
 
+    /**
+     * Test the findByEmail method of the UserDAO.
+     */
     @Test
     void findByEmail() {
         // Given
@@ -24,11 +32,17 @@ class UserDAOTest {
         assertEquals("test@example.com", foundUser.getEmail());
     }
 
+    /**
+     * Test the save method of the UserDAO.
+     */
+    /**
+     * Test the save method of the UserDAO.
+     */
     @Test
     void save() {
         // Given
         User user = new User();
-        user.setEmail("test@example.com");
+        user.setEmail("saveTest@example.com");
         user.setPassword("password");
 
         // When
@@ -36,10 +50,22 @@ class UserDAOTest {
 
         // Then
         assertNotNull(savedUser.getId());
-        assertEquals("test@example.com", savedUser.getEmail());
+        assertEquals("saveTest@example.com", savedUser.getEmail());
         assertEquals("password", savedUser.getPassword());
+
+        // Given - Another user with the same email
+        User duplicateUser = new User();
+        duplicateUser.setEmail("saveTest@example.com");
+        duplicateUser.setPassword("newPassword");
+
+        // When - Try to save another user with the same email
+        assertThrows(DataIntegrityViolationException.class, () -> userRepository.save(duplicateUser));
     }
 
+
+    /**
+     * Test the update method of the UserDAO.
+     */
     @Test
     void update() {
         // Given
@@ -58,6 +84,9 @@ class UserDAOTest {
         assertEquals("newPassword", updatedUser.getPassword());
     }
 
+    /**
+     * Test the delete method of the UserDAO.
+     */
     @Test
     void delete() {
         // Given
@@ -72,6 +101,4 @@ class UserDAOTest {
         // Then
         assertFalse(userRepository.existsById(String.valueOf(savedUser.getId())));
     }
-
-
 }
