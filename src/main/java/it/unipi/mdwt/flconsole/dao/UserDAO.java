@@ -1,14 +1,15 @@
 package it.unipi.mdwt.flconsole.dao;
 
+import it.unipi.mdwt.flconsole.model.User;
+import org.springframework.stereotype.Repository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class UserDAO {
-    //TODO: implement create method
+public interface UserDAO extends MongoRepository<User, String> {
+    // No need to provide implementations for CRUD methods,
+    // Spring Data MongoDB will automatically generate them.
 
-    //TODO: implement read method
-
-    //TODO: implement update method
-
-    //TODO: implement delete method
+    // Custom queries can be added here if needed.
+    User findByEmail(String email);
 }
