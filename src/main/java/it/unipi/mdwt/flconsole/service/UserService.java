@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
  * Service class for handling authentication operations.
  */
 @Service
-public class AuthenticationService {
+public class UserService {
 
     /**
      * Stub method simulating login through a DAO (Data Access Object).
@@ -18,8 +18,29 @@ public class AuthenticationService {
      * @return true if the login is successful (stub implementation).
      * @throws AuthenticationException if authentication fails.
      */
-    public boolean STUBloginDAO() throws AuthenticationException {
+    public boolean STUBLoginDAO() throws AuthenticationException {
         return true;
+    }
+    public boolean STUBRegistrationDAO() throws AuthenticationException {
+        return true;
+    }
+
+
+    //TODO: Implement register method
+    public void register(String email, String password) throws AuthenticationException {
+        // Validate email and password using the Validator utility class
+        if (Validator.validateEmail(email)) {
+            throw new AuthenticationException("Invalid email");
+        }
+        if (Validator.validatePassword(password)) {
+            throw new AuthenticationException("Invalid password");
+        }
+        try {
+            if (!STUBRegistrationDAO())
+                throw new AuthenticationException("Invalid credentials");
+        }catch (AuthenticationException e) {
+            throw new AuthenticationException("An error occurred");
+        }
     }
 
     /**
@@ -31,16 +52,16 @@ public class AuthenticationService {
      */
     public void authenticate(String email, String password) throws AuthenticationException {
         // Validate email and password using the Validator utility class
-        if (!Validator.validateEmail(email)) {
+        if (Validator.validateEmail(email)) {
             throw new AuthenticationException("Invalid email");
         }
-        if (!Validator.validatePassword(password)) {
+        if (Validator.validatePassword(password)) {
             throw new AuthenticationException("Invalid password");
         }
 
         // TODO: Implement DAO for real authentication
         try {
-            if (!STUBloginDAO()) {
+            if (!STUBLoginDAO()) {
                 throw new AuthenticationException("Invalid credentials");
             }
         } catch (Exception e) {

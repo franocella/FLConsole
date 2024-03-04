@@ -1,6 +1,6 @@
 package it.unipi.mdwt.flconsole.controller;
 
-import it.unipi.mdwt.flconsole.service.AuthenticationService;
+import it.unipi.mdwt.flconsole.service.UserService;
 import it.unipi.mdwt.flconsole.service.ExpRunnerService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,12 +17,19 @@ import java.util.List;
 @Controller
 public class MainController {
 
-    private final AuthenticationService authenticationService;
+    private final UserService userService;
     private final ExpRunnerService expRunnerService;
 
+    private void expConfigServiceSaveConfigSTUB(String userConfigurations) {
+        // STUB implementation
+    }
+    private List<String> expConfigServiceGetUsersConfigListSTUB(String email) {
+        // STUB implementation
+        return null;
+    }
     @Autowired
-    public MainController(AuthenticationService authenticationService, ExpRunnerService expRunnerService) {
-        this.authenticationService = authenticationService;
+    public MainController(UserService userService, ExpRunnerService expRunnerService) {
+        this.userService = userService;
         this.expRunnerService = expRunnerService;
     }
 
@@ -37,7 +44,7 @@ public class MainController {
         String password = request.getParameter("password");
 
         try {
-            authenticationService.authenticate(email, password);
+            userService.authenticate(email, password);
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
             return "login";
@@ -50,33 +57,36 @@ public class MainController {
 
 
     @GetMapping("/")
-    public String home() {
-        return "main";
+    public String home(Model model) {
+        try {
+            // TODO: Call the creation Config service
+            // Simulating success
+                // If the new configuration is successful, fetch user configurations
+                List<String> userConfigurations = expConfigServiceGetUsersConfigListSTUB("email@asljh.com");
+                model.addAttribute("configurations", userConfigurations);
+            return "main";
+        } catch (Exception e) {
+            // If an exception occurs during the process, return a server error message
+            model.addAttribute("error", "Internal server error");
+            return "error";
+        }
     }
 
     @GetMapping("/newConfig")
     public ResponseEntity<?> newConfig() {
-    /*
     try {
         // TODO: Call the creation Config service
-        // Simulating success
-        boolean success = true;
-        if (success) {
-            // If the new configuration is successful, fetch user configurations
-            List<String> userConfigurations = expConfigService.getUsersConfigList();
-            return ResponseEntity.ok(userConfigurations);
-        } else {
-            // If the new configuration fails, return an error message
-            String errorMessage = "Error during new configuration";
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
-        }
+        // If the new configuration is successful, fetch user configurations
+        expConfigServiceSaveConfigSTUB("config");
+        return ResponseEntity.ok("Configuration saved");
     } catch (Exception e) {
         // If an exception occurs during the process, return a server error message
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
-    }*/
-        return null;
+        // return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
+        // If the new configuration fails, return an error message
+        String errorMessage = "Error during new configuration";
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
     }
-
+    }
 
     @GetMapping("testWebSocket")
     public String testWebSocket() {
@@ -92,8 +102,5 @@ public class MainController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error starting the task");
         }
     }
-
-
-
 }
 
