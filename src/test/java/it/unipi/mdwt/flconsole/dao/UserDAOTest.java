@@ -60,6 +60,8 @@ class UserDAOTest {
 
         // When - Try to save another user with the same email
         assertThrows(DataIntegrityViolationException.class, () -> userRepository.save(duplicateUser));
+
+
     }
 
 
@@ -90,15 +92,18 @@ class UserDAOTest {
     @Test
     void delete() {
         // Given
-        User user = new User();
-        user.setEmail("deleteTest@example.com");
-        user.setPassword("password");
-        User savedUser = userRepository.save(user);
+        String emailToDelete = "saveTest@example.com";
+        User user = userRepository.findByEmail(emailToDelete);
+
+        // Ensure that the user exists before attempting deletion
+        assertNotNull(user);
 
         // When
-        userRepository.deleteById(String.valueOf(savedUser.getId()));
+        userRepository.deleteByEmail(emailToDelete);
 
         // Then
-        assertFalse(userRepository.existsById(String.valueOf(savedUser.getId())));
+        assertFalse(userRepository.existsByEmail(emailToDelete));
     }
+
+
 }

@@ -126,7 +126,7 @@
         <div id="tab1Content" class="container tab-content" style="display: block;">
             <div class="container py-2 my-2" style="box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);">
                 <div class="d-flex align-items-center">
-                    <input type="text" class="form-control me-2" name="config-name" id="config-name" required placeholder="Configuration name"/>
+                    <input type="text" class="form-control me-2" name="config-name" id="ExpConfigName" required placeholder="Configuration name"/>
                 
                     <select class="form-select me-2">
                         <option selected>Client strategy</option>
@@ -147,7 +147,7 @@
                 </div>
                 
                 
-                <table class="table mt-3 text-center" style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
+                <table id="ConfigTable" class="table mt-3 text-center" style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -257,7 +257,7 @@
 
 
         function submitConfigForm() {
-            var formData = {
+            const formData = {
                 "configName": $("#config-name-modal").val(),
                 "clientStrategy": $("#ClientStrategyModal").val(),
                 "numberOfClients": $("#NumberOfClients").val(),
@@ -267,20 +267,55 @@
             };
 
             $("#Form table tbody tr").each(function(index, row) {
-                var parameterName = $(row).find("td:eq(0)").text();
-                var parameterValue = $(row).find("td:eq(1)").text();
+                const parameterName = $(row).find("td:eq(0)").text();
+                const parameterValue = $(row).find("td:eq(1)").text();
                 formData.parameters.push({"name": parameterName, "value": parameterValue});
             });
 
-            console.log(JSON.stringify(formData));
-            closeModal();
+            $.ajax({
+                type: "POST",
+                url: "/newConfig",
+                contentType: "application/json",
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    console.log(response.message);
+
+                    formData.creationTime = response.creationTime;
+                    formData.lastUpdate = response.lastUpdate;
+                    addNewConfigToList(formData);
+
+                    closeModal();
+                },
+                error: function(error) {
+                    console.error(error);
+                }
+            });
         }
 
+
+        function addNewConfigToList(formData) {
+            const table = $("#ConfigTable");
+
+            const newRow = $("<tr>");
+
+            newRow.append("<td>" + formData.id + "</td>");
+            newRow.append("<td>" + formData.configName + "</td>");
+            newRow.append("<td>" + formData.algorithm + "</td>");
+            newRow.append("<td>" + formData.clientStrategy + "</td>");
+            newRow.append("<td>" + formData.numberOfClients + "</td>");
+            newRow.append("<td>" + formData.stopCondition + "</td>");
+            newRow.append("<td>" + formData.creationTime + "</td>");
+            newRow.append("<td>" + formData.lastUpdate + "</td>");
+
+            table.append(newRow);
+        }
+
+
         function submitExpForm(){
-            var formData = {
+            const formData = {
                 "experimentName": $("#config-name-exp-modal").val(),
                 "flConfig": $("#FL_config_value").val(),
-        
+
             };
             console.log(JSON.stringify(formData));
             closeModal();
@@ -322,11 +357,11 @@
 
 
         function addRow() {
-            var table = document.getElementById("parametersTable");
-            if (table.tBodies[0].rows.length < 5) { 
-                var newRow = table.tBodies[0].insertRow(table.tBodies[0].rows.length);
-                var cell1 = newRow.insertCell(0);
-                var cell2 = newRow.insertCell(1);
+            const table = document.getElementById("parametersTable");
+            if (table.tBodies[0].rows.length < 5) {
+                const newRow = table.tBodies[0].insertRow(table.tBodies[0].rows.length);
+                const cell1 = newRow.insertCell(0);
+                const cell2 = newRow.insertCell(1);
                 cell1.contentEditable = true;
                 cell2.contentEditable = true;
                 cell1.textContent = "New Parameter";
@@ -336,7 +371,7 @@
         }
 
         function deleteRow() {
-            var table = document.getElementById("parametersTable");
+            const table = document.getElementById("parametersTable");
             if (table.tBodies[0].rows.length > 1) {
                 table.tBodies[0].deleteRow(table.tBodies[0].rows.length - 1);
             }

@@ -3,7 +3,6 @@ package it.unipi.mdwt.flconsole.dao;
 import it.unipi.mdwt.flconsole.model.User;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserDAO extends MongoRepository<User, String> {
@@ -12,4 +11,6 @@ public interface UserDAO extends MongoRepository<User, String> {
 
     // Custom queries
     User findByEmail(String email);
+    void deleteByEmail(String email);
+    Boolean existsByEmail(String email);
 }

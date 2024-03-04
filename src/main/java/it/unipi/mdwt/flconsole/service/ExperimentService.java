@@ -1,26 +1,35 @@
 package it.unipi.mdwt.flconsole.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.unipi.mdwt.flconsole.dao.ExperimentDao;
+import it.unipi.mdwt.flconsole.model.ExpConfig;
+import it.unipi.mdwt.flconsole.model.Experiment;
+import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Random;
+import java.util.logging.Logger;
 
 @Service
-public class ExpRunnerService {
+public class ExperimentService {
 
     private final SimpMessagingTemplate messagingTemplate;
-
+    private final ExperimentDao experimentDao;
+    private final Logger applicationLogger;
 
     @Autowired
-    public ExpRunnerService(SimpMessagingTemplate messagingTemplate, ObjectMapper objectMapper) {
+    public ExperimentService(SimpMessagingTemplate messagingTemplate, ObjectMapper objectMapper, ExperimentDao experimentDao,Logger applicationLogger) {
         this.messagingTemplate = messagingTemplate;
+        this.experimentDao = experimentDao;
+        this.applicationLogger = applicationLogger;
     }
 
     // Fake experiment to test WebSocket
-    public void runExp() {
+    public void runExp() throws BusinessException{
         long startTime = System.currentTimeMillis();
         long endTime = startTime + 10000;
 
@@ -48,4 +57,18 @@ public class ExpRunnerService {
     }
 
 
+    public Experiment getExpDetails(String id) throws BusinessException{
+        Experiment experiment;
+        try {
+            experiment = experimentDao.findById(id);
+        } catch (Exception e) {
+            applicationLogger.severe("An error occurred while fetching the experiment details: " + e.getMessage());
+            throw new RuntimeException("An error occurred while fetching the experiment details");
+        }
+        return new Experiment();
+    }
+
+    public List<ExpConfig> getExpConfigList(String email) throws BusinessException {
+        return null;
+    }
 }
