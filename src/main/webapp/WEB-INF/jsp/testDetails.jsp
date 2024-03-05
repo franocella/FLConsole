@@ -1,3 +1,7 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page session="false" %>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,18 +13,14 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
     <!-- Custom stylesheet -->
     <link rel="stylesheet" href="CSS/main.css" />
+    <link rel="stylesheet" href="CSS/expDetails.css" />
+
 </head>
 
 <body style="background-color: #f8f8fe;">
 
-<header class="cust-header">
-    <nav class="navbar bg-custom-c1 p-3">
-        <div class="container-fluid">
-            <img src="Images/UNIPI_LOGO_SCONTORNATO.png" alt="Logo" width="80" height="80">
-            <h4 class="navbar-brand" style="color: #346bab;">Federated Learning Console</h4>
-        </div>
-    </nav>
-</header>
+<!-- Header section with navbar -->
+<%@ include file="components/header.txt" %>
 
 <div class="experiment">
 

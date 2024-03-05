@@ -93,6 +93,8 @@ public class MainController {
         }
     }
 
+    @GetMapping("/testDetails")
+    public String testDetails(){ return "testDetails";}
 
 
 }

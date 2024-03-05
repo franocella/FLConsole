@@ -1,0 +1,44 @@
+.experiment{
+    margin: 80px;
+}
+.container{
+    box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);
+    margin: 0;
+}
+#myChart{
+    width: 100%;
+}
+.container{
+    padding: 10px;
+}
+.row{
+    margin: 10px;
+    gap: 10px;
+}
+
+.col{
+    background-color: white;
+    box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+}
+.list-group{
+    gap: 20px;
+}
+.title{
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.col-infos{
+    display: flex;
+}
+.start-exp{
+    margin-left: 10px;
+    border-style: none;
+    background-color:  #698eb9;
+    color: white;
+    padding: 8px;
+    border-radius: 5px;
+}
+.start-exp:hover{
+    background-color: #346bab;
+}
