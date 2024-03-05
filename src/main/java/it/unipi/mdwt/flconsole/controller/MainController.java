@@ -96,12 +96,15 @@ public class MainController {
             // Perform the configuration save
             expConfigService.saveConfig(config);
 
+            //TODO - Implement the user email retrieval
+            String email = "firstTest@example.com";
 
-            // Create the JSON response with the dates
+            // Get the list of updated configurations for the user
+            //List<ExpConfig> configs = userService.allUserConfig(email);
+
+            // Create the JSON response with the data
             Map<String, Object> response = new HashMap<>();
-            response.put("id", config.getId());
-            response.put("creationTime", config.getCreationDate());
-            response.put("lastUpdate", config.getLastUpdate());
+            //response.put("updatedConfigurations", configs);
 
             // Convert the response map to a JSON string
             String jsonResponse = objectMapper.writeValueAsString(response);

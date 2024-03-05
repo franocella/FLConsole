@@ -17,24 +17,8 @@ class UserDAOTest {
     @Autowired
     private UserDAO userRepository;
 
-    /**
-     * Test the findByEmail method of the UserDAO.
-     */
-    @Test
-    void findByEmail() {
-        // Given
-        User user = new User();
-        // When
-        User foundUser = userRepository.findByEmail("test@example.com");
 
-        // Then
-        assertNotNull(foundUser);
-        assertEquals("test@example.com", foundUser.getEmail());
-    }
 
-    /**
-     * Test the save method of the UserDAO.
-     */
     /**
      * Test the save method of the UserDAO.
      */
@@ -52,6 +36,9 @@ class UserDAOTest {
         assertNotNull(savedUser.getId());
         assertEquals("saveTest@example.com", savedUser.getEmail());
         assertEquals("password", savedUser.getPassword());
+/*
+        assertNull(savedUser.getConfigurations()); // Expect configurations to be null or empty
+        assertNull(savedUser.getExperiments()); // Expect experiments to be null or empty*/
 
         // Given - Another user with the same email
         User duplicateUser = new User();
@@ -60,10 +47,22 @@ class UserDAOTest {
 
         // When - Try to save another user with the same email
         assertThrows(DataIntegrityViolationException.class, () -> userRepository.save(duplicateUser));
-
-
     }
 
+    /**
+     * Test the findByEmail method of the UserDAO.
+     */
+    @Test
+    void findByEmail() {
+        // Given
+        User user = new User();
+        // When
+        User foundUser = userRepository.findByEmail("firstTest@example.com");
+
+        // Then
+        assertNotNull(foundUser);
+        assertEquals("firstTest@example.com", foundUser.getEmail());
+    }
 
     /**
      * Test the update method of the UserDAO.
@@ -84,6 +83,10 @@ class UserDAOTest {
         User updatedUser = userRepository.findById(String.valueOf(savedUser.getId())).orElse(null);
         assertNotNull(updatedUser);
         assertEquals("newPassword", updatedUser.getPassword());
+        /*
+        assertNull(updatedUser.getConfigurations()); // Expect configurations to be null or empty
+        assertNull(updatedUser.getExperiments()); // Expect experiments to be null or empty
+        */
     }
 
     /**
@@ -92,7 +95,7 @@ class UserDAOTest {
     @Test
     void delete() {
         // Given
-        String emailToDelete = "saveTest@example.com";
+        String emailToDelete = "updateTest@example.com";
         User user = userRepository.findByEmail(emailToDelete);
 
         // Ensure that the user exists before attempting deletion
@@ -104,6 +107,4 @@ class UserDAOTest {
         // Then
         assertFalse(userRepository.existsByEmail(emailToDelete));
     }
-
-
 }

@@ -26,7 +26,15 @@
 
     <!-- Overlay -->
     <div id="overlay" class="overlay"></div>
+    <div id="overlay-ov" class="overlay" style="z-index: 9998"></div>
 
+    <div id="error-modal" class="myAlert-sm" style="z-index: 9999">
+        <div class="myAlertBody" style="z-index: 9999">
+            <h3 id="Err-Title"></h3>
+            <p class="mt-3" id="Err-Message"></p>
+            <button class="btn btn-primary" id="close-error-modal" onclick="closeErrorModal()">Close</button>
+        </div>
+    </div>
 
     <!-- New config modal  -->
     <div id="config-modal" class="myAlert">
@@ -43,7 +51,14 @@
                 </select>
             
                 <input type="number" class="form-control me-2 my-2" name="NumberOfClients" step="1" id="NumberOfClients" required placeholder="Number of clients"/>
-    
+
+                <select id="AlgorithmModal" class="form-select me-2">
+                    <option selected>Algorithm</option>
+                    <option value="1">Algorithm one</option>
+                    <option value="2">Algorithm two</option>
+                    <option value="3">Algorithm three</option>
+                </select>
+
                 <select id="StopConditionModal" class="form-select me-2 my-2">
                     <option selected>Stop condition</option>
                     <option value="1">One</option>
@@ -134,7 +149,7 @@
                         <option value="2">Two</option>
                         <option value="3">Three</option>
                     </select>
-                
+
                     <select class="form-select me-2">
                         <option selected>Stop condition</option>
                         <option value="1">One</option>
@@ -256,42 +271,76 @@
         });
 
 
+
         function submitConfigForm() {
-            const formData = {
-                "configName": $("#config-name-modal").val(),
-                "clientStrategy": $("#ClientStrategyModal").val(),
-                "numberOfClients": $("#NumberOfClients").val(),
-                "stopCondition": $("#StopConditionModal").val(),
-                "stopThreshold": $("#StopThreshold").val(),
-                "parameters": []
-            };
+            // Get values from input fields
+            const name = $("#config-name-modal").val().trim();
+            const strategy = $("#ClientStrategyModal").val();
+            const numClients = $("#NumberOfClients").val().trim();
+            const algorithm = $("#AlgorithmModal").val();
+            const stopCondition = $("#StopConditionModal").val();
+            const threshold = $("#StopThreshold").val().trim();
 
-            $("#Form table tbody tr").each(function(index, row) {
-                const parameterName = $(row).find("td:eq(0)").text();
-                const parameterValue = $(row).find("td:eq(1)").text();
-                formData.parameters.push({"name": parameterName, "value": parameterValue});
-            });
+            // Check if mandatory parameters are provided
+            if (name === "" || strategy === "Client strategy" || numClients === "" || algorithm === "Algorithm" || stopCondition === "Stop condition" || threshold === "") {
+                // Display an error modal with the names of missing mandatory parameters
+                displayErrorModal("Parameters", {
+                    "Name": name === "" ? "Missing" : name,
+                    "Client Strategy": strategy === "Client strategy" ? "Missing" : strategy,
+                    "Number of Clients": numClients === "" ? "Missing" : numClients,
+                    "Algorithm": algorithm === "Algorithm" ? "Missing" : algorithm,
+                    "Stop Condition": stopCondition === "Stop condition" ? "Missing" : stopCondition,
+                    "Threshold": threshold === "" ? "Missing" : threshold
+                });
+            } else {
+                // If all mandatory parameters are provided, proceed with creating the formData object
+                const formData = {
+                    "name": name,
+                    "strategy": strategy,
+                    "numClients": numClients,
+                    "algorithm": algorithm,
+                    "stopCondition": stopCondition,
+                    "threshold": threshold
+                };
 
-            $.ajax({
-                type: "POST",
-                url: "/newConfig",
-                contentType: "application/json",
-                data: JSON.stringify(formData),
-                success: function(response) {
-                    console.log(response.message);
+                // Take the parameters from the table and add them to the formData object
+                const parameters = {};  // Initialize parameters as an empty object
 
-                    formData.creationTime = response.creationTime;
-                    formData.lastUpdate = response.lastUpdate;
-                    addNewConfigToList(formData);
+                $("#Form table tbody tr").each(function(index, row) {
+                    const parameterName = $(row).find("td:eq(0)").text();
+                    const parameterValue = $(row).find("td:eq(1)").text();
+                    parameters[parameterName] = parameterValue;
+                });
 
-                    closeModal();
-                },
-                error: function(error) {
-                    console.error(error);
+                // Only add parameters field to formData if there are parameters
+                if (Object.keys(parameters).length > 0) {
+                    formData["parameters"] = parameters;
                 }
-            });
-        }
 
+                console.log("formData object:", formData);
+
+                $.ajax({
+                    type: "POST",
+                    url: "/newConfig",
+                    contentType: "application/json",
+                    data: JSON.stringify(formData),
+                    success: function(response) {
+                        console.log(response.message);
+
+                        formData.id = response.id;
+                        formData.creationDate = response.creationTime;
+                        formData.lastUpdate = response.lastUpdate;
+
+                        addNewConfigToList(formData);
+
+                        closeModal();
+                    },
+                    error: function(error) {
+                        console.error("Error:", error);
+                    }
+                });
+            }
+        }
 
         function addNewConfigToList(formData) {
             const table = $("#ConfigTable");
@@ -299,12 +348,12 @@
             const newRow = $("<tr>");
 
             newRow.append("<td>" + formData.id + "</td>");
-            newRow.append("<td>" + formData.configName + "</td>");
+            newRow.append("<td>" + formData.name + "</td>");
             newRow.append("<td>" + formData.algorithm + "</td>");
-            newRow.append("<td>" + formData.clientStrategy + "</td>");
-            newRow.append("<td>" + formData.numberOfClients + "</td>");
+            newRow.append("<td>" + formData.strategy + "</td>");
+            newRow.append("<td>" + formData.numClients + "</td>");
             newRow.append("<td>" + formData.stopCondition + "</td>");
-            newRow.append("<td>" + formData.creationTime + "</td>");
+            newRow.append("<td>" + formData.creationDate + "</td>");
             newRow.append("<td>" + formData.lastUpdate + "</td>");
 
             table.append(newRow);
@@ -376,7 +425,44 @@
                 table.tBodies[0].deleteRow(table.tBodies[0].rows.length - 1);
             }
         }
-        
+
+        function displayErrorModal(title, params) {
+            const overlayElement = $("#overlay-ov");
+            overlayElement.css("display", "block");
+
+            $("body").css("overflow-y", "hidden");
+
+            const modalElement = $("#error-modal");
+            modalElement.css("display", "block");
+
+            // Set the text of the Err-Title element
+            $("#Err-Title").text(title);
+
+            // Construct the HTML content for Err-Message using the JSON parameters
+            let errorMessage = "<ul>";
+            Object.keys(params).forEach(function(param) {
+                errorMessage += "<li>" + param + ": " + params[param] + "</li>";
+            });
+            errorMessage += "</ul>";
+
+            $("#Err-Message").html(errorMessage);
+
+            // Show the close button
+            $("#close-error-modal").css("display", "block");
+        }
+
+        function closeErrorModal() {
+            const overlayElement = $("#overlay-ov");
+            overlayElement.css("display", "none");
+
+            $("body").css("overflow-y", "auto");
+
+            const modalElement = $("#error-modal");
+            modalElement.css("display", "none");
+
+            // Hide the close button
+            $("#close-error-modal").css("display", "none");
+        }
 
     </script>
 </body>

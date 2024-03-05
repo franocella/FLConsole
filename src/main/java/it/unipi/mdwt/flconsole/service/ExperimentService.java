@@ -11,6 +11,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.logging.Logger;
 
@@ -58,7 +59,7 @@ public class ExperimentService {
 
 
     public Experiment getExpDetails(String id) throws BusinessException{
-        Experiment experiment;
+        Optional<Experiment> experiment;
         try {
             experiment = experimentDao.findById(id);
         } catch (Exception e) {
