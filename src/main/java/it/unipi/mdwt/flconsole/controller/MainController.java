@@ -86,6 +86,10 @@ public class MainController {
         }
     }
 
+
+
+
+
     @PostMapping("/newConfig")
     public ResponseEntity<String> newConfig(@RequestBody String expConfig) {
         try {
@@ -93,18 +97,17 @@ public class MainController {
             ObjectMapper objectMapper = new ObjectMapper();
             ExpConfig config = objectMapper.readValue(expConfig, ExpConfig.class);
 
-            // Perform the configuration save
-            expConfigService.saveConfig(config);
-
             //TODO - Implement the user email retrieval
             String email = "firstTest@example.com";
 
-            // Get the list of updated configurations for the user
-            //List<ExpConfig> configs = userService.allUserConfig(email);
+            // Perform the configuration save
+            expConfigService.saveConfig(config, email);
 
             // Create the JSON response with the data
             Map<String, Object> response = new HashMap<>();
-            //response.put("updatedConfigurations", configs);
+            response.put("id", config.getId());
+            response.put("creationTime", config.getCreationDate());
+            response.put("lastUpdate", config.getLastUpdate());
 
             // Convert the response map to a JSON string
             String jsonResponse = objectMapper.writeValueAsString(response);

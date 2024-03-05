@@ -2,10 +2,12 @@ package it.unipi.mdwt.flconsole.model;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-import org.springframework.data.mongodb.core.mapping.MongoId;
+import org.springframework.data.mongodb.core.mapping.event.BeforeSaveEvent;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -31,8 +33,13 @@ public class ExpConfig {
     private Double threshold;
     @Field("parameters")
     private Map<String,String> parameters;
+
     @Field("creationDate")
+    @CreatedDate
     private LocalDate creationDate;
+
     @Field("lastUpdate")
+    @LastModifiedDate
     private LocalDate lastUpdate;
+
 }

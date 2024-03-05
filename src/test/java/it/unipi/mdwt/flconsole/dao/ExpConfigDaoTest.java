@@ -4,6 +4,7 @@ import it.unipi.mdwt.flconsole.model.ExpConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -13,11 +14,18 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataMongoTest
 class ExpConfigDaoTest {
 
+
+    private final ExpConfigDao expConfigDao;
+    private final MongoTemplate mongoTemplate;
     @Autowired
-    private ExpConfigDao expConfigDao;
+    ExpConfigDaoTest(ExpConfigDao expConfigDao, MongoTemplate mongoTemplate) {
+        this.expConfigDao = expConfigDao;
+        this.mongoTemplate = mongoTemplate;
+    }
+
 
     @Test
-    void saveAndFindById() {
+    void save() {
         // Given
         ExpConfig expConfig = new ExpConfig();
         expConfig.setName("TestConfig");
@@ -30,26 +38,24 @@ class ExpConfigDaoTest {
         Map<String, String> parametersList = new HashMap<>(Map.of("param1", "value1", "param2", "value2"));
         expConfig.setParameters(parametersList);
 
-        expConfig.setCreationDate(LocalDate.now());
-
         // When
-        ExpConfig savedConfig = expConfigDao.save(expConfig);
-        Optional<ExpConfig> foundConfig = expConfigDao.findById(savedConfig.getId());
+        ExpConfig savedExpConfig = expConfigDao.save(expConfig);
 
         // Then
-        assertNotNull(foundConfig.orElse(null));
-        assertEquals("TestConfig", foundConfig.get().getName());
-        assertEquals("TestAlgorithm", foundConfig.get().getAlgorithm());
-        assertEquals("TestStrategy", foundConfig.get().getStrategy());
-        assertEquals(10, foundConfig.get().getNumClients());
-        assertEquals("TestStopCondition", foundConfig.get().getStopCondition());
-        assertEquals(0.5, foundConfig.get().getThreshold());
+        assertNotNull(savedExpConfig.getId(), "ID should not be null after save");
 
-        assertTrue(foundConfig.get().getParameters().entrySet().containsAll(parametersList.entrySet()));
-        assertTrue(parametersList.entrySet().containsAll(foundConfig.get().getParameters().entrySet()));
+        // Retrieve the saved ExpConfig from the database
+        ExpConfig retrievedExpConfig = mongoTemplate.findById(savedExpConfig.getId(), ExpConfig.class);
 
-
-        assertEquals(LocalDate.now(), foundConfig.get().getCreationDate());
+        // Assert that the retrieved ExpConfig matches the original one
+        assertNotNull(retrievedExpConfig, "Saved ExpConfig should not be null");
+        assertEquals(expConfig.getName(), retrievedExpConfig.getName(), "Name should match");
+        assertEquals(expConfig.getAlgorithm(), retrievedExpConfig.getAlgorithm(), "Algorithm should match");
+        assertEquals(expConfig.getStrategy(), retrievedExpConfig.getStrategy(), "Strategy should match");
+        assertEquals(expConfig.getNumClients(), retrievedExpConfig.getNumClients(), "NumClients should match");
+        assertEquals(expConfig.getStopCondition(), retrievedExpConfig.getStopCondition(), "StopCondition should match");
+        assertEquals(expConfig.getThreshold(), retrievedExpConfig.getThreshold(), "Threshold should match");
+        assertEquals(expConfig.getParameters(), retrievedExpConfig.getParameters(), "Parameters should match");
     }
 
 

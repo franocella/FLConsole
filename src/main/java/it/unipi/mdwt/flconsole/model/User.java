@@ -26,7 +26,7 @@ public class User {
     @Field("password")
     private String password;
 
-    /*
+
 
     @Field("configurations")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -36,6 +36,5 @@ public class User {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<ObjectId> experiments;
 
-    */
 
 }
