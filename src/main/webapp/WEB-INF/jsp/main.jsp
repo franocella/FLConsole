@@ -9,7 +9,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Login</title>
+    <title>Homepage</title>
     <!-- External stylesheets for icons and fonts -->
 
     <!-- Bootstrap stylesheet -->
@@ -174,30 +174,10 @@
                             <th>Stop Condition</th>
                             <th>Created At</th>
                             <th>Updated At</th>
+                            <th>Delete</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Examples -->
-                        <tr>
-                            <td>1</td>
-                            <td>Configuration 1</td>
-                            <td>Algorithm A</td>
-                            <td>Strategy 1</td>
-                            <td>10</td>
-                            <td>Condition 1</td>
-                            <td>2022-01-01 12:00:00</td>
-                            <td>2022-01-01 14:30:00</td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>Configuration 2</td>
-                            <td>Algorithm B</td>
-                            <td>Strategy 2</td>
-                            <td>20</td>
-                            <td>Condition 2</td>
-                            <td>2022-01-02 10:30:00</td>
-                            <td>2022-01-02 16:45:00</td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -251,6 +231,10 @@
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script>
+
+    let configurations = ${configurations};
+    configurations.forEach(addNewConfigToList);
+
         $(document).ready(function () {
             // Event listener for tab clicks
             $('.nav-link').on('click', function (e) {
@@ -329,7 +313,7 @@
 
                         const jsonData = JSON.parse(response);
 
-                        formData["mongoId"] = jsonData.id;
+                        formData["id"] = jsonData.id;
                         formData["creationDate"] = jsonData.creationTime;
                         formData["lastUpdate"] = jsonData.lastUpdate;
 
@@ -345,33 +329,51 @@
             }
         }
 
-        function addNewConfigToList(formData) {
-            const table = $("#ConfigTable");
+    function addNewConfigToList(formData) {
+        const table = $("#ConfigTable");
 
-            const newRow = $("<tr>");
+        const newRow = $("<tr>");
 
-            newRow.append("<td>" + formData.mongoId + "</td>");
-            newRow.append("<td>" + formData.name + "</td>");
-            newRow.append("<td>" + formData.algorithm + "</td>");
-            newRow.append("<td>" + formData.strategy + "</td>");
-            newRow.append("<td>" + formData.numClients + "</td>");
-            newRow.append("<td>" + formData.stopCondition + "</td>");
-            newRow.append("<td>" + formData.creationDate + "</td>");
-            newRow.append("<td>" + formData.lastUpdate + "</td>");
+        newRow.append("<td>" + formData.id + "</td>");
+        newRow.append("<td>" + formData.name + "</td>");
+        newRow.append("<td>" + formData.algorithm + "</td>");
+        newRow.append("<td>" + formData.strategy + "</td>");
+        newRow.append("<td>" + formData.numClients + "</td>");
+        newRow.append("<td>" + formData.stopCondition + "</td>");
+        newRow.append("<td>" + formData.creationDate + "</td>");
+        newRow.append("<td>" + formData.lastUpdate + "</td>");
 
-            table.append(newRow);
-        }
+        newRow.append('<td class="align-middle"><figure class="m-0"><img src="Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + formData.id + '\')" height="20px" width="20px"></figure></td>');
+
+        table.append(newRow);
+    }
+
+    function deleteConfig(id) {
+        console.log("Deleting config with id:", id);
+
+        $.ajax({
+            url: '/deleteConfig-' + id,
+            type: 'GET',
+            success: function (response) {
+                console.log('Server response:', response);
+
+                $('#ConfigTable tr:contains(' + id + ')').remove();
+            },
+            error: function (error) {
+                console.error('Error deleting config:', error);
+            }
+        });
+    }
 
 
-        function submitExpForm(){
-            const formData = {
-                "experimentName": $("#config-name-exp-modal").val(),
-                "flConfig": $("#FL_config_value").val(),
-
-            };
-            console.log(JSON.stringify(formData));
-            closeModal();
-        }
+    function submitExpForm(){
+        const formData = {
+            "experimentName": $("#config-name-exp-modal").val(),
+            "flConfig": $("#FL_config_value").val(),
+        };
+        console.log(JSON.stringify(formData));
+        closeModal();
+    }
 
 
         function displayConfigModal() {

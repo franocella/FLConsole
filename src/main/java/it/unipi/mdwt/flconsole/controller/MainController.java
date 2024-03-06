@@ -21,10 +21,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 @Controller
@@ -35,19 +35,17 @@ public class MainController {
     private final ExpConfigService expConfigService;
     private final Logger applicationLogger;
 
-    private void expConfigServiceSaveConfigSTUB(String userConfigurations) {
-        // STUB implementation
-    }
-    private List<String> expConfigServiceGetUsersConfigListSTUB(String email) {
-        // STUB implementation
-        return null;
-    }
+    private final ObjectMapper objectMapper;
+
+
+
     @Autowired
-    public MainController(UserService userService, ExperimentService experimentService, ExpConfigService expConfigService, Logger applicationLogger) {
+    public MainController(UserService userService, ExperimentService experimentService, ExpConfigService expConfigService, Logger applicationLogger, ObjectMapper objectMapper) {
         this.userService = userService;
         this.experimentService = experimentService;
         this.expConfigService = expConfigService;
         this.applicationLogger = applicationLogger;
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping("/login")
@@ -76,8 +74,24 @@ public class MainController {
     @GetMapping("/")
     public String home(Model model) {
         try {
-            List<ExpConfig> userConfigurations = experimentService.getExpConfigList("firstTest@example.com");
-            model.addAttribute("configurations", userConfigurations);
+            //TODO - Implement the user email retrieval
+            String email = "firstTest@example.com";
+            List<ExpConfig> userConfigurations = expConfigService.getExpConfigsForUser(email);
+
+            List<String> jsonList = userConfigurations.stream()
+                    .filter(Objects::nonNull) // Filter out null values
+                    .map(expConfig -> {
+                        try {
+                            return objectMapper.writeValueAsString(expConfig);
+                        } catch (JsonProcessingException e) {
+                            // Handle the exception if the conversion fails
+                            applicationLogger.severe("Error converting ExpConfig to JSON: " + e.getMessage());
+                            return null;
+                        }
+                    })
+                    .toList();
+
+            model.addAttribute("configurations", jsonList);
             return "main";
         } catch (BusinessException e) {
             // If an exception occurs during the process, return a server error message
@@ -95,7 +109,6 @@ public class MainController {
     public ResponseEntity<String> newConfig(@RequestBody String expConfig) {
         try {
             // Convert the JSON string to an ExpConfig object
-            ObjectMapper objectMapper = new ObjectMapper();
             ExpConfig config = objectMapper.readValue(expConfig, ExpConfig.class);
 
             //TODO - Implement the user email retrieval
@@ -136,6 +149,20 @@ public class MainController {
             applicationLogger.severe(e.getErrorType() + " occurred: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
+    }
+
+
+    @GetMapping("/deleteConfig-{id}")
+    public ResponseEntity<String> deleteConfig(@PathVariable String id) {
+
+
+        System.out.println("Delete config with ID: " + id);
+        //TODO - Implement the user email retrieval
+        String email = "firstTest@example.com";
+        expConfigService.deleteConfig(id, email);
+
+        String message = "Config with ID " + id + " successfully deleted.";
+        return ResponseEntity.ok(message);
     }
 
 

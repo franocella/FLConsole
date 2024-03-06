@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.model.Experiment;
+import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageDeliveryException;
@@ -20,6 +21,7 @@ public class ExperimentService {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final ExperimentDao experimentDao;
+
     private final Logger applicationLogger;
 
     @Autowired
@@ -69,7 +71,5 @@ public class ExperimentService {
         return new Experiment();
     }
 
-    public List<ExpConfig> getExpConfigList(String email) throws BusinessException {
-        return null;
-    }
+
 }
