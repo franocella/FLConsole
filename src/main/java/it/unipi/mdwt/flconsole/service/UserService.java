@@ -1,16 +1,30 @@
 package it.unipi.mdwt.flconsole.service;
 
+import it.unipi.mdwt.flconsole.dao.ExperimentDao;
+import it.unipi.mdwt.flconsole.dao.UserDAO;
+import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.utils.Validator;
 
 import javax.naming.AuthenticationException;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * Service class for handling authentication operations.
  */
 @Service
 public class UserService {
+
+    private final UserDAO userDAO;
+
+    @Autowired
+    public UserService(UserDAO userDAO) {
+        this.userDAO = userDAO;
+    }
+
 
     /**
      * Stub method simulating login through a DAO (Data Access Object).
@@ -68,4 +82,8 @@ public class UserService {
             throw new AuthenticationException("An error occurred");
         }
     }
+
+    /*public List<ExpConfig> allUserConfig(String email) {
+        return userDAO.findExpConfigsByConfigurations_Email(email);
+    }*/
 }
