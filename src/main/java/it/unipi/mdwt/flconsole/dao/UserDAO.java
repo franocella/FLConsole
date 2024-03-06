@@ -18,6 +18,8 @@ public interface UserDAO extends MongoRepository<User, String> {
     void deleteByEmail(String email);
     Boolean existsByEmail(String email);
 
+    Boolean existsByEmailAndPassword(String email, String password);
+
     /*List<ExpConfig> findExpConfigsByConfigurations_Email(String userEmail);*/
 
 }

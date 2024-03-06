@@ -26,7 +26,6 @@ public class Validator {
         return StringUtils.hasText(email) && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$");
     }
 
-
     /**
      * Validates the format of a password.
      * The password must meet the following criteria to be considered valid:
@@ -43,7 +42,7 @@ public class Validator {
      * Example of a valid password: "P@ssw0rd"
      */
     public static boolean validatePassword(String password) {
-        return StringUtils.hasText(password) && password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()-=_+[]{}|;:'\",.<>?/\\\\])(?=\\S+$).{8,}$");
+        return StringUtils.hasText(password) && password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()-=_+\\[\\]{}|;:'\",.<>?/\\\\])(?=\\S+$).{8,}$");
     }
 
 }

@@ -39,7 +39,7 @@
 
     <!-- New config modal  -->
     <div id="config-modal" class="myAlert">
-        <div class="myAlertBody">
+        <div class="myAlertBody" style="padding-left:100px; padding-right:100px;">
             <h3 style="margin-bottom: 25px;">New FL configuration</h3>
             <form id="Form" action="" method="post" class="align-items-center">
                 <input type="text" class="form-control me-2 my-2" name="config-name-modal" id="config-name-modal" required placeholder="Configuration name"/>
@@ -407,11 +407,50 @@
             document.getElementById("exp-modal").style.display = "none";
             document.getElementById("config-modal").style.display = "none";
             document.getElementById("overlay").style.display = "none";
+
+            resetModalFields("config-modal");
+            resetModalFields("exp-modal");
         }
 
+    function resetModalFields(modalId) {
+        // Reset the values of the fields in the modal
+        const modal = $("#" + modalId);
+
+        if (modalId === "config-modal") {
+            // Fields for config-modal
+            modal.find("#config-name-modal").val("");
+            modal.find("#ClientStrategyModal").val("Client strategy");
+            modal.find("#NumberOfClients").val("");
+            modal.find("#AlgorithmModal").val("Algorithm");
+            modal.find("#StopConditionModal").val("Stop condition");
+            modal.find("#StopThreshold").val("");
+        } else if (modalId === "exp-modal") {
+            // Fields for exp-modal
+            modal.find("#config-name-exp-modal").val("");
+            modal.find("#FL_config_value").val("FL configuration");
+        }
+
+        // Reset values in the parameters table
+        const table = modal.find("#parametersTable")[0];
+        const rowCount = table.tBodies[0].rows.length;
+
+        for (let i = rowCount - 1; i >= 2; i--) {
+            table.tBodies[0].deleteRow(i);
+        }
+
+        // Update the first row values
+        const firstRow = table.tBodies[0].rows[0];
+        firstRow.cells[0].textContent = "Parameter 1";
+        firstRow.cells[1].textContent = "Value 1";
+
+        // Update the second row values
+        const secondRow = table.tBodies[0].rows[1];
+        secondRow.cells[0].textContent = "Parameter 2";
+        secondRow.cells[1].textContent = "Value 2";
+    }
 
 
-        function addRow() {
+    function addRow() {
             const table = document.getElementById("parametersTable");
             if (table.tBodies[0].rows.length < 5) {
                 const newRow = table.tBodies[0].insertRow(table.tBodies[0].rows.length);
