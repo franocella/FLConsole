@@ -7,6 +7,8 @@ import it.unipi.mdwt.flconsole.utils.Validator;
 
 import javax.naming.AuthenticationException;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -66,24 +68,19 @@ public class UserService {
      */
     public void authenticate(String email, String password) throws AuthenticationException {
         // Validate email and password using the Validator utility class
-        if (Validator.validateEmail(email)) {
+        if (!Validator.validateEmail(email)) {
             throw new AuthenticationException("Invalid email");
         }
-        if (Validator.validatePassword(password)) {
+
+        if (!Validator.validatePassword(password)) {
             throw new AuthenticationException("Invalid password");
         }
 
-        // TODO: Implement DAO for real authentication
-        try {
-            if (!STUBLoginDAO()) {
-                throw new AuthenticationException("Invalid credentials");
-            }
-        } catch (Exception e) {
-            throw new AuthenticationException("An error occurred");
-        }
+        if(!userDAO.existsByEmailAndPassword(email, password)) throw new AuthenticationException("Invalid credentials");
+
     }
 
-    /*public List<ExpConfig> allUserConfig(String email) {
-        return userDAO.findExpConfigsByConfigurations_Email(email);
-    }*/
+
+
+
 }

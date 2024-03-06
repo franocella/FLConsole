@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.model.Experiment;
+import it.unipi.mdwt.flconsole.service.CookieService;
 import it.unipi.mdwt.flconsole.service.ExpConfigService;
 import it.unipi.mdwt.flconsole.service.UserService;
 import it.unipi.mdwt.flconsole.service.ExperimentService;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.naming.AuthenticationException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -35,16 +37,18 @@ public class MainController {
     private final ExpConfigService expConfigService;
     private final Logger applicationLogger;
 
+    private final CookieService cookieService;
     private final ObjectMapper objectMapper;
 
 
 
     @Autowired
-    public MainController(UserService userService, ExperimentService experimentService, ExpConfigService expConfigService, Logger applicationLogger, ObjectMapper objectMapper) {
+    public MainController(UserService userService, ExperimentService experimentService, ExpConfigService expConfigService, Logger applicationLogger, CookieService cookieService, ObjectMapper objectMapper) {
         this.userService = userService;
         this.experimentService = experimentService;
         this.expConfigService = expConfigService;
         this.applicationLogger = applicationLogger;
+        this.cookieService = cookieService;
         this.objectMapper = objectMapper;
     }
 
@@ -53,23 +57,32 @@ public class MainController {
         return "login";
     }
 
+
     @PostMapping("/login")
-    public String loginPOST(HttpServletRequest request, HttpServletResponse response, Model model) {
+    public ResponseEntity<String> loginPOSTJson(HttpServletRequest request, HttpServletResponse response) {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
         try {
             userService.authenticate(email, password);
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            return "login";
+
+            // Authentication successful, set cookie
+            cookieService.setCookie("email", email, response);
+
+            // Return a success JSON response
+            return ResponseEntity.ok("{\"status\": \"success\"}");
+        } catch (AuthenticationException e) {
+            // Return an error JSON response
+            applicationLogger.severe("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"error\": \"" + e.getMessage() + "\"}");
         }
-
-        // TODO: implement cookie creation with user email
-
-        return "redirect:/home";
     }
 
+    @GetMapping("/logout")
+    public String logoutGET(HttpServletResponse response) {
+        cookieService.deleteCookie("email", response);
+        return "redirect:/login";
+    }
 
     @GetMapping("/")
     public String home(Model model) {

@@ -12,54 +12,42 @@ import java.util.logging.*;
 @Configuration
 public class ApplicationLogConfig {
 
-    private static volatile Logger applicationLogger;
     private static final String LOG_FILE = "applicationLog.txt";
     private static final String DIR = "logs";
     private static final String PROJECT_PATH = System.getProperty("user.dir");
     private static final int LOG_SIZE_LIMIT = 1024 * 1024; // 1MB per file
     private static final int LOG_FILE_COUNT = 5; // 5 files max
-    private static final Object lock = new Object();
 
-    /**
-     * Returns the application logger.
-     *
-     * <p>The logger is thread-safe and configured to write to a file with a maximum size of 1MB.
-     * It is configured to write to a maximum of 5 files.
-     *
-     * @throws RuntimeException if an error occurs while creating the logger
-     * @return application logger
-     */
+    private static final Logger applicationLogger = createLogger();
+
     @Bean
     public Logger applicationLogger() {
-        if (applicationLogger == null) {
-            synchronized (lock) {
-                if (applicationLogger == null) {
-                    try {
-                        // Create the log directory if it doesn't exist
-                        createLogDirectory();
-
-                        applicationLogger = Logger.getLogger("ApplicationLogger");
-                        Path logFilePath = Paths.get(PROJECT_PATH, DIR, LOG_FILE);
-                        Handler fileHandler = new FileHandler(logFilePath.toString(), LOG_SIZE_LIMIT, LOG_FILE_COUNT, true);
-                        SimpleFormatter formatterTxt = new SimpleFormatter();
-                        fileHandler.setFormatter(formatterTxt);
-                        applicationLogger.addHandler(fileHandler);
-                        applicationLogger.setLevel(Level.ALL);
-                        applicationLogger.setUseParentHandlers(false);
-                        applicationLogger.log(Level.CONFIG, "Logger: {0} created.", applicationLogger.getName());
-                    } catch (IOException e) {
-                        applicationLogger.log(Level.SEVERE, "Error in Logger creation", e);
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-        }
         return applicationLogger;
     }
 
-    private void createLogDirectory() throws IOException {
-        Path logDirectoryPath = Paths.get(PROJECT_PATH, DIR);
+    private static Logger createLogger() {
+        try {
+            createLogDirectory();
 
+            Logger logger = Logger.getLogger("ApplicationLogger");
+            Path logFilePath = Paths.get(PROJECT_PATH, DIR, LOG_FILE);
+            Handler fileHandler = new FileHandler(logFilePath.toString(), LOG_SIZE_LIMIT, LOG_FILE_COUNT, true);
+            SimpleFormatter formatterTxt = new SimpleFormatter();
+            fileHandler.setFormatter(formatterTxt);
+            logger.addHandler(fileHandler);
+            logger.setLevel(Level.ALL);
+            logger.setUseParentHandlers(false);
+            logger.log(Level.CONFIG, "Logger: {0} created.", logger.getName());
+            return logger;
+        } catch (IOException | SecurityException e) {
+            Logger.getLogger(ApplicationLogConfig.class.getName())
+                    .log(Level.SEVERE, "Error during Logger creation", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void createLogDirectory() throws IOException {
+        Path logDirectoryPath = Paths.get(PROJECT_PATH, DIR);
         if (!Files.exists(logDirectoryPath)) {
             try {
                 Files.createDirectories(logDirectoryPath);
@@ -69,3 +57,4 @@ public class ApplicationLogConfig {
         }
     }
 }
+

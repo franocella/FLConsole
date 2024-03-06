@@ -51,9 +51,9 @@ a:hover{
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 90%; /* Set the width to occupy almost the entire screen */
+    width: auto;
     max-width: 900px; /* maximum width */
-    height: 80vh; /* Set the height in viewport height (vh) to occupy 70% of the screen height */
+    height: auto;
     background-color: white;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     z-index: 9997;
@@ -66,13 +66,14 @@ a:hover{
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 90%; /* Set the width to occupy almost the entire screen */
+    width: auto;
     max-width: 500px; /* maximum width for small screens */
-    height: 50vh; /* Set the height in viewport height (vh) to occupy 80% of the screen height */
+    height: auto;
     background-color: white;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Reduce the shadow for small screens */
     z-index: 9997;
     border-radius: 15px; /* Slightly reduce the border radius */
+    padding: 20px;
 }
 
 .myAlertBody {
@@ -82,7 +83,7 @@ a:hover{
     align-items: center;
     height: 100%;
     width: 100%;
-    padding: 20px;
+    padding: 30px;
     overflow-y: auto;
 }
 
@@ -90,18 +91,13 @@ a:hover{
 /* Tablets and small screens */
 @media (max-width: 768px) {
     .myAlert {
-        width: 80%; /* Reduce the width on smaller screens */
         max-width: 400px; /* Set a maximum width on smaller screens */
-        height: 80vh; /* Reduce the height on smaller screens */
     }
 }
 /* Smartphones */
 @media (max-width: 413px) {
     .myAlert {
-        width: 90%; /* Adjust the width for smaller screens like smartphones */
         max-width: none; /* Remove the maximum width for smartphones */
-        height: 90vh; /* Adjust the height for smaller screens */
-        padding: 2px; /* Reduce padding for smartphones */
     }
 }
 

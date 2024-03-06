@@ -107,4 +107,36 @@ class UserDAOTest {
         // Then
         assertFalse(userRepository.existsByEmail(emailToDelete));
     }
+
+    @Test
+    void existsByEmail() {
+        // Given
+        String existingEmail = "firstTest@example.com";
+        String nonExistingEmail = "nonExisting@example.com";
+
+        // When
+        boolean existingEmailResult = userRepository.existsByEmail(existingEmail);
+        boolean nonExistingEmailResult = userRepository.existsByEmail(nonExistingEmail);
+
+        // Then
+        assertTrue(existingEmailResult, "User with existing email should exist");
+        assertFalse(nonExistingEmailResult, "User with non-existing email should not exist");
+    }
+
+    @Test
+    void existsByEmailAndPassword() {
+        // Given
+        String existingEmail = "firstTest@example.com";
+        String correctPassword = "P@ssw0rd";
+        String incorrectPassword = "wrongPassword";
+
+        // When
+        boolean correctCredentialsResult = userRepository.existsByEmailAndPassword(existingEmail, correctPassword);
+        boolean incorrectCredentialsResult = userRepository.existsByEmailAndPassword(existingEmail, incorrectPassword);
+
+        // Then
+        assertTrue(correctCredentialsResult, "User with correct credentials should exist");
+        assertFalse(incorrectCredentialsResult, "User with incorrect credentials should not exist");
+    }
+
 }
