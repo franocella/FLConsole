@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -103,11 +104,22 @@ public class MainController {
             // Perform the configuration save
             expConfigService.saveConfig(config, email);
 
+            System.out.println(config.getId()+" "+config.getCreationDate()+" "+config.getLastUpdate());
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
             // Create the JSON response with the data
             Map<String, Object> response = new HashMap<>();
             response.put("id", config.getId());
-            response.put("creationTime", config.getCreationDate());
-            response.put("lastUpdate", config.getLastUpdate());
+
+            if (config.getCreationDate() != null) {
+                String creationTime = dateFormat.format(config.getCreationDate());
+                response.put("creationTime", creationTime);
+            }
+
+            if (config.getLastUpdate() != null) {
+                String lastUpdate = dateFormat.format(config.getLastUpdate());
+                response.put("lastUpdate", lastUpdate);
+            }
 
             // Convert the response map to a JSON string
             String jsonResponse = objectMapper.writeValueAsString(response);

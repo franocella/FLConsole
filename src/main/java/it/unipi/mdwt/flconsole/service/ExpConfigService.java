@@ -49,4 +49,14 @@ public class ExpConfigService {
         }
     }
 
+    public void deleteConfig(String configId, String userEmail) {
+        // Delete the configuration
+        experimentDao.deleteById(configId);
+
+        // Remove the configuration from the user's list of configurations
+        Query query = new Query(Criteria.where("email").is(userEmail));
+        Update update = new Update().pull("configurations", configId);
+        mongoTemplate.updateFirst(query, update, User.class);
+    }
+
 }

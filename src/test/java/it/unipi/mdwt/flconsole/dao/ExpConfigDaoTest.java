@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
-import java.time.LocalDate;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,7 +24,7 @@ class ExpConfigDaoTest {
 
 
     @Test
-    void save() {
+    void saveAndRetrieve() {
         // Given
         ExpConfig expConfig = new ExpConfig();
         expConfig.setName("TestConfig");
@@ -44,11 +43,12 @@ class ExpConfigDaoTest {
         // Then
         assertNotNull(savedExpConfig.getId(), "ID should not be null after save");
 
-        // Retrieve the saved ExpConfig from the database
-        ExpConfig retrievedExpConfig = mongoTemplate.findById(savedExpConfig.getId(), ExpConfig.class);
+        // Retrieve the saved ExpConfig from the repository
+        Optional<ExpConfig> retrievedExpConfigOptional = expConfigDao.findById(savedExpConfig.getId());
 
         // Assert that the retrieved ExpConfig matches the original one
-        assertNotNull(retrievedExpConfig, "Saved ExpConfig should not be null");
+        assertTrue(retrievedExpConfigOptional.isPresent(), "Saved ExpConfig should be present");
+        ExpConfig retrievedExpConfig = retrievedExpConfigOptional.get();
         assertEquals(expConfig.getName(), retrievedExpConfig.getName(), "Name should match");
         assertEquals(expConfig.getAlgorithm(), retrievedExpConfig.getAlgorithm(), "Algorithm should match");
         assertEquals(expConfig.getStrategy(), retrievedExpConfig.getStrategy(), "Strategy should match");

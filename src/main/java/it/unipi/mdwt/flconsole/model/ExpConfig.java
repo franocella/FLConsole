@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.event.BeforeSaveEvent;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -36,10 +37,10 @@ public class ExpConfig {
 
     @Field("creationDate")
     @CreatedDate
-    private LocalDate creationDate;
+    private Date creationDate;
 
     @Field("lastUpdate")
     @LastModifiedDate
-    private LocalDate lastUpdate;
+    private Date lastUpdate;
 
 }

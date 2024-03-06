@@ -16,6 +16,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
     <!-- Custom stylesheet -->
     <link rel="stylesheet" href="CSS/main.css" />
+
 </head>
 
 <body style="background-color: #f8f8fe;">
@@ -325,12 +326,14 @@
                     contentType: "application/json",
                     data: JSON.stringify(formData),
                     success: function(response) {
-                        console.log(response.message);
 
-                        formData.id = response.id;
-                        formData.creationDate = response.creationTime;
-                        formData.lastUpdate = response.lastUpdate;
+                        const jsonData = JSON.parse(response);
 
+                        formData["mongoId"] = jsonData.id;
+                        formData["creationDate"] = jsonData.creationTime;
+                        formData["lastUpdate"] = jsonData.lastUpdate;
+
+                        console.log("New config:", formData);
                         addNewConfigToList(formData);
 
                         closeModal();
@@ -347,7 +350,7 @@
 
             const newRow = $("<tr>");
 
-            newRow.append("<td>" + formData.id + "</td>");
+            newRow.append("<td>" + formData.mongoId + "</td>");
             newRow.append("<td>" + formData.name + "</td>");
             newRow.append("<td>" + formData.algorithm + "</td>");
             newRow.append("<td>" + formData.strategy + "</td>");
