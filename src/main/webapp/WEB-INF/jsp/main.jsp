@@ -43,14 +43,14 @@
             <h3 style="margin-bottom: 25px;">New FL configuration</h3>
             <form id="Form" action="" method="post" class="align-items-center">
                 <input type="text" class="form-control me-2 my-2" name="config-name-modal" id="config-name-modal" required placeholder="Configuration name"/>
-            
+
                 <select id="ClientStrategyModal" class="form-select me-2 my-2">
                     <option selected>Client strategy</option>
                     <option value="1">One</option>
                     <option value="2">Two</option>
                     <option value="3">Three</option>
                 </select>
-            
+
                 <input type="number" class="form-control me-2 my-2" name="NumberOfClients" step="1" id="NumberOfClients" required placeholder="Number of clients"/>
 
                 <select id="AlgorithmModal" class="form-select me-2">
@@ -66,9 +66,9 @@
                     <option value="2">Two</option>
                     <option value="3">Three</option>
                 </select>
-                
+
                 <input type="number" class="form-control me-2 my-2" name="StopThreshold" step="0.00001" min="0" max="1" id="StopThreshold" required placeholder="Stop condition threshold"/>
-    
+
                 <table id="parametersTable" class="table mt-3 text-center my-2">
                     <thead>
                         <tr>
@@ -98,7 +98,7 @@
                     <a onclick="closeModal()" class="btn btn-danger">Cancel</a>
                 </div>
             </form>
-            
+
         </div>
     </div>
 
@@ -108,20 +108,20 @@
             <h3 style="margin-bottom: 25px;">New experiment</h3>
             <div class="align-items-center">
                 <input type="text" class="form-control me-2 my-2" id="config-name-exp-modal" required placeholder="Configuration name"/>
-            
+
                 <select id="FL_config_value" class="form-select me-2 my-2">
                     <option selected>FL configuration</option>
                     <option value="1">One</option>
                     <option value="2">Two</option>
                     <option value="3">Three</option>
                 </select>
-                
+
                 <div class="text-end my-3">
                     <a class="btn btn-primary me-2" onclick="submitExpForm()">Save</a>
                     <a onclick="closeModal()" class="btn btn-danger">Cancel</a>
                 </div>
             </div>
-            
+
         </div>
     </div>
 
@@ -143,7 +143,7 @@
             <div class="container py-2 my-2" style="box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);">
                 <div class="d-flex align-items-center">
                     <input type="text" class="form-control me-2" name="config-name" id="ExpConfigName" required placeholder="Configuration name"/>
-                
+
                     <select class="form-select me-2">
                         <option selected>Client strategy</option>
                         <option value="1">One</option>
@@ -157,12 +157,12 @@
                         <option value="2">Two</option>
                         <option value="3">Three</option>
                     </select>
-                
+
                     <button class="btn btn-primary me-2">Search</button>
                     <a onclick="displayConfigModal()" class="btn btn-primary">New</a>
                 </div>
-                
-                
+
+
                 <table id="ConfigTable" class="table mt-3 text-center" style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
                     <thead>
                         <tr>
@@ -193,8 +193,8 @@
                     <button class="btn btn-primary me-2">Search</button>
                     <a onclick="displayExpModal()" class="btn btn-primary">New</a>
                 </div>
-                
-                
+
+
                 <table class="table mt-3 text-center" style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
                     <thead>
                         <tr>
@@ -334,14 +334,15 @@
 
         const newRow = $("<tr>");
 
-        newRow.append("<td>" + formData.id + "</td>");
-        newRow.append("<td>" + formData.name + "</td>");
-        newRow.append("<td>" + formData.algorithm + "</td>");
-        newRow.append("<td>" + formData.strategy + "</td>");
-        newRow.append("<td>" + formData.numClients + "</td>");
-        newRow.append("<td>" + formData.stopCondition + "</td>");
-        newRow.append("<td>" + formData.creationDate + "</td>");
-        newRow.append("<td>" + formData.lastUpdate + "</td>");
+        newRow.append("<td class='align-middle'>" + formData.id + "</td>");
+        newRow.append("<td class='align-middle'>" + formData.name + "</td>");
+        newRow.append("<td class='align-middle'>" + formData.algorithm + "</td>");
+        newRow.append("<td class='align-middle'>" + formData.strategy + "</td>");
+        newRow.append("<td class='align-middle'>" + formData.numClients + "</td>");
+        newRow.append("<td class='align-middle'>" + formData.stopCondition + "</td>");
+        newRow.append("<td class='align-middle'>" + formData.creationDate + "</td>");
+        newRow.append("<td class='align-middle'>" + formData.lastUpdate + "</td>");
+
 
         newRow.append('<td class="align-middle"><figure class="m-0"><img src="Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + formData.id + '\')" height="20px" width="20px"></figure></td>');
 
@@ -380,7 +381,7 @@
 
             const overlayElement = document.getElementById("overlay");
             overlayElement.style.display = "block";
-            
+
             let body = document.getElementsByTagName("body")[0];
             body.style.overflowY = "hidden";
 
@@ -389,10 +390,10 @@
         }
 
         function displayExpModal() {
-     
+
             const overlayElement = document.getElementById("overlay");
             overlayElement.style.display = "block";
-            
+
             let body = document.getElementsByTagName("body")[0];
             body.style.overflowY = "hidden";
 
@@ -407,7 +408,7 @@
             document.getElementById("config-modal").style.display = "none";
             document.getElementById("overlay").style.display = "none";
         }
-        
+
 
 
         function addRow() {
@@ -420,8 +421,8 @@
                 cell2.contentEditable = true;
                 cell1.textContent = "New Parameter";
                 cell2.textContent = "New Value";
-        
-            }   
+
+            }
         }
 
         function deleteRow() {
