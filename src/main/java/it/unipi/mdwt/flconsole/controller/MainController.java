@@ -83,12 +83,35 @@ public class MainController {
         cookieService.deleteCookie("email", response);
         return "redirect:/login";
     }
+    @GetMapping("/signup")
+    public String signUp() {
+        return "signup";
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<String> signUp(HttpServletRequest request, HttpServletResponse response) {
+        String email = request.getParameter("email");
+        String password = request.getParameter("password");
+
+        try {
+            userService.signUp(email, password);
+
+            // Authentication successful, set cookie
+            cookieService.setCookie("email", email, response);
+
+            // Return a success JSON response
+            return ResponseEntity.ok("{\"status\": \"success\"}");
+        } catch (AuthenticationException e) {
+            // Return an error JSON response
+            applicationLogger.severe("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"error\": \"" + e.getMessage() + "\"}");
+        }
+    }
 
     @GetMapping("/")
-    public String home(Model model) {
+    public String home(Model model, HttpServletRequest request) {
         try {
-            //TODO - Implement the user email retrieval
-            String email = "firstTest@example.com";
+            String email = cookieService.getCookieValue(request.getCookies(),"email");
             List<ExpConfig> userConfigurations = expConfigService.getExpConfigsForUser(email);
 
             List<String> jsonList = userConfigurations.stream()
@@ -119,13 +142,12 @@ public class MainController {
 
 
     @PostMapping("/newConfig")
-    public ResponseEntity<String> newConfig(@RequestBody String expConfig) {
+    public ResponseEntity<String> newConfig(@RequestBody String expConfig, HttpServletRequest request) {
         try {
             // Convert the JSON string to an ExpConfig object
             ExpConfig config = objectMapper.readValue(expConfig, ExpConfig.class);
 
-            //TODO - Implement the user email retrieval
-            String email = "firstTest@example.com";
+            String email = cookieService.getCookieValue(request.getCookies(),"email");
 
             // Perform the configuration save
             expConfigService.saveConfig(config, email);
@@ -166,12 +188,10 @@ public class MainController {
 
 
     @GetMapping("/deleteConfig-{id}")
-    public ResponseEntity<String> deleteConfig(@PathVariable String id) {
+    public ResponseEntity<String> deleteConfig(@PathVariable String id, HttpServletRequest request) {
 
 
-        System.out.println("Delete config with ID: " + id);
-        //TODO - Implement the user email retrieval
-        String email = "firstTest@example.com";
+        String email = cookieService.getCookieValue(request.getCookies(),"email");
         expConfigService.deleteConfig(id, email);
 
         String message = "Config with ID " + id + " successfully deleted.";
