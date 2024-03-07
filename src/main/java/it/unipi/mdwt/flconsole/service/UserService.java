@@ -3,10 +3,12 @@ package it.unipi.mdwt.flconsole.service;
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
 import it.unipi.mdwt.flconsole.dao.UserDAO;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
+import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.Validator;
 
 import javax.naming.AuthenticationException;
 
+import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +83,22 @@ public class UserService {
     }
 
 
+    public void signUp(String email, String password) throws AuthenticationException {
+        User user = new User();
 
-
+        // Validate email and password using the Validator utility class
+        if (!Validator.validateEmail(email)) {
+            throw new AuthenticationException("Invalid email");
+        }
+        if (!Validator.validatePassword(password)) {
+            throw new AuthenticationException("Invalid password");
+        }
+        user.setEmail(email);
+        user.setPassword(password);
+        try {
+            userDAO.saveWithException(user);
+        } catch (DaoException e) {
+            throw new AuthenticationException("User already exists");
+        }
+    }
 }
