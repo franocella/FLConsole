@@ -32,3 +32,12 @@ build/
 ### VS Code ###
 .vscode/
 /logs/
+
+
+### Latex ###
+documentation/main.toc
+documentation/main.synctex.gz
+documentation/main.log
+documentation/main.fls
+documentation/main.fdb_latexmk
+documentation/main.aux

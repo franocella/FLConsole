@@ -1,0 +1,39 @@
+\documentclass[a4paper,titlepage]{report}
+\usepackage{graphicx}
+\usepackage[a4paper, margin=1in]{geometry} % Imposta tutti i margini a 1 pollice
+\usepackage{titlesec}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{amsmath}
+\usepackage{booktabs}
+
+
+\definecolor{myBlue}{rgb}{0.0745, 0.2157, 0.4118}
+\definecolor{myLightBlue}{rgb}{0, 0.5647, 0.5843}
+
+\titleformat{\section}[hang]{\Large\bfseries\color{myBlue}}{}{0px}{}[\titlerule]
+\titleformat{\subsection}[hang]{\large\bfseries\color{myLightBlue}}{}{0em}{}
+\titleformat{\subsubsection}[hang]{\bfseries\color{myBlue}}{}{0em}{}
+
+% Set the dimension of titles of chapters to \LARGE and 
+\titleformat{\chapter}[display]
+  {\normalfont\Large\bfseries}{}{0pt}{\LARGE}
+
+% remove the word "Chapter" and the number from the title
+\renewcommand{\chaptername}{}
+
+\setcounter{tocdepth}{1} % Include only chapter and section in the table of contents
+
+\begin{document}
+
+\input{chapters/0_Coverpage.tex}
+
+\tableofcontents
+
+\input{chapters/1_Introduction.tex}
+\input{chapters/2_Analisys.tex}
+\input{chapters/3_Design.tex}
+\input{chapters/4_Implementation.tex}
+\input{chapters/5_Testing.tex}
+\input{chapters/6_Conclusion.tex}
+
+\end{document}
