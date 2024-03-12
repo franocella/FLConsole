@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -139,4 +141,46 @@ class UserDAOTest {
         assertFalse(incorrectCredentialsResult, "User with incorrect credentials should not exist");
     }
 
+    @Test
+    void saveAdmin() {
+        // Given
+        String adminEmail = "admin@example.com";
+        String adminPassword = "AdminP@ss";
+        String adminRole = "admin";
+
+        // When
+        User adminUser = new User();
+        adminUser.setEmail(adminEmail);
+        adminUser.setPassword(adminPassword);
+        adminUser.setRole(adminRole);
+
+        // Then
+        assertDoesNotThrow(() -> {
+            User savedAdmin = userRepository.saveWithException(adminUser);
+
+            assertNotNull(savedAdmin.getId());
+            assertEquals(adminEmail, savedAdmin.getEmail());
+            assertEquals(adminPassword, savedAdmin.getPassword());
+            assertEquals(adminRole, savedAdmin.getRole());
+
+            // Check if the saved user can be retrieved by email and password
+            User retrievedAdmin = userRepository.findRoleByEmailAndPassword(adminEmail, adminPassword);
+            assertEquals(adminRole, retrievedAdmin.getRole());
+        });
+    }
+
+
+    @Test
+    void findRoleByEmailAndPasswordForAdmin() {
+        // Given
+        String adminEmail = "admin@example.com";
+        String adminPassword = "AdminP@ss";
+
+        // When
+        User retrievedAdmin = userRepository.findRoleByEmailAndPassword(adminEmail, adminPassword);
+
+        // Then
+        assertNotNull(retrievedAdmin);
+        assertEquals("admin", retrievedAdmin.getRole());  // Assuming "admin" is the expected role
+    }
 }

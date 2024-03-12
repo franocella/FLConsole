@@ -42,5 +42,8 @@ public class User {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<ExperimentSummary> experiments;
 
+    @Field("role")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private String role;
 
 }

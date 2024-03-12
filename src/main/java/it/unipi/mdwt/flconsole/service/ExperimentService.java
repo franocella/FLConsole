@@ -7,6 +7,10 @@ import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -72,4 +76,14 @@ public class ExperimentService {
     }
 
 
+    public Page<Experiment> getRecentExperiments(int page, int pageSize) {
+        // Sorting criterion for creationDate in descending order
+        Sort sort = Sort.by(Sort.Order.desc("creationDate"));
+
+        // Creating a Pageable object
+        Pageable pageable = PageRequest.of(page, pageSize, sort);
+
+        // Calling the repository to retrieve paginated and sorted experiments
+        return experimentDao.findAllOrderByCreationDateDesc(pageable);
+    }
 }
