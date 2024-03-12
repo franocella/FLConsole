@@ -104,6 +104,11 @@ public class MainController {
     }
 
     @GetMapping("/")
+    public String home() {
+        return "userDashboard";
+    }
+
+    /*@GetMapping("/")
     public String home(Model model, @RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = "10") int pageSize) {
         try {
@@ -124,7 +129,7 @@ public class MainController {
             model.addAttribute("error", "Internal server error");
             return "error";
         }
-    }
+    }*/
 
     @GetMapping("/access-denied")
     public String accessDeniedPage() {

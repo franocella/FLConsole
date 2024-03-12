@@ -76,7 +76,7 @@ public class ExperimentService {
     }
 
 
-    public Page<Experiment> getRecentExperiments(int page, int pageSize) {
+/*    public Page<Experiment> getRecentExperiments(int page, int pageSize) {
         // Sorting criterion for creationDate in descending order
         Sort sort = Sort.by(Sort.Order.desc("creationDate"));
 
@@ -85,5 +85,5 @@ public class ExperimentService {
 
         // Calling the repository to retrieve paginated and sorted experiments
         return experimentDao.findAllOrderByCreationDateDesc(pageable);
-    }
+    }*/
 }

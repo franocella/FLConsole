@@ -47,7 +47,9 @@ public class AdminController {
         this.objectMapper = objectMapper;
     }
 
-    @GetMapping("/")
+
+
+    @GetMapping("/dashboard")
     public String home(Model model, HttpServletRequest request) {
         try {
             String email = cookieService.getCookieValue(request.getCookies(),"email");
@@ -67,7 +69,7 @@ public class AdminController {
                     .toList();
 
             model.addAttribute("configurations", jsonList);
-            return "main";
+            return "adminDashboard";
         } catch (BusinessException e) {
             // If an exception occurs during the process, return a server error message
             applicationLogger.severe(e.getErrorType()+" occurred:" + e.getMessage());

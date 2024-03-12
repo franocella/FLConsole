@@ -16,6 +16,5 @@ public interface ExperimentDao extends MongoRepository<Experiment, String> {
     // No need to provide implementations for CRUD methods,
     // Spring Data MongoDB will automatically generate them.
 
-    Page<Experiment> findAllOrderByCreationDateDesc(Pageable pageable);
 
 }

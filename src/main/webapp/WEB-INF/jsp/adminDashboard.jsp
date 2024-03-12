@@ -9,13 +9,13 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Homepage</title>
+    <title>Admin Dashboard</title>
     <!-- External stylesheets for icons and fonts -->
 
     <!-- Bootstrap stylesheet -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
     <!-- Custom stylesheet -->
-    <link rel="stylesheet" href="CSS/main.css" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/main.css" />
 
 </head>
 
@@ -306,7 +306,7 @@
 
                 $.ajax({
                     type: "POST",
-                    url: "/newConfig",
+                    url: "/admin/newConfig",
                     contentType: "application/json",
                     data: JSON.stringify(formData),
                     success: function(response) {
@@ -344,7 +344,7 @@
         newRow.append("<td class='align-middle'>" + formData.lastUpdate + "</td>");
 
 
-        newRow.append('<td class="align-middle"><figure class="m-0"><img src="Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + formData.id + '\')" height="20px" width="20px"></figure></td>');
+        newRow.append('<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + formData.id + '\')" height="20px" width="20px"></figure></td>');
 
         table.append(newRow);
     }
@@ -353,7 +353,7 @@
         console.log("Deleting config with id:", id);
 
         $.ajax({
-            url: '/deleteConfig-' + id,
+            url: '/admin/deleteConfig-' + id,
             type: 'GET',
             success: function (response) {
                 console.log('Server response:', response);
