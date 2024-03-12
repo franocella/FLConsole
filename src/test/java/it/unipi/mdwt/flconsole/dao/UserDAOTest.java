@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -183,4 +185,22 @@ class UserDAOTest {
         assertNotNull(retrievedAdmin);
         assertEquals("admin", retrievedAdmin.getRole());  // Assuming "admin" is the expected role
     }
+
+    @Test
+    void findListOfConfigurationsByEmail() {
+        // Given
+        String userEmail = "firstTest@example.com";
+
+        // When
+        List<String> retrievedConfigurations = userRepository.findListOfConfigurationsByEmail(userEmail);
+
+        // Then
+        assertNotNull(retrievedConfigurations);
+        assertFalse(retrievedConfigurations.isEmpty());
+
+        System.out.println(retrievedConfigurations);
+    }
+
+
+
 }

@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,12 +40,18 @@ public interface UserDAO extends MongoRepository<User, String> {
 
     default User findRoleByEmailAndPasswordWithException(String email, String password) throws DaoException{
         User user = findRoleByEmailAndPassword(email, password);
-
         if (user == null) {
             throw new DaoException(DaoTypeErrorsEnum.NOT_FOUND);
         }
-
         return user;
+    }
+
+    @Query(value = "{'email' : ?0}", fields = "{'configurations' : 1}")
+    User findConfigurationsByEmail(String email);
+
+    default List<String> findListOfConfigurationsByEmail(String email){
+        User user = findConfigurationsByEmail(email);
+        return user != null ? user.getConfigurations() : Collections.emptyList();
     }
 
 

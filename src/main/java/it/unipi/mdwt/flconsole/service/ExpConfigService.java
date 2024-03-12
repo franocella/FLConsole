@@ -12,6 +12,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
@@ -39,12 +40,10 @@ public class ExpConfigService {
         User user = userDAO.findByEmail(email);
 
         if (user != null) {
-            List<ObjectId> configurationIds = user.getConfigurations();
+            List<String> configurationIds = user.getConfigurations();
 
             if (configurationIds != null && !configurationIds.isEmpty()) {
-                List<String> configurationIdStrings = configurationIds.stream()
-                        .map(ObjectId::toString)
-                        .collect(Collectors.toList());
+                List<String> configurationIdStrings = new ArrayList<>(configurationIds);
 
                 return expConfigDao.findByIdIn(configurationIdStrings);
             } else {

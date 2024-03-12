@@ -20,7 +20,7 @@ import java.util.List;
 public class User {
 
     @Id
-    private ObjectId id;
+    private String id;
 
     @Field("email")
     @Indexed(unique = true)
@@ -36,7 +36,7 @@ public class User {
 
     @Field("configurations")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private List<ObjectId> configurations;
+    private List<String> configurations;
 
     @Field("experiments")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

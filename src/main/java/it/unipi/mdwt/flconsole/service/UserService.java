@@ -3,6 +3,7 @@ package it.unipi.mdwt.flconsole.service;
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
 import it.unipi.mdwt.flconsole.dao.UserDAO;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
+import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.Validator;
 
@@ -14,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,10 +26,12 @@ import java.util.Optional;
 public class UserService {
 
     private final UserDAO userDAO;
+    private final ExperimentDao experimentDao;
 
     @Autowired
-    public UserService(UserDAO userDAO) {
+    public UserService(UserDAO userDAO, ExperimentDao experimentDao) {
         this.userDAO = userDAO;
+        this.experimentDao = experimentDao;
     }
 
     /**
@@ -78,4 +82,12 @@ public class UserService {
             throw new AuthenticationException("User already exists");
         }
     }
+
+    public List<Experiment> getExperimentsForUser(String email) {
+        List<Experiment> experiments = new ArrayList<>();
+        // Get the list of experiment IDs from the user
+        // Get the list of experiment from the Experiment Collection
+        return experiments;
+    }
+
 }
