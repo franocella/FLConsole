@@ -30,4 +30,7 @@ public class Experiment {
     @Field("lastUpdate")
     @LastModifiedDate
     private Date lastUpdate;
+
+    @Field("expConfig")
+    private ExpConfigSummary expConfig;
 }
