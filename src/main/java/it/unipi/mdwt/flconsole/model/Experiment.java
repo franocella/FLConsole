@@ -20,9 +20,6 @@ public class Experiment {
     private String name;
     private ExpConfig config;
 
-    @Field("progressList")
-    private List<ExpProgress> progressList;
-
     @Field("creationDate")
     @CreatedDate
     private Date creationDate;
@@ -32,5 +29,8 @@ public class Experiment {
     private Date lastUpdate;
 
     @Field("expConfig")
-    private ExpConfigSummary expConfig;
+    private ExpConfigSummary expConfigSummary;
+
+    @Field("progressList")
+    private List<ExpProgress> progressList;
 }

@@ -10,8 +10,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Experiment details</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
-    <link rel="stylesheet" href="CSS/main.css" />
-    <link rel="stylesheet" href="CSS/expDetails.css" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/main.css" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/expDetails.css" />
 
     <!-- Chart.js library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -29,38 +29,62 @@
 <div class="experiment">
 
     <div class="container-fluid" style="margin: 0;padding: 0">
-        <h1 style="padding-left: 10px">Experiment A</h1>
+        <h1 class="text-center mb-5" >Experiment A</h1>
         <div class="row align-items-center">
-            <div class="col ">
+            <div class="col" style="height: 460px">
                 <div>
                     <canvas id="myChart"></canvas>
                 </div>
             </div>
-            <div class="col col-infos">
-                <ul class="list-group">
-                    <li class="list-group-item title">Configuration Name:</li>
-                    <li class="list-group-item title">Algorithm:</li>
-                    <li class="list-group-item title">Client Selection Strategy:</li>
-                    <li class="list-group-item title">Number of Clients:</li>
-                    <li class="list-group-item title">Stop Condition:</li>
-                    <li class="list-group-item title">Created At:</li>
-                    <li class="list-group-item title">Updated At:</li>
-                    <li class="list-group-item title">Finished At:</li>
-                </ul>
-                <ul class="list-group d-flex flex-column flex-grow-1">
-                    <li class="list-group-item">Configuration Name</li>
-                    <li class="list-group-item">Algorithm A</li>
-                    <li class="list-group-item">Strategy 2</li>
-                    <li class="list-group-item">20</li>
-                    <li class="list-group-item">Condition 1</li>
-                    <li class="list-group-item">2022-01-01 12:00:00</li>
-                    <li class="list-group-item">2022-01-01 14:30:00</li>
-                    <li class="list-group-item">2022-01-01 14:30:00</li>
-                </ul>
+            <div class="col" style="height: 460px; padding-top: 40px; padding-left: 20px; padding-right: 20px">
+
+                    <div class="input-group">
+                        <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Configuration Name:</span>
+                        <input type="text" aria-label="Configuration Name" class="form-control">
+                    </div>
+
+                    <div class="input-group">
+                        <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Algorithm:</span>
+                        <input type="text" aria-label="Algorithm" class="form-control">
+                    </div>
+
+                    <div class="input-group">
+                        <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Client Selection Strategy:</span>
+                        <input type="text" aria-label="Client Selection Strategy" class="form-control">
+                    </div>
+
+                    <div class="input-group">
+                        <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Number of Clients:</span>
+                        <input type="text" aria-label="Number of Clients" class="form-control">
+                    </div>
+
+                    <div class="input-group">
+                        <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Stop Condition:</span>
+                        <input type="text" aria-label="Stop Condition" class="form-control">
+                    </div>
+
+                    <div class="input-group">
+                        <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Created At:</span>
+                        <input type="text" aria-label="Created At" class="form-control">
+                    </div>
+
+                    <div class="input-group">
+                        <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Updated At:</span>
+                        <input type="text" aria-label="Updated At" class="form-control">
+                    </div>
+
+                    <div class="input-group">
+                        <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Finished At:</span>
+                        <input type="text" aria-label="Finished At" class="form-control">
+                    </div>
+
+                    <button class="btn btn-primary mt-4 float-end" onclick="startExperiment()"> Start Experiment</button>
+                </div>
+
             </div>
 
-        </div>
-    <button class="btn btn-primary mt-2" onclick="startExperiment()"> Start Experiment</button>
+
+
 </div>
 </div>
 

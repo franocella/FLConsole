@@ -1,26 +1,19 @@
 package it.unipi.mdwt.flconsole.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.unipi.mdwt.flconsole.model.ExpConfig;
-import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.service.CookieService;
 import it.unipi.mdwt.flconsole.service.ExpConfigService;
 import it.unipi.mdwt.flconsole.service.UserService;
 import it.unipi.mdwt.flconsole.service.ExperimentService;
-import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
 import javax.naming.AuthenticationException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -31,10 +24,8 @@ public class MainController {
     private final ExperimentService experimentService;
     private final ExpConfigService expConfigService;
     private final Logger applicationLogger;
-
     private final CookieService cookieService;
     private final ObjectMapper objectMapper;
-
 
 
     @Autowired
@@ -135,9 +126,6 @@ public class MainController {
     public String accessDeniedPage() {
         return "access-denied";
     }
-
-
-
 
 }
 
