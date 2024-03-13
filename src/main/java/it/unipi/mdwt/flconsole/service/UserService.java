@@ -10,6 +10,7 @@ import it.unipi.mdwt.flconsole.utils.Validator;
 import javax.naming.AuthenticationException;
 
 import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoException;
+import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoTypeErrorsEnum;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,11 +46,11 @@ public class UserService {
     public Optional<String> authenticate(String email, String password) throws AuthenticationException {
         // Validate email and password using the Validator utility class
         if (!Validator.validateEmail(email)) {
-            throw new AuthenticationException("Invalid email");
+            throw new AuthenticationException("Invalid email format");
         }
 
         if (!Validator.validatePassword(password)) {
-            throw new AuthenticationException("Invalid password");
+            throw new AuthenticationException("Invalid password format");
         }
 
         try {
@@ -64,7 +65,7 @@ public class UserService {
         }
     }
 
-    public void signUp(String email, String password) throws AuthenticationException {
+    public void signUp(String email, String password) throws DaoException, AuthenticationException {
         User user = new User();
 
         // Validate email and password using the Validator utility class
@@ -79,15 +80,14 @@ public class UserService {
         try {
             userDAO.saveWithException(user);
         } catch (DaoException e) {
-            throw new AuthenticationException("User already exists");
+            throw new DaoException(DaoTypeErrorsEnum.DUPLICATED_ELEMENT);
         }
     }
 
-    public List<Experiment> getExperimentsForUser(String email) {
-        List<Experiment> experiments = new ArrayList<>();
-        // Get the list of experiment IDs from the user
-        // Get the list of experiment from the Experiment Collection
-        return experiments;
+    public void deleteAccount(String email) {
+        userDAO.deleteByEmail(email);
     }
+
+
 
 }

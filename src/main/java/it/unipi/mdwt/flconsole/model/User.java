@@ -5,15 +5,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-import org.bson.types.ObjectId;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 @Data
 @NoArgsConstructor
@@ -34,7 +31,6 @@ public class User {
     @CreatedDate
     private Date creationDate;
 
-
     @Field("configurations")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> configurations;
@@ -48,3 +44,6 @@ public class User {
     private String role;
 
 }
+
+//In the user there is the redundancy of the configurations and experiments
+//In the experiment there is the redundancy of the configurations

@@ -128,7 +128,7 @@ public class AdminController {
 
 
         String email = cookieService.getCookieValue(request.getCookies(),"email");
-        expConfigService.deleteConfig(id, email);
+        expConfigService.deleteExpConfig(id, email);
 
         String message = "Config with ID " + id + " successfully deleted.";
         return ResponseEntity.ok(message);
@@ -153,10 +153,10 @@ public class AdminController {
 
     }
 
-    @PostMapping("/start-task")
+    @PostMapping("/start-exp")
     public ResponseEntity<?> startTask() {
         try {
-            experimentService.runExp();
+            experimentService.runExperiment();
             return ResponseEntity.ok("Task started successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error starting the task");

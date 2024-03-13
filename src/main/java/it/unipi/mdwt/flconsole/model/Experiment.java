@@ -17,8 +17,11 @@ import java.util.List;
 public class Experiment {
     @Id
     private String id;
+    @Field("name")
     private String name;
-    private ExpConfig config;
+
+    @Field("expConfig")
+    private ExpConfigSummary expConfigSummary;
 
     @Field("creationDate")
     @CreatedDate
@@ -28,9 +31,7 @@ public class Experiment {
     @LastModifiedDate
     private Date lastUpdate;
 
-    @Field("expConfig")
-    private ExpConfigSummary expConfigSummary;
-
     @Field("progressList")
     private List<ExpProgress> progressList;
 }
+

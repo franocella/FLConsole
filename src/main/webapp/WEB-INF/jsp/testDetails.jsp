@@ -95,8 +95,9 @@
     // Function to start the experiment (placeholder)
     function startExperiment() {
         // Sample data to be updated when the experiment starts
-        var labels = ['January', 'February', 'March', 'April', 'May', 'June'];
-        var newData = {
+        const labels = ['January', 'February', 'March', 'April', 'May', 'June'];
+        // Update chart data with actual data
+        myChart.data = {
             labels: labels,
             datasets: [{
                 label: 'Sample Dataset',
@@ -106,9 +107,6 @@
                 data: [65, 59, 80, 81, 56, 55],
             }]
         };
-
-        // Update chart data with actual data
-        myChart.data = newData;
         myChart.update();
     }
 </script>

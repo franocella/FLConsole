@@ -78,12 +78,16 @@
                         <input type="text" aria-label="Finished At" class="form-control">
                     </div>
                     <c:if test="${role == 'admin'}">
-                        <button class="btn btn-primary mt-4 float-end" onclick="startExperiment()">Start Experiment</button>
+                        <button class="btn btn-primary mt-4 float-end" onclick="startTask()">Start Experiment</button>
                     </c:if>
                 </div>
 
             </div>
 
+
+            <div id="data-container">
+
+            </div>
 
 
 </div>
@@ -99,7 +103,7 @@
 
         stompClient.subscribe("/experiment/progress", (message) => {
             const progressUpdate = JSON.parse(message.body);
-            updateData(progressUpdate.RandomValue);
+            updateData(progressUpdate);
         });
     }, (error) => {
         console.error("WebSocket connection error:", error);
@@ -107,15 +111,15 @@
 
     function updateData(data) {
         const dataContainer = document.getElementById('data-container');
-
-        const listItem = document.createElement('li');
-        listItem.textContent = 'Random Value: ' + data;
-
-        dataContainer.appendChild(listItem);
+        const labels = Object.keys(data);
+        const dataValues = Object.values(data);
+        updateChart(labels, dataValues);
     }
 
+
+
     function startTask() {
-        fetch('/start-task', {
+        fetch('/admin/start-exp', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -154,10 +158,7 @@
         config
     );
 
-    // Function to start the experiment (placeholder)
-    function startExperiment() {
-        // Sample data to be updated when the experiment starts
-        const labels = ['January', 'February', 'March', 'April', 'May', 'June'];
+    function updateChart(labels, dataValues) {
         // Update chart data with actual data
         myChart.data = {
             labels: labels,
@@ -166,7 +167,7 @@
                 backgroundColor: 'rgba(52, 107, 171, 100)',
                 borderColor: 'rgba(52, 107, 171, 100)',
                 borderWidth: 1,
-                data: [65, 59, 80, 81, 56, 55],
+                data: dataValues,
             }]
         };
         myChart.update();

@@ -11,7 +11,37 @@ In this section, the database design of the project is presented.
 \subsection{MongoDB}
 
 The MongoDB database design is described in this subsection.
-
+\newpage
 \subsection{Erlang Message Handler}
 
 The Erlang message handler design is described in this subsection.
+
+\subsubsection{Message structure}
+\begin{itemize}
+    \item Error message \begin{verbatim}
+        {
+            "type": "stop",
+            "cause": "error_in_collecting_data",
+            "timestamp": "2024-03-13T12:34:56"
+        }
+    \end{verbatim}
+    \item Stop message \begin{verbatim}
+        {
+            "type": "stop",
+            "cause": "experiment_finished",
+            "timestamp": "2024-03-13T12:34:56"
+        }
+    \end{verbatim}
+    \item Data message \begin{verbatim}
+        {   
+            "type": "data",
+            "parameters": {
+                "param1": "value1",
+                "param2": "value2"},
+            "timestamp": "2024-03-13T12:34:56",
+            "status": "running"
+        }
+    \end{verbatim}
+\end{itemize}
+
+

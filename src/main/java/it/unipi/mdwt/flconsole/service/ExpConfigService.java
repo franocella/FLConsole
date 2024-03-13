@@ -4,7 +4,6 @@ import it.unipi.mdwt.flconsole.dao.ExpConfigDao;
 import it.unipi.mdwt.flconsole.dao.UserDAO;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.model.User;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -16,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 @Service
 public class ExpConfigService {
@@ -65,7 +63,7 @@ public class ExpConfigService {
         }
     }
 
-    public void deleteConfig(String configId, String userEmail) {
+    public void deleteExpConfig(String configId, String userEmail) {
         // Delete the configuration
         expConfigDao.deleteById(configId);
 
@@ -76,8 +74,5 @@ public class ExpConfigService {
     }
 
 
-    public void deleteExpConfig(String id) {
-        expConfigDao.deleteById(id);
 
-    }
 }
