@@ -130,25 +130,19 @@
     // Initial empty data
     const emptyData = {
         labels: [],
-        datasets: [{
-            label: 'Sample Dataset',
-            backgroundColor: 'rgba(52, 107, 171, 100)',
-            borderColor: 'rgba(52, 107, 171, 100)',
-            borderWidth: 1,
-            data: [],
-        }]
+        datasets: [],
     };
 
     // Chart.js configuration with empty data
     const config = {
-        type: 'line',
+        type: 'bar',
         data: emptyData,
         options: {
             scales: {
                 y: {
-                    beginAtZero: true
-                }
-            }
+                    beginAtZero: true,
+                },
+            },
         },
     };
 
@@ -159,17 +153,19 @@
     );
 
     function updateChart(labels, dataValues) {
-        // Update chart data with actual data
-        myChart.data = {
-            labels: labels,
-            datasets: [{
-                label: 'Sample Dataset',
-                backgroundColor: 'rgba(52, 107, 171, 100)',
-                borderColor: 'rgba(52, 107, 171, 100)',
-                borderWidth: 1,
-                data: dataValues,
-            }]
+        // Create a new dataset for each parameter
+        const newDataset = {
+            label: "Progress:" + (myChart.data.datasets.length + 1),
+            backgroundColor: 'rgba(52, 107, 171, 100)',
+            borderColor: 'rgba(52, 107, 171, 100)',
+            borderWidth: 1,
+            data: dataValues,
         };
+
+        // Update chart data with the new dataset
+        myChart.data.labels = labels;
+        myChart.data.datasets.push(newDataset);
+
         myChart.update();
     }
 </script>
