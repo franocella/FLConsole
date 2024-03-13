@@ -77,8 +77,9 @@
                         <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Finished At:</span>
                         <input type="text" aria-label="Finished At" class="form-control">
                     </div>
-
-                    <button class="btn btn-primary mt-4 float-end" onclick="startExperiment()"> Start Experiment</button>
+                    <c:if test="${role == 'admin'}">
+                        <button class="btn btn-primary mt-4 float-end" onclick="startExperiment()">Start Experiment</button>
+                    </c:if>
                 </div>
 
             </div>

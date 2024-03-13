@@ -2,6 +2,7 @@ package it.unipi.mdwt.flconsole.controller;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.service.CookieService;
 import it.unipi.mdwt.flconsole.service.ExpConfigService;
 import it.unipi.mdwt.flconsole.service.UserService;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import javax.naming.AuthenticationException;
 import java.util.*;
@@ -125,6 +127,27 @@ public class MainController {
     @GetMapping("/access-denied")
     public String accessDeniedPage() {
         return "access-denied";
+    }
+
+    @GetMapping("/experiment-{id}")
+    public String experimentDetails(@PathVariable String id, Model model, HttpServletRequest request) {
+
+        Experiment experiment;
+        String role = cookieService.getCookieValue(request.getCookies(),"role");
+        if (role != null && role.equals("admin")) {
+            model.addAttribute("role", "admin");
+        } else {
+            model.addAttribute("role", "user");
+        }
+        try {
+            experiment = experimentService.getExpDetails(id);
+            model.addAttribute("experiment", experiment);
+            return "experimentDetails";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error fetching experiment details");
+            return "error";
+        }
+
     }
 
 }

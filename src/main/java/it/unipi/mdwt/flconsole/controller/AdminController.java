@@ -134,10 +134,14 @@ public class AdminController {
         return ResponseEntity.ok(message);
     }
 
-    @GetMapping("experiment-{id}")
-    public String experimentDetails(@PathVariable String id, Model model) {
+    @GetMapping("/experiment-{id}")
+    public String experimentDetails(@PathVariable String id, Model model, HttpServletRequest request) {
 
         Experiment experiment;
+        String role = cookieService.getCookieValue(request.getCookies(),"role");
+        if (role != null && role.equals("admin")) {
+            model.addAttribute("role", "admin");
+        }
         try {
             experiment = experimentService.getExpDetails(id);
             model.addAttribute("experiment", experiment);
