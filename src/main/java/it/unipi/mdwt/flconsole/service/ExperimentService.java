@@ -81,46 +81,8 @@ public class ExperimentService {
     }
 
     public void runExperiment() throws BusinessException {
-        // Initialization and setup code
-        Map<String, Object> message;
-        int i=0;
-        while (i<10) {
-            i++;
-            try {
-                sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            String jsonMessage = erlangMessageHandler.receiveMessage();
-            try {
-                message = objectMapper.readValue(jsonMessage, Map.class);
-            } catch (IOException e) {
-                // Handle parsing exception
-                continue;
-            }
-
-            assert message != null;
-            if (message.get("type").equals("stop")) {
-                // If it's a stop message, send the confirmation to the frontend
-                    try {
-                        messagingTemplate.convertAndSend("/experiment/progress", "{\"status\": \"stopped\"}");
-                    } catch (MessageDeliveryException e) {
-                        System.out.println("WebSocket connection is closed. Cannot send stop message.");
-                    }
-                break;
-            } else {
-                // If it's not a stop message, send only the "parameters" field to the frontend
-                Map<String, String> parameters = (Map<String, String>) message.get("parameters");
-                if (parameters != null) {
-                    try {
-                        messagingTemplate.convertAndSend("/experiment/progress", parameters);
-                    } catch (MessageDeliveryException e) {
-                        System.out.println("WebSocket connection is closed. Cannot send progress message.");
-                        break;
-                    }
-                }
-            }
-        }
+        erlangMessageHandler.initialize("provaEmail");
+        erlangMessageHandler.startExperiment("exp_config");
     }
 
 
