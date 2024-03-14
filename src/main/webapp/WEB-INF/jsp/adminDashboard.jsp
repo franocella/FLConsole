@@ -201,6 +201,7 @@
                             <th>Id</th>
                             <th>Execution name</th>
                             <th>Config Name</th>
+                            <th>Creation Date</th>
                             <th>Open</th>
                         </tr>
                     </thead>
@@ -210,12 +211,7 @@
                             <td>1</td>
                             <td>Experiment A</td>
                             <td>Configuration 1</td>
-                            <td><a href="#"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>Experiment B</td>
-                            <td>Configuration 2</td>
+                            <td>2022-10-10</td>
                             <td><a href="#"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
                         </tr>
                     </tbody>

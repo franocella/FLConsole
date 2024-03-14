@@ -19,13 +19,10 @@ public class ExperimentSummary {
     @Field("name")
     private String name;
     @Field("config")
-    private ExpConfig config;
+    private String configName;
 
     @Field("creationDate")
     @CreatedDate
     private Date creationDate;
 
-    @Field("lastUpdate")
-    @LastModifiedDate
-    private Date lastUpdate;
 }

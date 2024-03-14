@@ -123,6 +123,41 @@ public class AdminController {
         }
     }
 
+    @PostMapping("/newExp")
+    public ResponseEntity<String> newExp(@RequestBody String exp, HttpServletRequest request) {
+        try {
+            // Convert the JSON string to an ExpConfig object
+            Experiment experiment = objectMapper.readValue(exp, Experiment.class);
+
+            String email = cookieService.getCookieValue(request.getCookies(),"email");
+
+            // Perform the configuration save
+            experimentService.saveExperiment(experiment, email);
+
+            // Create the JSON response with the data
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", experiment.getId());
+
+
+
+            // Convert the response map to a JSON string
+            String jsonResponse = objectMapper.writeValueAsString(response);
+
+            // Return the JSON response
+            return ResponseEntity.ok(jsonResponse);
+
+        } catch (JsonProcessingException e) {
+            // Handle the error in JSON string parsing
+            applicationLogger.severe("Error parsing JSON: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid JSON format");
+        } catch (BusinessException e) {
+            // Handle the business exception
+            applicationLogger.severe(e.getErrorType() + " occurred: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+
     @GetMapping("/deleteConfig-{id}")
     public ResponseEntity<String> deleteConfig(@PathVariable String id, HttpServletRequest request) {
 

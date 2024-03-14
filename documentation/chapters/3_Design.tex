@@ -7,10 +7,87 @@ The software architecture of the project is described in this section.
 \section{Database Design}
 
 In this section, the database design of the project is presented.
-
+\newpage
 \subsection{MongoDB}
+\subsubsection{Collections}
+\textbf{ExpConfig document example:} \begin{verbatim}
+        {
+            "id": "example_id",
+            "name": "Example Experiment",
+            "algorithm": "example_algorithm",
+            "strategy": "example_strategy",
+            "numClients": 10,
+            "stopCondition": "example_condition",
+            "threshold": 0.5,
+            "parameters": {
+                "param1": "value1",
+                "param2": "value2",
+                "param3": "value3"
+            },
+            "creationDate": "2024-03-14T00:00:00Z",
+            "lastUpdate": "2024-03-14T12:00:00Z"
+        }
+    \end{verbatim}
+\textbf{Experiment document example:} \begin{verbatim}
+        {
+            "id": "example_id",
+            "name": "Example Experiment",
+            "expConfigSummary": {
+                "id": "exp_config_id",
+                "name": "Example Configuration",
+                "algorithm": "example_algorithm"
+            },
+            "creationDate": "2024-03-14T00:00:00Z",
+            "lastUpdate": "2024-03-14T12:00:00Z",
+            "progressList": [
+                {
+                "creationDate": "2024-03-14T06:00:00Z",
+                "parameters": {
+                    "param1": "value1",
+                    "param2": "value2"
+                },
+                "status": "In progress"
+                },
+                {
+                "creationDate": "2024-03-14T09:00:00Z",
+                "parameters": {
+                    "param1": "value1",
+                    "param2": "value2",
+                    "param3": "value3"
+                },
+                "status": "Completed"
+                }
+            ]
+        }
+    \end{verbatim}
 
-The MongoDB database design is described in this subsection.
+\newpage
+\textbf{User document example:} \begin{verbatim}
+        {
+        "id": "example_user_id",
+        "email": "user@example.com",
+        "password": "example_password",
+        "creationDate": "2024-03-14T00:00:00Z",
+        "configurations": ["config_id1", "config_id2"],
+        "experiments": [
+            {
+            "id": "experiment_summary_id1",
+            "name": "Experiment 1",
+            "configName": "Configuration 1",
+            "creationDate": "2024-03-14T06:00:00Z",
+            },
+            {
+            "id": "experiment_summary_id2",
+            "name": "Experiment 2",
+            "configName": "Configuration 2",
+            "creationDate": "2024-03-14T09:00:00Z",
+            "lastUpdate": "2024-03-14T12:00:00Z"
+            }
+        ],
+        "role": "example_role"
+    }
+
+    \end{verbatim}
 \newpage
 \subsection{Erlang Message Handler}
 
@@ -20,7 +97,7 @@ The Erlang message handler design is described in this subsection.
 \begin{itemize}
     \item Error message \begin{verbatim}
         {
-            "type": "stop",
+            "type": "error",
             "cause": "error_in_collecting_data",
             "timestamp": "2024-03-13T12:34:56"
         }
@@ -37,7 +114,8 @@ The Erlang message handler design is described in this subsection.
             "type": "data",
             "parameters": {
                 "param1": "value1",
-                "param2": "value2"},
+                "param2": "value2"
+            },
             "timestamp": "2024-03-13T12:34:56",
             "status": "running"
         }
