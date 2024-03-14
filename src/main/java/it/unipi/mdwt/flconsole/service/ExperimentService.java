@@ -28,6 +28,7 @@ public class ExperimentService {
 
     private final ObjectMapper objectMapper;
 
+    @Autowired
     public ExperimentService(SimpMessagingTemplate messagingTemplate, ExperimentDao experimentDao, ErlangMessageHandler erlangMessageHandler, Logger applicationLogger) {
         this.messagingTemplate = messagingTemplate;
         this.experimentDao = experimentDao;
