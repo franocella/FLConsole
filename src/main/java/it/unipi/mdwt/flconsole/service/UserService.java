@@ -3,18 +3,22 @@ package it.unipi.mdwt.flconsole.service;
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
 import it.unipi.mdwt.flconsole.dao.UserDAO;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
+import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.Validator;
 
 import javax.naming.AuthenticationException;
 
 import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoException;
+import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoTypeErrorsEnum;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service class for handling authentication operations.
@@ -23,42 +27,12 @@ import java.util.List;
 public class UserService {
 
     private final UserDAO userDAO;
+    private final ExperimentDao experimentDao;
 
     @Autowired
-    public UserService(UserDAO userDAO) {
+    public UserService(UserDAO userDAO, ExperimentDao experimentDao) {
         this.userDAO = userDAO;
-    }
-
-
-    /**
-     * Stub method simulating login through a DAO (Data Access Object).
-     *
-     * @return true if the login is successful (stub implementation).
-     * @throws AuthenticationException if authentication fails.
-     */
-    public boolean STUBLoginDAO() throws AuthenticationException {
-        return true;
-    }
-    public boolean STUBRegistrationDAO() throws AuthenticationException {
-        return true;
-    }
-
-
-    //TODO: Implement register method
-    public void register(String email, String password) throws AuthenticationException {
-        // Validate email and password using the Validator utility class
-        if (Validator.validateEmail(email)) {
-            throw new AuthenticationException("Invalid email");
-        }
-        if (Validator.validatePassword(password)) {
-            throw new AuthenticationException("Invalid password");
-        }
-        try {
-            if (!STUBRegistrationDAO())
-                throw new AuthenticationException("Invalid credentials");
-        }catch (AuthenticationException e) {
-            throw new AuthenticationException("An error occurred");
-        }
+        this.experimentDao = experimentDao;
     }
 
     /**
@@ -67,23 +41,31 @@ public class UserService {
      * @param email    The email of the user.
      * @param password The password of the user.
      * @throws AuthenticationException if authentication fails.
+     * @return The role of the user if authentication is successful.
      */
-    public void authenticate(String email, String password) throws AuthenticationException {
+    public Optional<String> authenticate(String email, String password) throws AuthenticationException {
         // Validate email and password using the Validator utility class
         if (!Validator.validateEmail(email)) {
-            throw new AuthenticationException("Invalid email");
+            throw new AuthenticationException("Invalid email format");
         }
 
         if (!Validator.validatePassword(password)) {
-            throw new AuthenticationException("Invalid password");
+            throw new AuthenticationException("Invalid password format");
         }
 
-        if(!userDAO.existsByEmailAndPassword(email, password)) throw new AuthenticationException("Invalid credentials");
-
+        try {
+            User user = userDAO.findRoleByEmailAndPasswordWithException(email, password);
+            if (user != null) {
+                return Optional.ofNullable(user.getRole());
+            } else {
+                throw new AuthenticationException("User not found");
+            }
+        } catch (DaoException e) {
+            throw new AuthenticationException("User not found");
+        }
     }
 
-
-    public void signUp(String email, String password) throws AuthenticationException {
+    public void signUp(String email, String password) throws DaoException, AuthenticationException {
         User user = new User();
 
         // Validate email and password using the Validator utility class
@@ -98,7 +80,14 @@ public class UserService {
         try {
             userDAO.saveWithException(user);
         } catch (DaoException e) {
-            throw new AuthenticationException("User already exists");
+            throw new DaoException(DaoTypeErrorsEnum.DUPLICATED_ELEMENT);
         }
     }
+
+    public void deleteAccount(String email) {
+        userDAO.deleteByEmail(email);
+    }
+
+
+
 }
