@@ -7,10 +7,14 @@ import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoException;
 import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoTypeErrorsEnum;
 import org.bson.types.ObjectId;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserDAO extends MongoRepository<User, String> {
@@ -31,6 +35,24 @@ public interface UserDAO extends MongoRepository<User, String> {
         return save(user);
     }
 
-        /*List<ExpConfig> findExpConfigsByConfigurations_Email(String userEmail);*/
+    @Query(value = "{ 'email' : :#{#email}, 'password' : :#{#password} }", fields = "{ 'role' : 1, '_id' : 0}")
+    User findRoleByEmailAndPassword(@Param("email") String email, @Param("password") String password);
+
+    default User findRoleByEmailAndPasswordWithException(String email, String password) throws DaoException{
+        User user = findRoleByEmailAndPassword(email, password);
+        if (user == null) {
+            throw new DaoException(DaoTypeErrorsEnum.NOT_FOUND);
+        }
+        return user;
+    }
+
+    @Query(value = "{'email' : ?0}", fields = "{'configurations' : 1}")
+    User findConfigurationsByEmail(String email);
+
+    default List<String> findListOfConfigurationsByEmail(String email){
+        User user = findConfigurationsByEmail(email);
+        return user != null ? user.getConfigurations() : Collections.emptyList();
+    }
+
 
 }
