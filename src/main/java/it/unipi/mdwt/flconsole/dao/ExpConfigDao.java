@@ -13,4 +13,7 @@ public interface ExpConfigDao extends MongoRepository<ExpConfig, String> {
 
     List<ExpConfig> findByIdIn(List<String> configurationIds);
 
+    ExpConfig findByName(String name);
+    void deleteByName(String name);
+    boolean existsByName(String name);
 }
