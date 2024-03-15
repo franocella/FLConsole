@@ -23,7 +23,7 @@ public class ErlangMessageHandlerTest {
 
     @BeforeEach
     void setUp() {
-        erlangMessageHandler.initialize("flavio@gmail.com");
+
     }
 
     @Test
@@ -38,41 +38,41 @@ public class ErlangMessageHandlerTest {
         try {
             OtpNode node = new OtpNode(DIRECTOR_NODE_NAME, COOKIE);
             OtpMbox mbox = node.createMbox(DIRECTOR_MAILBOX);
-            System.out.println("Waiting for message...");
-            OtpErlangObject message = mbox.receive();
-            Random random = new Random();
-            if (message instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
-                    tuple.elementAt(0) instanceof OtpErlangPid pid && tuple.elementAt(1) instanceof OtpErlangString expConfig) {
-                for (int i = 0; i < 10; i++) {
+            while(true) {
+                System.out.println("Waiting for message...");
+                OtpErlangObject message = mbox.receive();
+                Random random = new Random();
+                if (message instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
+                        tuple.elementAt(0) instanceof OtpErlangPid pid && tuple.elementAt(1) instanceof OtpErlangString expConfig) {
+                    for (int i = 0; i < 10; i++) {
 
-                    System.out.println("Received message: " + expConfig.stringValue() + " from " + pid);
-                    String response =
-                            "{"
-                                    + "\"type\": \"data\","
-                                    + "\"parameters\": {"
-                                    + "\"param1\": " + random.nextInt(100) + ","
-                                    + "\"param2\": " + random.nextInt(100)
-                                    + "},"
-                                    + "\"timestamp\": \"2024-03-13T12:34:56\","
-                                    + "\"status\": \"running\""
-                                    + "}";
-                    OtpErlangString responseOtpString = new OtpErlangString(response);
+                        System.out.println("Received message: " + expConfig.stringValue() + " from " + pid);
+                        String response =
+                                "{"
+                                        + "\"type\": \"data\","
+                                        + "\"parameters\": {"
+                                        + "\"param1\": " + random.nextInt(100) + ","
+                                        + "\"param2\": " + random.nextInt(100)
+                                        + "},"
+                                        + "\"timestamp\": \"2024-03-13T12:34:56\","
+                                        + "\"status\": \"running\""
+                                        + "}";
+                        OtpErlangString responseOtpString = new OtpErlangString(response);
+                        mbox.send(pid, responseOtpString);
+                    }
+
+                    System.out.println("Sending stop message...");
+                    String error = "{"
+                            + "\"type\": \"stop\","
+                            + "\"timestamp\": \"2024-03-13T12:34:56\","
+                            + "\"status\": \"finished\""
+                            + "}";
+
+                    OtpErlangString responseOtpString = new OtpErlangString(error);
                     mbox.send(pid, responseOtpString);
+
                 }
-
-                System.out.println("Sending stop message...");
-                String error = "{"
-                        + "\"type\": \"stop\","
-                        + "\"timestamp\": \"2024-03-13T12:34:56\","
-                        + "\"status\": \"finished\""
-                        + "}";
-
-                OtpErlangString responseOtpString = new OtpErlangString(error);
-                mbox.send(pid, responseOtpString);
-
             }
-
-
         } catch (IOException | OtpErlangDecodeException | OtpErlangExit e) {
             throw new RuntimeException(e);
         }
