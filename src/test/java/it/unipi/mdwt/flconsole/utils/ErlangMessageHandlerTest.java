@@ -32,7 +32,7 @@ public class ErlangMessageHandlerTest {
     }
 
     @Test
-    void receiveRequest() {
+    void DirectorSimulator() {
         // start a simulated director node that wait a message with the pid
         // of the receiver and the configuration as a string and send a static message (random data/stop message)
         try {
