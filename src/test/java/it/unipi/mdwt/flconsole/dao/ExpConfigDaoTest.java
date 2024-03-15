@@ -1,6 +1,8 @@
 package it.unipi.mdwt.flconsole.dao;
 
 import it.unipi.mdwt.flconsole.model.ExpConfig;
+import it.unipi.mdwt.flconsole.model.ExpConfigSummary;
+import it.unipi.mdwt.flconsole.model.Experiment;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
@@ -16,6 +18,10 @@ class ExpConfigDaoTest {
 
     private final ExpConfigDao expConfigDao;
     private final MongoTemplate mongoTemplate;
+
+    @Autowired
+    private ExperimentDao experimentDao;
+
     @Autowired
     ExpConfigDaoTest(ExpConfigDao expConfigDao, MongoTemplate mongoTemplate) {
         this.expConfigDao = expConfigDao;
@@ -27,7 +33,7 @@ class ExpConfigDaoTest {
     void saveAndRetrieve() {
         // Given
         ExpConfig expConfig = new ExpConfig();
-        expConfig.setName("TestConfig");
+        expConfig.setName("TestConfig2");
         expConfig.setAlgorithm("TestAlgorithm");
         expConfig.setStrategy("TestStrategy");
         expConfig.setNumClients(10);
@@ -59,7 +65,6 @@ class ExpConfigDaoTest {
     }
 
 
-
     @Test
     void update() {
         // Given
@@ -79,16 +84,28 @@ class ExpConfigDaoTest {
 
     @Test
     void delete() {
-        // Given
-        ExpConfig expConfig = new ExpConfig();
-        expConfig.setName("DeleteConfig");
-        ExpConfig savedConfig = expConfigDao.save(expConfig);
+        String nameToDelete = "TestConfig2";
+        ExpConfig expConfig = expConfigDao.findByName(nameToDelete);
 
-        // When
-        expConfigDao.deleteById(savedConfig.getId());
+        assertNotNull(expConfig);
 
-        // Then
-        Optional<ExpConfig> deletedConfig = expConfigDao.findById(savedConfig.getId());
-        assertFalse(deletedConfig.isPresent());
+        List<Experiment> experiments = experimentDao.findAll();
+        for (Experiment experiment: experiments){
+            ExpConfigSummary expConfigSummary = experiment.getExpConfigSummary();
+            if (expConfigSummary != null && expConfigSummary.getId().equals(expConfig.getId())) {
+                // Remove the expConfigSummary if it matches the ID of the ExpConfig being deleted
+                experiment.setExpConfigSummary(null);
+                experimentDao.save(experiment);
+            }
+            experiment.setExpConfigSummary(expConfigSummary);
+            experimentDao.save(experiment);
+        }
+
+        expConfigDao.deleteByName(nameToDelete);
+
+
+        assertFalse(expConfigDao.existsByName(nameToDelete));
     }
+
+
 }

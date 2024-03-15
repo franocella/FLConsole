@@ -1,5 +1,6 @@
 package it.unipi.mdwt.flconsole.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
@@ -32,6 +33,7 @@ public class Experiment {
     private Date lastUpdate;
 
     @Field("progressList")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<ExpProgress> progressList;
 }
 

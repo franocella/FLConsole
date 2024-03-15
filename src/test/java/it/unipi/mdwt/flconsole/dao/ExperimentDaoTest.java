@@ -1,14 +1,18 @@
 package it.unipi.mdwt.flconsole.dao;
 
 
-import it.unipi.mdwt.flconsole.model.ExpConfig;
-import it.unipi.mdwt.flconsole.model.Experiment;
-import it.unipi.mdwt.flconsole.model.User;
+import it.unipi.mdwt.flconsole.model.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import com.mongodb.DuplicateKeyException;
+import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,37 +26,99 @@ class ExperimentDaoTest {
     @Autowired
     private ExperimentDao experimentDao;
 
+    @Autowired
+    private  ExpConfigDao expConfigDao;
+
+    @Autowired
+    private UserDAO userDao;
+
     /**
      * test to save method of the ExperimentDAO
      */
     @Test
     void save(){
-        //Given
+        //create an experiment object
         Experiment experiment = new Experiment();
-        experiment.setName("Test Experiment");
-        ExpConfig config = new ExpConfig();
-        config.setName("Test Config");
-        experiment.setConfig(config);
+        experiment.setName("Save Test Experiment4");
 
-        // When
+        Optional<ExpConfig> config = expConfigDao.findById("65f47a1bf5ad864859550aab");
+
+        //if config exist then get the parameter create the config summary
+        if (config.isPresent()){
+            ExpConfig expConfig = config.get();
+            ExpConfigSummary expConfigSummary = new ExpConfigSummary();
+            expConfigSummary.setId(expConfig.getId());
+            expConfigSummary.setName(expConfig.getName());
+            expConfigSummary.setAlgorithm(expConfig.getAlgorithm());
+            experiment.setExpConfigSummary(expConfigSummary);
+        }
+        else {
+            System.out.println("ExpConfig with that id not found");
+        }
+
+        List<ExpProgress> expProgresses = new ArrayList<>();
+        experiment.setProgressList(expProgresses);
+
         Experiment savedExperiment = experimentDao.save(experiment);
 
-        // Then
         assertNotNull(savedExperiment.getId());
-        assertEquals("Test Experiment", savedExperiment.getName());
-        assertEquals("Test Config", savedExperiment.getConfig().getName());
+        assertEquals("Save Test Experiment",savedExperiment.getName());
 
-        System.out.println("first exp created");
+        System.out.println("first experiment is created");
 
-        // Given - Another experiment with the same name
-        Experiment duplicatedExp = new Experiment();
-        duplicatedExp.setName("Test Experiment");
-        ExpConfig config2 = new ExpConfig();
-        config2.setName("Test Config2");
-        experiment.setConfig(config2);
+    }
+    /**
+     * Test the update method of the ExperimentDAO.
+     */
+    @Test
+    void update(){
+        //create an experiment object
+        Experiment experiment = new Experiment();
+        experiment.setName("Save Test Experiment2");
 
-        assertThrows(DataIntegrityViolationException.class, () -> experimentDao.save(duplicatedExp));
+        Experiment savedExperiment = experimentDao.save(experiment);
 
+        savedExperiment.setName("Changed Name2");
+        experimentDao.save(savedExperiment);
+
+        Optional<Experiment> updatedExperiment = experimentDao.findById(savedExperiment.getId());
+        assertTrue(updatedExperiment.isPresent());
+        assertEquals("Changed Name", updatedExperiment.get().getName());
+    }
+
+    /**
+     * Test the delete method of the UserDAO.
+     */
+    @Test
+    void delete(){
+       String nameToDelete = "Save Test Experiment4";
+       Experiment experiment = experimentDao.findByName(nameToDelete);
+
+       assertNotNull(experiment);
+
+       ExpConfigSummary expConfigSummary = experiment.getExpConfigSummary();
+       Optional<ExpConfig> expConfig = expConfigDao.findById(expConfigSummary.getId());
+
+       assertNotNull(expConfigSummary);
+       assertNotNull(expConfig);
+
+        // Get the users associated with the experiment
+        List<User> users = userDao.findAll();
+        for (User user: users){
+            List<ExperimentSummary> experiments = user.getExperiments();
+            experiments.removeIf(exp -> exp.getId().equals(experiment.getId()));
+            user.setExperiments(experiments);
+            userDao.save(user);
+        }
+
+       experimentDao.deleteByName(nameToDelete);
+       expConfigDao.deleteById(expConfigSummary.getId());
+
+        // Check if the experiment is deleted
+        assertFalse(experimentDao.existsByName(nameToDelete));
+
+        // Check if linked ExpConfig is deleted
+        assertNull(expConfigDao.findById(expConfig.get().getId()));
     }
 
     /**
@@ -72,76 +138,8 @@ class ExperimentDaoTest {
         assertEquals("Test Experiment", foundExperiment.getName());
     }
 
-    /**
-     * Test the findByConfig method of the ExperimentDao.
-     */
-    @Test
-    void findByConfig(){
-        // Given
-        Experiment experiment = new Experiment();
-        experiment.setName("Test Experiment");
-        ExpConfig config = new ExpConfig();
-        config.setName("Test Config");
-        experiment.setConfig(config);
 
-        // Save the experiment
-        Experiment savedExperiment = experimentDao.save(experiment);
 
-        // When
-        Experiment foundExperiment = experimentDao.findByConfig(config);
-
-        // Then
-        assertNotNull(foundExperiment);
-        assertEquals("Test Experiment", foundExperiment.getName());
-        assertEquals("Test Config", foundExperiment.getConfig().getName());
-    }
-
-    /**
-     * Test the update method of the ExperimentDAO.
-     */
-    @Test
-    void update(){
-        //Given
-        Experiment experiment = new Experiment();
-        experiment.setName("Test Experiment");
-        ExpConfig config = new ExpConfig();
-        config.setName("Test Config");
-        experiment.setConfig(config);
-
-        Experiment savedExperiment = experimentDao.save(experiment);
-
-        //When
-        savedExperiment.setName("newName");
-        ExpConfig updatedConfig = new ExpConfig();
-        updatedConfig.setName("Updated Config");
-        savedExperiment.setConfig(updatedConfig);
-        experimentDao.save(savedExperiment);
-
-        //Then
-        Experiment updateExp = experimentDao.findById(savedExperiment.getId()).orElse(null);
-        assertNotNull(updateExp);
-        assertEquals("Updated Experiment Name", updateExp.getName());
-        assertEquals("Updated Config", updateExp.getConfig().getName());
-    }
-
-    /**
-     * Test the delete method of the UserDAO.
-     */
-    @Test
-    void delete(){
-        //Given
-        String nameToDelete = "exp1";
-        Experiment experiment = experimentDao.findByName(nameToDelete);
-
-        // Ensure that the user exists before attempting deletion
-        assertNotNull(experiment);
-
-        //When
-        experimentDao.deleteByName(nameToDelete);
-
-        //then
-        assertFalse(experimentDao.existsByName(nameToDelete));
-    }
 
     void existsByName(){
         //Given
