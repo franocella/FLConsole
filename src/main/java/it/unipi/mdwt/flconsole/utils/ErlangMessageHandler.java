@@ -33,7 +33,7 @@ public class ErlangMessageHandler {
         ErlangMessageHandler.objectMapper = objectMapper;
     }
 
-    // Inizializza il nodo Erlang se non esiste
+
     public void initialize(String email) {
         try {
             if (otpNode == null) {

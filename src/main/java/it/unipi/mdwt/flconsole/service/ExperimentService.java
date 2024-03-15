@@ -1,6 +1,5 @@
 package it.unipi.mdwt.flconsole.service;
 
-import com.ericsson.otp.erlang.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
 import it.unipi.mdwt.flconsole.model.Experiment;
@@ -37,6 +36,8 @@ public class ExperimentService {
         this.applicationLogger = applicationLogger;
         this.objectMapper = new ObjectMapper();
     }
+
+
 
     // Fake experiment to test WebSocket
     public void runExp() throws BusinessException{
