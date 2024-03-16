@@ -111,9 +111,6 @@
 
                 <select id="FL_config_value" class="form-select me-2 my-2">
                     <option selected>FL configuration</option>
-                    <option value="1">One</option>
-                    <option value="2">Two</option>
-                    <option value="3">Three</option>
                 </select>
 
                 <div class="text-end my-3">
@@ -206,14 +203,23 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Examples -->
+                        <%--<!-- Examples -->
                         <tr>
                             <td>1</td>
                             <td>Experiment A</td>
                             <td>Configuration 1</td>
                             <td>2022-10-10</td>
                             <td><a href="#"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
+                        </tr>--%>
+                    <c:forEach items="${experiments}" var="exp">
+                        <tr>
+                            <td>${exp.id}</td>
+                            <td>${exp.name}</td>
+                            <td>${exp.configName}</td>
+                            <td>${exp.creationDate}</td>
+                            <td><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
                         </tr>
+                    </c:forEach>
                     </tbody>
                 </table>
             </div>
@@ -329,10 +335,12 @@
         const table = $("#ConfigTable");
 
         const newRow = $("<tr>");
-
-        newRow.append("<td class='align-middle'>" + formData.id + "</td>");
-        newRow.append("<td class='align-middle'>" + formData.name + "</td>");
-        newRow.append("<td class='align-middle'>" + formData.algorithm + "</td>");
+        const id = formData.id;
+        const name = formData.name;
+        const algorithm = formData.algorithm;
+        newRow.append("<td class='align-middle'>" + id + "</td>");
+        newRow.append("<td class='align-middle'>" + name + "</td>");
+        newRow.append("<td class='align-middle'>" + algorithm + "</td>");
         newRow.append("<td class='align-middle'>" + formData.strategy + "</td>");
         newRow.append("<td class='align-middle'>" + formData.numClients + "</td>");
         newRow.append("<td class='align-middle'>" + formData.stopCondition + "</td>");
@@ -343,6 +351,13 @@
         newRow.append('<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + formData.id + '\')" height="20px" width="20px"></figure></td>');
 
         table.append(newRow);
+
+        // Add the option to the dropdown menu
+        const selectElement = document.getElementById("FL_config_value");
+        const option = document.createElement("option");
+        option.value = JSON.stringify({ id, name, algorithm });
+        option.text = name;
+        selectElement.appendChild(option);
     }
 
     function deleteConfig(id) {
@@ -428,23 +443,24 @@
 
         // Reset values in the parameters table
         const table = modal.find("#parametersTable")[0];
-        const rowCount = table.tBodies[0].rows.length;
+        if (table && table.tBodies[0]) {
+            const rowCount = table.tBodies[0].rows.length;
 
-        for (let i = rowCount - 1; i >= 2; i--) {
-            table.tBodies[0].deleteRow(i);
+            for (let i = rowCount - 1; i >= 2; i--) {
+                table.tBodies[0].deleteRow(i);
+            }
+
+            // Update the first row values
+            const firstRow = table.tBodies[0].rows[0];
+            firstRow.cells[0].textContent = "Parameter 1";
+            firstRow.cells[1].textContent = "Value 1";
+
+            // Update the second row values
+            const secondRow = table.tBodies[0].rows[1];
+            secondRow.cells[0].textContent = "Parameter 2";
+            secondRow.cells[1].textContent = "Value 2";
         }
-
-        // Update the first row values
-        const firstRow = table.tBodies[0].rows[0];
-        firstRow.cells[0].textContent = "Parameter 1";
-        firstRow.cells[1].textContent = "Value 1";
-
-        // Update the second row values
-        const secondRow = table.tBodies[0].rows[1];
-        secondRow.cells[0].textContent = "Parameter 2";
-        secondRow.cells[1].textContent = "Value 2";
     }
-
 
     function addRow() {
             const table = document.getElementById("parametersTable");

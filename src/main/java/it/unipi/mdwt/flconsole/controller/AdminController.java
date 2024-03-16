@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.model.Experiment;
+import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.service.CookieService;
 import it.unipi.mdwt.flconsole.service.ExpConfigService;
 import it.unipi.mdwt.flconsole.service.ExperimentService;
@@ -53,7 +54,8 @@ public class AdminController {
     public String home(Model model, HttpServletRequest request) {
         try {
             String email = cookieService.getCookieValue(request.getCookies(),"email");
-            List<ExpConfig> userConfigurations = expConfigService.getExpConfigsForUser(email);
+            User user = userService.getUser(email);
+            List<ExpConfig> userConfigurations = expConfigService.getExpConfigsList(user.getConfigurations());
 
             List<String> jsonList = userConfigurations.stream()
                     .filter(Objects::nonNull) // Filter out null values
@@ -69,6 +71,7 @@ public class AdminController {
                     .toList();
 
             model.addAttribute("configurations", jsonList);
+            model.addAttribute("experiments",user.getExperiments());
             return "adminDashboard";
         } catch (BusinessException e) {
             // If an exception occurs during the process, return a server error message

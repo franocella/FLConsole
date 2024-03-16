@@ -90,14 +90,17 @@ public class ExperimentService {
 
 
     public Experiment getExpDetails(String id) throws BusinessException{
-        Optional<Experiment> experiment;
+        /*Optional<Experiment> experiment;
         try {
             experiment = experimentDao.findById(id);
         } catch (Exception e) {
             applicationLogger.severe("An error occurred while fetching the experiment details: " + e.getMessage());
             throw new RuntimeException("An error occurred while fetching the experiment details");
-        }
-        return new Experiment();
+        }*/
+        Experiment experiment = new Experiment();
+        experiment.setId("1");
+        experiment.setName("Test Experiment");
+        return experiment;
     }
 
     public void saveExperiment(Experiment exp, String email) {
