@@ -141,8 +141,6 @@ public class AdminController {
             Map<String, Object> response = new HashMap<>();
             response.put("id", experiment.getId());
 
-
-
             // Convert the response map to a JSON string
             String jsonResponse = objectMapper.writeValueAsString(response);
 

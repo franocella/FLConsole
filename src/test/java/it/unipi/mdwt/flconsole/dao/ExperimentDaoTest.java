@@ -41,7 +41,7 @@ class ExperimentDaoTest {
         Experiment experiment = new Experiment();
         experiment.setName("Save Test Experiment4");
 
-        Optional<ExpConfig> config = expConfigDao.findById("65f47a1bf5ad864859550aab");
+        Optional<ExpConfig> config = expConfigDao.findById("65e9beabdb12a33ebfb788fd");
 
         //if config exist then get the parameter create the config summary
         if (config.isPresent()){
