@@ -2,21 +2,31 @@ package it.unipi.mdwt.flconsole.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
+import it.unipi.mdwt.flconsole.dao.UserDAO;
 import it.unipi.mdwt.flconsole.model.Experiment;
+import it.unipi.mdwt.flconsole.model.ExperimentSummary;
+import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.ErlangMessageHandler;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
+import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessTypeErrorsEnum;
+import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoTypeErrorsEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.logging.Logger;
 
 import static java.lang.Thread.sleep;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
+import static org.springframework.data.mongodb.core.query.Update.update;
 
 @Service
 public class ExperimentService {
@@ -25,15 +35,20 @@ public class ExperimentService {
     private final ExperimentDao experimentDao;
     private final ErlangMessageHandler erlangMessageHandler;
     private final Logger applicationLogger;
-
+    private final UserDAO userDAO;
     private final ObjectMapper objectMapper;
 
+    private final MongoTemplate mongoTemplate;
+
+
     @Autowired
-    public ExperimentService(SimpMessagingTemplate messagingTemplate, ExperimentDao experimentDao, ErlangMessageHandler erlangMessageHandler, Logger applicationLogger) {
+    public ExperimentService(SimpMessagingTemplate messagingTemplate, ExperimentDao experimentDao, ErlangMessageHandler erlangMessageHandler, Logger applicationLogger, UserDAO userDAO, MongoTemplate mongoTemplate) {
         this.messagingTemplate = messagingTemplate;
         this.experimentDao = experimentDao;
         this.erlangMessageHandler = erlangMessageHandler;
         this.applicationLogger = applicationLogger;
+        this.userDAO = userDAO;
+        this.mongoTemplate = mongoTemplate;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -89,21 +104,32 @@ public class ExperimentService {
 
 
 
-    public Experiment getExpDetails(String id) throws BusinessException{
-        /*Optional<Experiment> experiment;
+    public Experiment getExpDetails(String id) throws BusinessException {
         try {
-            experiment = experimentDao.findById(id);
+            Optional<Experiment> expOptional = experimentDao.findById(id);
+
+            if (expOptional.isPresent()) {
+                return expOptional.get();
+            } else {
+                throw new BusinessException(BusinessTypeErrorsEnum.NOT_FOUND);
+            }
         } catch (Exception e) {
-            applicationLogger.severe("An error occurred while fetching the experiment details: " + e.getMessage());
-            throw new RuntimeException("An error occurred while fetching the experiment details");
-        }*/
-        Experiment experiment = new Experiment();
-        experiment.setId("1");
-        experiment.setName("Test Experiment");
-        return experiment;
+            throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
+        }
     }
 
+
     public void saveExperiment(Experiment exp, String email) {
+        experimentDao.save(exp);
+        ExperimentSummary expSummary = new ExperimentSummary();
+        expSummary.setId(exp.getId());
+        expSummary.setName(exp.getName());
+        expSummary.setCreationDate(exp.getCreationDate());
+        expSummary.setConfigName(exp.getExpConfigSummary().getName());
+
+        Query query = new Query(where("email").is(email));
+        Update update = new Update().addToSet("experiments", expSummary);
+        mongoTemplate.updateFirst(query, update, User.class);
     }
 
 

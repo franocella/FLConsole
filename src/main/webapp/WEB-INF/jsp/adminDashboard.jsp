@@ -192,7 +192,7 @@
                 </div>
 
 
-                <table class="table mt-3 text-center" style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
+                <table id="ExpTable" class="table mt-3 text-center" style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
                     <thead>
                         <tr>
                             <th>Id</th>
@@ -232,6 +232,8 @@
     <!-- External scripts for jQuery, Bootstrap, and custom JavaScript files -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
     <script>
 
     let configurations = ${configurations};
@@ -379,12 +381,65 @@
 
 
     function submitExpForm(){
+        const expName = $("#config-name-exp-modal").val().trim();
+        const flConfig = JSON.parse($("#FL_config_value").val());
         const formData = {
-            "experimentName": $("#config-name-exp-modal").val(),
-            "flConfig": $("#FL_config_value").val(),
+            "name": expName,
+            "expConfigSummary": {
+                "id": flConfig.id,
+                "name": flConfig.name,
+                "algorithm": flConfig.algorithm
+            }
         };
-        console.log(JSON.stringify(formData));
-        closeModal();
+
+        $.ajax({
+            type: "POST",
+            url: "/admin/newExp",
+            contentType: "application/json",
+            data: JSON.stringify(formData),
+            success: function(response) {
+
+                const jsonData = JSON.parse(response);
+                console.log("Server response:", jsonData);
+
+                formData["id"] = jsonData.id;
+                formData["creationDate"] = jsonData.creationTime;
+
+                console.log("New config:", formData);
+                addNewExpToList(formData);
+
+                closeModal();
+            },
+            error: function(error) {
+                console.error("Error:", error);
+            }
+        });
+
+
+    }
+    function addNewExpToList(formData) {
+        const table = $("#ExpTable");
+
+        const newRow = $("<tr>");
+        const id = formData.id;
+        const executionName = formData.name;
+        const configName = formData.expConfigSummary.name;
+        const creationDate = formatDateString(formData.creationDate);
+
+
+
+        newRow.append("<td class='align-middle'>" + id + "</td>");
+        newRow.append("<td class='align-middle'>" + executionName + "</td>");
+        newRow.append("<td class='align-middle'>" + configName + "</td>");
+        newRow.append("<td class='align-middle'>" + creationDate + "</td>");
+
+        newRow.append('<td class="align-middle"><a href="/experiment-' + id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>');
+        table.append(newRow);
+    }
+
+    function formatDateString(dateString) {
+        if (!dateString) return "";
+        return moment(dateString).format('ddd MMM DD HH:mm:ss ZZ YYYY');
     }
 
 
