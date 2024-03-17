@@ -4,12 +4,8 @@ import it.unipi.mdwt.flconsole.model.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.DuplicateKeyException;
-import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,7 +52,7 @@ class UserDAOTest {
             ExperimentSummary experimentSummary = new ExperimentSummary();
             experimentSummary.setId(experiment.getId());
             experimentSummary.setName(experiment.getName());
-            experimentSummary.setConfigName(experiment.getExpConfigSummary().getName());
+            experimentSummary.setConfigName(experiment.getExpConfig().getName());
             experimentSummary.setCreationDate(experiment.getCreationDate());
             // Creating a list of ExperimentSummary and adding the single ExperimentSummary to it
             List<ExperimentSummary> experiments = new ArrayList<>();

@@ -9,12 +9,10 @@ import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.ErlangMessageHandler;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessTypeErrorsEnum;
-import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoTypeErrorsEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -25,8 +23,6 @@ import java.util.logging.Logger;
 
 import static java.lang.Thread.sleep;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
-import static org.springframework.data.mongodb.core.query.Query.query;
-import static org.springframework.data.mongodb.core.query.Update.update;
 
 @Service
 public class ExperimentService {
@@ -107,7 +103,6 @@ public class ExperimentService {
     public Experiment getExpDetails(String id) throws BusinessException {
         try {
             Optional<Experiment> expOptional = experimentDao.findById(id);
-
             if (expOptional.isPresent()) {
                 return expOptional.get();
             } else {
@@ -125,7 +120,7 @@ public class ExperimentService {
         expSummary.setId(exp.getId());
         expSummary.setName(exp.getName());
         expSummary.setCreationDate(exp.getCreationDate());
-        expSummary.setConfigName(exp.getExpConfigSummary().getName());
+        expSummary.setConfigName(exp.getExpConfig().getName());
 
         Query query = new Query(where("email").is(email));
         Update update = new Update().addToSet("experiments", expSummary);

@@ -1,3 +1,4 @@
+<jsp:useBean id="experiment" scope="request" type="it.unipi.mdwt.flconsole.model.Experiment"/>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page session="false" %>
@@ -29,7 +30,7 @@
 <div class="experiment">
 
     <div class="container-fluid" style="margin: 0;padding: 0">
-        <h1 class="text-center mb-5" >Experiment A</h1>
+        <h1 class="text-center mb-5" >${experiment.name}</h1>
         <div class="row align-items-center">
             <div class="col" style="height: 460px">
                 <div>
@@ -40,42 +41,28 @@
 
                     <div class="input-group">
                         <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Configuration Name:</span>
-                        <input type="text" aria-label="Configuration Name" class="form-control">
+                        <input type="text" disabled aria-label="Configuration Name" class="form-control" value="${experiment.expConfig.name}">
                     </div>
 
                     <div class="input-group">
                         <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Algorithm:</span>
-                        <input type="text" aria-label="Algorithm" class="form-control">
+                        <input type="text" disabled aria-label="Algorithm" class="form-control" value="${experiment.expConfig.algorithm}">
                     </div>
 
-                    <div class="input-group">
-                        <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Client Selection Strategy:</span>
-                        <input type="text" aria-label="Client Selection Strategy" class="form-control">
-                    </div>
-
-                    <div class="input-group">
-                        <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Number of Clients:</span>
-                        <input type="text" aria-label="Number of Clients" class="form-control">
-                    </div>
-
-                    <div class="input-group">
-                        <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Stop Condition:</span>
-                        <input type="text" aria-label="Stop Condition" class="form-control">
-                    </div>
 
                     <div class="input-group">
                         <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Created At:</span>
-                        <input type="text" aria-label="Created At" class="form-control">
+                        <input type="text" disabled aria-label="Created At" class="form-control" value="${experiment.creationDate}">
                     </div>
 
                     <div class="input-group">
                         <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Updated At:</span>
-                        <input type="text" aria-label="Updated At" class="form-control">
+                        <input type="text" disabled aria-label="Updated At" class="form-control" value="${experiment.lastUpdate}">
                     </div>
 
                     <div class="input-group">
-                        <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Finished At:</span>
-                        <input type="text" aria-label="Finished At" class="form-control">
+                        <span class="input-group-text" style="font-weight: bold; font-size: large; width: 240px;">Status:</span>
+                        <input type="text" disabled aria-label="Finished At" class="form-control" value="${experiment.status}">
                     </div>
                     <c:if test="${role == 'admin'}">
                         <button class="btn btn-primary mt-4 float-end" onclick="startTask()">Start Experiment</button>
@@ -94,6 +81,11 @@
 </div>
 
 <script>
+    let status = '';
+    <c:if test="${experiment.status == 'fineshed'}">
+        status = 'finished';
+    </c:if>
+
     const socketUrl = 'http://localhost:8080/ws';
     const socket = new SockJS(socketUrl);
     const stompClient = Stomp.over(socket);
@@ -119,6 +111,10 @@
 
 
     function startTask() {
+        if (status === 'finished') {
+            displayErrorModal('Experiment already finished');
+            return;
+        }
         fetch('/admin/start-exp', {
             method: 'POST',
             headers: {

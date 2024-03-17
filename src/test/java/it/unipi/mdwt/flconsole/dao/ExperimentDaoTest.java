@@ -5,12 +5,8 @@ import it.unipi.mdwt.flconsole.model.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.dao.DataIntegrityViolationException;
-import com.mongodb.DuplicateKeyException;
-import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,7 +46,7 @@ class ExperimentDaoTest {
             expConfigSummary.setId(expConfig.getId());
             expConfigSummary.setName(expConfig.getName());
             expConfigSummary.setAlgorithm(expConfig.getAlgorithm());
-            experiment.setExpConfigSummary(expConfigSummary);
+            experiment.setExpConfig(expConfigSummary);
         }
         else {
             System.out.println("ExpConfig with that id not found");
@@ -96,7 +92,7 @@ class ExperimentDaoTest {
 
        assertNotNull(experiment);
 
-       ExpConfigSummary expConfigSummary = experiment.getExpConfigSummary();
+       ExpConfigSummary expConfigSummary = experiment.getExpConfig();
        Optional<ExpConfig> expConfig = expConfigDao.findById(expConfigSummary.getId());
 
        assertNotNull(expConfigSummary);

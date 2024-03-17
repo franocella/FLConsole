@@ -144,8 +144,8 @@ public class AdminController {
             Map<String, Object> response = new HashMap<>();
             response.put("id", experiment.getId());
             response.put("name", experiment.getName());
-            response.put("configName", experiment.getExpConfigSummary().getName());
-            response.put("algorithm", experiment.getExpConfigSummary().getAlgorithm());
+            response.put("configName", experiment.getExpConfig().getName());
+            response.put("algorithm", experiment.getExpConfig().getAlgorithm());
             if (experiment.getCreationDate() != null) {
                 String creationTime = dateFormat.format(experiment.getCreationDate());
                 response.put("creationTime", creationTime);
@@ -190,7 +190,6 @@ public class AdminController {
         }
         try {
             experiment = experimentService.getExpDetails(id);
-            System.out.println(experiment);
             model.addAttribute("experiment", experiment);
             return "experimentDetails";
         } catch (Exception e) {

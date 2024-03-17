@@ -91,13 +91,13 @@ class ExpConfigDaoTest {
 
         List<Experiment> experiments = experimentDao.findAll();
         for (Experiment experiment: experiments){
-            ExpConfigSummary expConfigSummary = experiment.getExpConfigSummary();
+            ExpConfigSummary expConfigSummary = experiment.getExpConfig();
             if (expConfigSummary != null && expConfigSummary.getId().equals(expConfig.getId())) {
                 // Remove the expConfigSummary if it matches the ID of the ExpConfig being deleted
-                experiment.setExpConfigSummary(null);
+                experiment.setExpConfig(null);
                 experimentDao.save(experiment);
             }
-            experiment.setExpConfigSummary(expConfigSummary);
+            experiment.setExpConfig(expConfigSummary);
             experimentDao.save(experiment);
         }
 
