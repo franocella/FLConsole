@@ -10,13 +10,18 @@ import it.unipi.mdwt.flconsole.utils.ErlangMessageHandler;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessTypeErrorsEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.util.Pair;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.logging.Logger;
@@ -126,6 +131,29 @@ public class ExperimentService {
         Update update = new Update().addToSet("experiments", expSummary);
         mongoTemplate.updateFirst(query, update, User.class);
     }
+
+    public List<Pair<ExperimentSummary, String>> getExperimentsSummaryList(int n) {
+        Pageable pageable = PageRequest.of(0, n); // First n experiments
+        List<User> users = userDAO.findAll(pageable).getContent();
+        List<Pair<ExperimentSummary, String>> experimentsWithAuthors = new ArrayList<>();
+
+        for (User user : users) {
+            List<ExperimentSummary> userExperiments = user.getExperiments();
+            if (userExperiments != null) { // Check if the collection is not null
+                for (ExperimentSummary experiment : userExperiments) {
+                    String authorEmail = user.getEmail();
+                    Pair<ExperimentSummary, String> experimentWithAuthor = Pair.of(experiment, authorEmail);
+                    experimentsWithAuthors.add(experimentWithAuthor);
+                    if (experimentsWithAuthors.size() >= n) {
+                        break; // Stop iterating if we have collected enough experiments
+                    }
+                }
+            }
+        }
+
+        return experimentsWithAuthors;
+    }
+
 
 
 /*    public Page<Experiment> getRecentExperiments(int page, int pageSize) {
