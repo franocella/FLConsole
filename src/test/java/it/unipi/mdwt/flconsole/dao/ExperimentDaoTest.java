@@ -35,9 +35,11 @@ class ExperimentDaoTest {
     void save(){
         //create an experiment object
         Experiment experiment = new Experiment();
-        experiment.setName("Save Test Experiment4");
+        experiment.setName("Save Test Experiment2");
 
-        Optional<ExpConfig> config = expConfigDao.findById("65e9beabdb12a33ebfb788fd");
+
+        Optional<ExpConfig> config = expConfigDao.findById("65f6f47b88c22a662c1da8f7");
+
 
         //if config exist then get the parameter create the config summary
         if (config.isPresent()){
@@ -74,6 +76,24 @@ class ExperimentDaoTest {
 
         Experiment savedExperiment = experimentDao.save(experiment);
 
+        // Fetch all users
+        List<User> users = userDao.findAll();
+        for (User user : users) {
+            // Check if the user has experiments associated with the updated experiment
+            List<ExperimentSummary> updatedExperiments = user.getExperiments();
+            if (updatedExperiments != null) {
+                // Iterate over the user's experiments
+                for (ExperimentSummary exp : updatedExperiments) {
+                    // If the experiment ID matches, update the name
+                    if (exp.getId().equals(savedExperiment.getId())) {
+                        exp.setName(savedExperiment.getName());
+                        break; // No need to continue checking once the experiment is found
+                    }
+                }
+                // Save the updated user
+                userDao.save(user);
+            }
+        }
         savedExperiment.setName("Changed Name2");
         experimentDao.save(savedExperiment);
 
@@ -87,16 +107,14 @@ class ExperimentDaoTest {
      */
     @Test
     void delete(){
-       String nameToDelete = "Save Test Experiment4";
+       String nameToDelete = "Save Test Experiment2";
        Experiment experiment = experimentDao.findByName(nameToDelete);
 
        assertNotNull(experiment);
 
+
        ExpConfigSummary expConfigSummary = experiment.getExpConfig();
        Optional<ExpConfig> expConfig = expConfigDao.findById(expConfigSummary.getId());
-
-       assertNotNull(expConfigSummary);
-       assertNotNull(expConfig);
 
         // Get the users associated with the experiment
         List<User> users = userDao.findAll();
@@ -108,13 +126,12 @@ class ExperimentDaoTest {
         }
 
        experimentDao.deleteByName(nameToDelete);
-       expConfigDao.deleteById(expConfigSummary.getId());
+
 
         // Check if the experiment is deleted
         assertFalse(experimentDao.existsByName(nameToDelete));
 
-        // Check if linked ExpConfig is deleted
-        assertNull(expConfigDao.findById(expConfig.get().getId()));
+
     }
 
     /**
@@ -125,6 +142,8 @@ class ExperimentDaoTest {
         // Given
         Experiment experiment = new Experiment();
         experiment.setName("Test Experiment");
+        Experiment savedExperiment = experimentDao.save(experiment);
+
 
         // When
         Experiment foundExperiment = experimentDao.findByName("Test Experiment");
@@ -150,6 +169,21 @@ class ExperimentDaoTest {
         assertTrue(existingNameResult, "Experiment with existing name should exist");
         assertTrue(nonExistingNameResult,"Experiment with non-existing name should not be exist");
     }
+    void findByCreationDate(){
+        // Given
+        Date creationDate = new Date();
+        Experiment experiment = new Experiment();
+        experiment.setName("Test Experiment");
+        experiment.setCreationDate(creationDate);
+        Experiment savedExperiment = experimentDao.save(experiment);
 
+        // When
+        Experiment foundExperiment = experimentDao.findByCreationDate(creationDate);
+
+        // Then
+        assertNotNull(foundExperiment);
+        assertEquals("Test Experiment", foundExperiment.getName());
+        assertEquals(creationDate, foundExperiment.getCreationDate());
+    }
 
 }

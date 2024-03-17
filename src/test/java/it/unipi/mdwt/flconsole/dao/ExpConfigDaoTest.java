@@ -72,14 +72,23 @@ class ExpConfigDaoTest {
         expConfig.setName("UpdateConfig");
         ExpConfig savedConfig = expConfigDao.save(expConfig);
 
+        List<Experiment> experiments = experimentDao.findAll();
+        for (Experiment experiment: experiments){
+            ExpConfigSummary expConfigSummary = experiment.getExpConfigSummary();
+            if (expConfigSummary != null && expConfigSummary.getId().equals(expConfig.getId())) {
+                expConfigSummary.setName(savedConfig.getName());
+                experimentDao.save(experiment);
+            }
+        }
+
         // When
-        savedConfig.setName("UpdatedConfig");
+        savedConfig.setName("UpdatedConfig2");
         expConfigDao.save(savedConfig);
 
         // Then
         Optional<ExpConfig> updatedConfig = expConfigDao.findById(savedConfig.getId());
         assertTrue(updatedConfig.isPresent());
-        assertEquals("UpdatedConfig", updatedConfig.get().getName());
+        assertEquals("UpdatedConfig2", updatedConfig.get().getName());
     }
 
     @Test
@@ -97,14 +106,18 @@ class ExpConfigDaoTest {
                 experiment.setExpConfig(null);
                 experimentDao.save(experiment);
             }
-            experiment.setExpConfig(expConfigSummary);
-            experimentDao.save(experiment);
         }
 
         expConfigDao.deleteByName(nameToDelete);
 
-
         assertFalse(expConfigDao.existsByName(nameToDelete));
+
+        // Verify that no experiments reference the deleted ExpConfig
+        List<Experiment> updatedExperiments = experimentDao.findAll();
+        for (Experiment experiment : updatedExperiments) {
+            ExpConfigSummary expConfigSummary = experiment.getExpConfigSummary();
+            assertNull(expConfigSummary);
+        }
     }
 
 
