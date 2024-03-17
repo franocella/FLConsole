@@ -133,6 +133,7 @@ public class AdminController {
 
             // Convert the JSON string to an ExpConfig object
             Experiment experiment = objectMapper.readValue(exp, Experiment.class);
+
             System.out.println(experiment);
 
             String email = cookieService.getCookieValue(request.getCookies(),"email");
