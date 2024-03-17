@@ -153,6 +153,8 @@ class ExperimentDaoTest {
         // Given
         Experiment experiment = new Experiment();
         experiment.setName("Test Experiment");
+        Experiment savedExperiment = experimentDao.save(experiment);
+
 
         // When
         Experiment foundExperiment = experimentDao.findByName("Test Experiment");
@@ -178,6 +180,21 @@ class ExperimentDaoTest {
         assertTrue(existingNameResult, "Experiment with existing name should exist");
         assertTrue(nonExistingNameResult,"Experiment with non-existing name should not be exist");
     }
+    void findByCreationDate(){
+        // Given
+        Date creationDate = new Date();
+        Experiment experiment = new Experiment();
+        experiment.setName("Test Experiment");
+        experiment.setCreationDate(creationDate);
+        Experiment savedExperiment = experimentDao.save(experiment);
 
+        // When
+        Experiment foundExperiment = experimentDao.findByCreationDate(creationDate);
+
+        // Then
+        assertNotNull(foundExperiment);
+        assertEquals("Test Experiment", foundExperiment.getName());
+        assertEquals(creationDate, foundExperiment.getCreationDate());
+    }
 
 }
