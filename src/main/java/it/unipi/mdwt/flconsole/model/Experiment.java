@@ -22,7 +22,7 @@ public class Experiment {
     private String name;
 
     @Field("expConfig")
-    private ExpConfigSummary expConfigSummary;
+    private ExpConfigSummary expConfig;
 
     @Field("creationDate")
     @CreatedDate
@@ -35,5 +35,8 @@ public class Experiment {
     @Field("progressList")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<ExpProgress> progressList;
+
+    @Field("status")
+    private String status;
 }
 

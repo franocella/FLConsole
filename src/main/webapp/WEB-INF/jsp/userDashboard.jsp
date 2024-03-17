@@ -53,24 +53,23 @@
                 <tr>
                     <th>Id</th>
                     <th>Execution name</th>
+                    <th>Author</th>
                     <th>Config Name</th>
                     <th>Open</th>
                 </tr>
                 </thead>
                 <tbody>
                 <!-- Examples -->
-                <tr>
-                    <td>1</td>
-                    <td>Experiment A</td>
-                    <td>Configuration 1</td>
-                    <td><a href="/experiment-1"><img src="Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
-                </tr>
-                <tr>
-                    <td>2</td>
-                    <td>Experiment B</td>
-                    <td>Configuration 2</td>
-                    <td><a href="/experiment-2"><img src="Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
-                </tr>
+                <c:forEach items="${experiments}" var="exp">
+                    <tr>
+                        <td>${exp.getFirst().id}</td>
+                        <td>${exp.getFirst().name}</td>
+                        <td>${exp.getSecond()}</td>
+                        <td>${exp.getFirst().configName}</td>
+                        <td>${exp.getFirst().creationDate}</td>
+                        <td><a href="/experiment-${exp.getFirst().id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
+                    </tr>
+                </c:forEach>
                 </tbody>
             </table>
         </div>
