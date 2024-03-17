@@ -35,7 +35,7 @@ class UserDAOTest {
     @Test
     void save() {
         User user = new User();
-        user.setEmail("example5@mail.com");
+        user.setEmail("example2@mail.com");
         user.setPassword("examplePsw");
         List<String> configurations = new ArrayList<>();
         user.setConfigurations(configurations);
@@ -49,7 +49,7 @@ class UserDAOTest {
         }
 
         // Fetching Experiment from repository
-        Optional<Experiment> experimentOptional = experimentDao.findById("65f47e72dad6736bfbe3efc5");
+        Optional<Experiment> experimentOptional = experimentDao.findById("65f6f495b9143e510574da43");
         if (experimentOptional.isPresent()) {
             Experiment experiment = experimentOptional.get();
             // Creating ExperimentSummary object
@@ -107,12 +107,22 @@ class UserDAOTest {
     @Test
     void delete() {
         // Given
-        String emailToDelete = "updateTest@example.com";
+        String emailToDelete = "example2@mail.com";
         User user = userRepository.findByEmail(emailToDelete);
 
         // Ensure that the user exists before attempting deletion
         assertNotNull(user);
 
+        List<ExperimentSummary> experimentSummaries = user.getExperiments();
+        if (experimentSummaries!= null){
+            for (ExperimentSummary experimentSummary : experimentSummaries){
+                Optional<Experiment> experiment = experimentDao.findById(experimentSummary.getId());
+                experimentDao.deleteById(experimentSummary.getId());
+
+                assertNotNull(experimentSummary);
+                assertNotNull(experiment);
+            }
+        }
         // When
         userRepository.deleteByEmail(emailToDelete);
 
