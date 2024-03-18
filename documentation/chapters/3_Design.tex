@@ -1,13 +1,20 @@
 \chapter{Design}
 
+\section{Introduction}
+This chapter aims to provide a detailed overview of the software architecture and database design of the project. It is essential for understanding the organization and structure of the system, as well as the design choices made to ensure the efficiency, scalability, and robustness of the software.
+
+The design of the software architecture focuses on the organization and distribution of software components, defining roles, responsibilities, and interactions among them. Key architectural decisions guiding the project's development will be presented within this context.
+
+Additionally, the database design will be examined, with particular attention to the decision to use a NoSQL database like MongoDB. This decision was motivated by the need to adapt to the specific requirements of the project, including flexible management of unstructured data and horizontal scalability.
+
+
 \section{Software Architecture}
 
 The software architecture of the project is described in this section.
 
+\newpage
 \section{Database Design}
 
-In this section, the database design of the project is presented.
-\newpage
 \subsection{MongoDB}
 \subsubsection{Collections}
 \textbf{ExpConfig document example:} \begin{verbatim}
@@ -89,28 +96,34 @@ In this section, the database design of the project is presented.
 
     \end{verbatim}
 \newpage
-\subsection{Erlang Message Handler}
+\section{Message Handler}
 
-The Erlang message handler design is described in this subsection.
+\subsection{Erlang for Message Passing}
+The message handler is implemented using the Erlang programming language. Erlang is a functional programming language designed for building scalable and fault-tolerant systems. It is particularly well-suited for building distributed systems, thanks to its lightweight processes and built-in support for message passing. In this project, we utilize the Jinterface library, which allows us to write Java code that can communicate with Erlang processes to send and receive messages, arriving from the Director node and vice versa.
 
-\subsubsection{Message structure}
+\subsection{Message Structure}
 \begin{itemize}
-    \item Error message \begin{verbatim}
+    \item Error Message:
+    \begin{verbatim}
         {
             "type": "error",
             "cause": "error_in_collecting_data",
             "timestamp": "2024-03-13T12:34:56"
         }
     \end{verbatim}
-    \item Stop message \begin{verbatim}
+    
+    \item Stop Message:
+    \begin{verbatim}
         {
             "type": "stop",
             "cause": "experiment_finished",
             "timestamp": "2024-03-13T12:34:56"
         }
     \end{verbatim}
-    \item Data message \begin{verbatim}
-        {   
+    
+    \item Data Message:
+    \begin{verbatim}
+        {
             "type": "data",
             "parameters": {
                 "param1": "value1",
@@ -121,3 +134,6 @@ The Erlang message handler design is described in this subsection.
         }
     \end{verbatim}
 \end{itemize}
+
+\subsection{Description of the Erlang Message Handler Module}
+The Erlang message handler module is a crucial component of the system responsible for managing incoming messages, processing them accordingly, and facilitating communication between different parts of the distributed system. It encapsulates the logic for handling various types of messages, such as error notifications, stop signals, and data updates, ensuring proper routing and processing. Additionally, the module provides interfaces for sending and receiving messages, abstracting the underlying communication mechanisms and enabling seamless integration with other system components. Its robust design and fault-tolerant features contribute to the overall reliability and performance of the distributed system.
