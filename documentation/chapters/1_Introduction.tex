@@ -2,13 +2,14 @@
 
 \section{Context and Project Objective}
 
-The goal of this project is to develop a comprehensive system for managing Federated Learning (FL) experiments. FL is a decentralized machine learning approach where multiple devices collaborate to train a shared model while keeping their data locally. The project aims to provide a robust platform for orchestrating FL experiments, enabling users to monitor their progress, analyze results, and facilitate communication between the Java Web Application and FL Director.
+The goal of this project is to develop a system to manage Federated Learning (FL) experiments. FL is a decentralized machine learning approach where multiple devices collaborate to train a shared model while keeping their data locally. The project aims to provide a graphic interface with a web console to run FL experiments, enabling users to monitor their progress and analyze results.
 
 \section{Project Goals}
 
 \subsection{Manage Message Passing}
 \begin{itemize}
-    \item Implement a communication system between the Java Web Application and FL Director.
+    \item Implement a communication system between the Java Web Application and Erlang FL Director.\\
+    The FL Director is a software that starts experiments among the subscribed devices.
     \item Establish a reliable message passing protocol to exchange information seamlessly.
 \end{itemize}
 
@@ -20,7 +21,7 @@ The goal of this project is to develop a comprehensive system for managing Feder
 
 \section{Communication Protocol}
 
-To ensure effective communication between the Java Web Application and FL Director, a robust protocol will be defined. This protocol will facilitate the exchange of messages and data in a structured format, ensuring consistency and compatibility across different components of the system.
+To ensure effective communication between the Java Web Application and FL Director, a communication protocol will be defined. It will facilitate the exchange of messages and data in a structured format, ensuring consistency and compatibility across different components of the system. The FL director is an Erlang node, so it's necessary send the data in the proper way.
 
 \section{Data Variety}
 
@@ -28,7 +29,7 @@ FL experiments generate various types of statistics, ranging from model performa
 
 \section{Concurrent Experiment Execution}
 
-The system will support concurrent execution of multiple FL experiments to maximize resource utilization and efficiency. Java threads and ExecutorService will be leveraged to manage experiment execution concurrently, ensuring optimal performance and resource allocation.
+The system will support concurrent execution of multiple FL experiments to maximize resource utilization and efficiency. Java threads and ExecutorService will be used to manage experiment execution concurrently, ensuring optimal performance and resource allocation.
 
 \section{Real-Time Analytics}
 
@@ -44,17 +45,6 @@ Real-time analytics capabilities will be implemented using WebSockets to enable 
     \item Choose a suitable message acknowledgment mechanism to ensure reliable delivery of messages, minimizing the risk of data loss.
 \end{itemize}
 
-\section{System Architecture}
-
-The system architecture will consist of several key components, including:
-
-\subsection{Result Collector}
-
-Responsible for collecting experiment statistics from participating devices and forwarding them to the Web Console for display and analysis.
-
-\subsection{Web Console}
-
-A user interface component that allows users to interact with the system, initiate new experiments, and monitor their progress in real-time.
 
 \section{Architecture and Frameworks}
 

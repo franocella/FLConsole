@@ -10,7 +10,13 @@ Additionally, the database design will be examined, with particular attention to
 
 \section{Software Architecture}
 
-The software architecture of the project is described in this section.
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/2_analisys/FL_proj_Arch..png}
+    \caption{System Architecture}
+    \label{fig:system_architecture}
+\end{figure}
+
 
 \newpage
 \section{Database Design}
@@ -99,7 +105,7 @@ The software architecture of the project is described in this section.
 \section{Message Handler}
 
 \subsection{Erlang for Message Passing}
-The message handler is implemented using the Erlang programming language. Erlang is a functional programming language designed for building scalable and fault-tolerant systems. It is particularly well-suited for building distributed systems, thanks to its lightweight processes and built-in support for message passing. In this project, we utilize the Jinterface library, which allows us to write Java code that can communicate with Erlang processes to send and receive messages, arriving from the Director node and vice versa.
+The message handler is implemented using the Erlang programming language. Erlang is a functional programming language designed for building scalable and fault-tolerant systems. It is particularly well-suited for building distributed systems, thanks to its lightweight processes and built-in support for message passing. In this project, it's utilized the Jinterface library, which allows to write Java code that can communicate with Erlang processes to send and receive messages, arriving from the FLang Infrastructure and vice versa.
 
 \subsection{Message Structure}
 \begin{itemize}
