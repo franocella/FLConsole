@@ -2,21 +2,32 @@ package it.unipi.mdwt.flconsole.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
+import it.unipi.mdwt.flconsole.dao.UserDAO;
 import it.unipi.mdwt.flconsole.model.Experiment;
+import it.unipi.mdwt.flconsole.model.ExperimentSummary;
+import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.ErlangMessageHandler;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
+import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessTypeErrorsEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.util.Pair;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.logging.Logger;
 
 import static java.lang.Thread.sleep;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @Service
 public class ExperimentService {
@@ -25,17 +36,24 @@ public class ExperimentService {
     private final ExperimentDao experimentDao;
     private final ErlangMessageHandler erlangMessageHandler;
     private final Logger applicationLogger;
-
+    private final UserDAO userDAO;
     private final ObjectMapper objectMapper;
 
+    private final MongoTemplate mongoTemplate;
+
+
     @Autowired
-    public ExperimentService(SimpMessagingTemplate messagingTemplate, ExperimentDao experimentDao, ErlangMessageHandler erlangMessageHandler, Logger applicationLogger) {
+    public ExperimentService(SimpMessagingTemplate messagingTemplate, ExperimentDao experimentDao, ErlangMessageHandler erlangMessageHandler, Logger applicationLogger, UserDAO userDAO, MongoTemplate mongoTemplate) {
         this.messagingTemplate = messagingTemplate;
         this.experimentDao = experimentDao;
         this.erlangMessageHandler = erlangMessageHandler;
         this.applicationLogger = applicationLogger;
+        this.userDAO = userDAO;
+        this.mongoTemplate = mongoTemplate;
         this.objectMapper = new ObjectMapper();
     }
+
+
 
     // Fake experiment to test WebSocket
     public void runExp() throws BusinessException{
@@ -79,66 +97,63 @@ public class ExperimentService {
         }
     }
 
-
     public void runExperiment() throws BusinessException {
-        // Initialization and setup code
-        Map<String, Object> message;
-        int i=0;
-        while (i<10) {
-            i++;
-            try {
-                sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            String jsonMessage = erlangMessageHandler.receiveMessage();
-            try {
-                message = objectMapper.readValue(jsonMessage, Map.class);
-            } catch (IOException e) {
-                // Handle parsing exception
-                continue;
-            }
+        erlangMessageHandler.initialize("provaEmail");
+        erlangMessageHandler.startExperiment("exp_config");
+    }
 
-            assert message != null;
-            if (message.get("type").equals("stop")) {
-                // If it's a stop message, send the confirmation to the frontend
-                    try {
-                        messagingTemplate.convertAndSend("/experiment/progress", "{\"status\": \"stopped\"}");
-                    } catch (MessageDeliveryException e) {
-                        System.out.println("WebSocket connection is closed. Cannot send stop message.");
-                    }
-                break;
+
+
+
+    public Experiment getExpDetails(String id) throws BusinessException {
+        try {
+            Optional<Experiment> expOptional = experimentDao.findById(id);
+            if (expOptional.isPresent()) {
+                return expOptional.get();
             } else {
-                // If it's not a stop message, send only the "parameters" field to the frontend
-                Map<String, String> parameters = (Map<String, String>) message.get("parameters");
-                if (parameters != null) {
-                    try {
-                        messagingTemplate.convertAndSend("/experiment/progress", parameters);
-                    } catch (MessageDeliveryException e) {
-                        System.out.println("WebSocket connection is closed. Cannot send progress message.");
-                        break;
+                throw new BusinessException(BusinessTypeErrorsEnum.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    public void saveExperiment(Experiment exp, String email) {
+        experimentDao.save(exp);
+        ExperimentSummary expSummary = new ExperimentSummary();
+        expSummary.setId(exp.getId());
+        expSummary.setName(exp.getName());
+        expSummary.setCreationDate(exp.getCreationDate());
+        expSummary.setConfigName(exp.getExpConfig().getName());
+
+        Query query = new Query(where("email").is(email));
+        Update update = new Update().addToSet("experiments", expSummary);
+        mongoTemplate.updateFirst(query, update, User.class);
+    }
+
+    public List<Pair<ExperimentSummary, String>> getExperimentsSummaryList(int n) {
+        Pageable pageable = PageRequest.of(0, n); // First n experiments
+        List<User> users = userDAO.findAll(pageable).getContent();
+        List<Pair<ExperimentSummary, String>> experimentsWithAuthors = new ArrayList<>();
+
+        for (User user : users) {
+            List<ExperimentSummary> userExperiments = user.getExperiments();
+            if (userExperiments != null) { // Check if the collection is not null
+                for (ExperimentSummary experiment : userExperiments) {
+                    String authorEmail = user.getEmail();
+                    Pair<ExperimentSummary, String> experimentWithAuthor = Pair.of(experiment, authorEmail);
+                    experimentsWithAuthors.add(experimentWithAuthor);
+                    if (experimentsWithAuthors.size() >= n) {
+                        break; // Stop iterating if we have collected enough experiments
                     }
                 }
             }
         }
+
+        return experimentsWithAuthors;
     }
 
-
-
-
-    public Experiment getExpDetails(String id) throws BusinessException{
-        Optional<Experiment> experiment;
-        try {
-            experiment = experimentDao.findById(id);
-        } catch (Exception e) {
-            applicationLogger.severe("An error occurred while fetching the experiment details: " + e.getMessage());
-            throw new RuntimeException("An error occurred while fetching the experiment details");
-        }
-        return new Experiment();
-    }
-
-    public void saveExperiment(Experiment exp, String email) {
-    }
 
 
 /*    public Page<Experiment> getRecentExperiments(int page, int pageSize) {

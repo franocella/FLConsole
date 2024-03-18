@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.model.Experiment;
+import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.service.CookieService;
 import it.unipi.mdwt.flconsole.service.ExpConfigService;
 import it.unipi.mdwt.flconsole.service.ExperimentService;
@@ -53,7 +54,8 @@ public class AdminController {
     public String home(Model model, HttpServletRequest request) {
         try {
             String email = cookieService.getCookieValue(request.getCookies(),"email");
-            List<ExpConfig> userConfigurations = expConfigService.getExpConfigsForUser(email);
+            User user = userService.getUser(email);
+            List<ExpConfig> userConfigurations = expConfigService.getExpConfigsList(user.getConfigurations());
 
             List<String> jsonList = userConfigurations.stream()
                     .filter(Objects::nonNull) // Filter out null values
@@ -69,6 +71,7 @@ public class AdminController {
                     .toList();
 
             model.addAttribute("configurations", jsonList);
+            model.addAttribute("experiments",user.getExperiments());
             return "adminDashboard";
         } catch (BusinessException e) {
             // If an exception occurs during the process, return a server error message
@@ -126,8 +129,12 @@ public class AdminController {
     @PostMapping("/newExp")
     public ResponseEntity<String> newExp(@RequestBody String exp, HttpServletRequest request) {
         try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
             // Convert the JSON string to an ExpConfig object
             Experiment experiment = objectMapper.readValue(exp, Experiment.class);
+
+            System.out.println(experiment);
 
             String email = cookieService.getCookieValue(request.getCookies(),"email");
 
@@ -137,12 +144,17 @@ public class AdminController {
             // Create the JSON response with the data
             Map<String, Object> response = new HashMap<>();
             response.put("id", experiment.getId());
-
-
+            response.put("name", experiment.getName());
+            response.put("configName", experiment.getExpConfig().getName());
+            response.put("algorithm", experiment.getExpConfig().getAlgorithm());
+            if (experiment.getCreationDate() != null) {
+                String creationTime = dateFormat.format(experiment.getCreationDate());
+                response.put("creationTime", creationTime);
+            }
 
             // Convert the response map to a JSON string
             String jsonResponse = objectMapper.writeValueAsString(response);
-
+            System.out.println(jsonResponse);
             // Return the JSON response
             return ResponseEntity.ok(jsonResponse);
 

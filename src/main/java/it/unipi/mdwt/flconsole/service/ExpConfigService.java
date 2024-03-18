@@ -74,5 +74,7 @@ public class ExpConfigService {
     }
 
 
-
+    public List<ExpConfig> getExpConfigsList(List<String> configurations) {
+        return expConfigDao.findByIdIn(configurations);
+    }
 }
