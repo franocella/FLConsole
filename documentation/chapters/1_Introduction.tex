@@ -2,8 +2,65 @@
 
 \section{Context and Project Objective}
 
-In this section, the context and objective of the project are described.
+The goal of this project is to develop a comprehensive system for managing Federated Learning (FL) experiments. FL is a decentralized machine learning approach where multiple devices collaborate to train a shared model while keeping their data locally. The project aims to provide a robust platform for orchestrating FL experiments, enabling users to monitor their progress, analyze results, and facilitate communication between the Java Web Application and FL Director.
 
-\section{Application Highlights}
+\section{Project Goals}
 
-In this section, the highlights of the application are presented.
+\subsection{Manage Message Passing}
+\begin{itemize}
+    \item Implement a communication system between the Java Web Application and FL Director.
+    \item Establish a reliable message passing protocol to exchange information seamlessly.
+\end{itemize}
+
+\subsection{Implement a Web Console}
+\begin{itemize}
+    \item Develop a user-friendly Web Console to initiate and manage FL experiments.
+    \item Provide centralized access to experiment statistics for easy monitoring and analysis.
+\end{itemize}
+
+\section{Communication Protocol}
+
+To ensure effective communication between the Java Web Application and FL Director, a robust protocol will be defined. This protocol will facilitate the exchange of messages and data in a structured format, ensuring consistency and compatibility across different components of the system.
+
+\section{Data Variety}
+
+FL experiments generate various types of statistics, ranging from model performance metrics to training data distribution. To accommodate this diversity, a flexible data storage mechanism, such as DocumentDB, will be designed. This will allow for efficient storage and retrieval of experiment data while supporting scalability and adaptability.
+
+\section{Concurrent Experiment Execution}
+
+The system will support concurrent execution of multiple FL experiments to maximize resource utilization and efficiency. Java threads and ExecutorService will be leveraged to manage experiment execution concurrently, ensuring optimal performance and resource allocation.
+
+\section{Real-Time Analytics}
+
+Real-time analytics capabilities will be implemented using WebSockets to enable seamless communication between the frontend and backend of the Web Console. This will facilitate real-time monitoring of experiment progress and display of relevant statistics as they become available.
+
+\section{Project Key Points}
+
+\begin{itemize}
+    \item Utilize DocumentDB for flexible storage of experiment statistics, allowing for efficient data management and retrieval.
+    \item Implement concurrent execution of experiments using Java threads and ExecutorService to optimize resource utilization.
+    \item Establish WebSocket communication for real-time data exchange, enabling seamless interaction between the frontend and backend.
+    \item Define message formats and outline the structure of Erlang nodes for efficient communication, ensuring reliability and scalability.
+    \item Choose a suitable message acknowledgment mechanism to ensure reliable delivery of messages, minimizing the risk of data loss.
+\end{itemize}
+
+\section{System Architecture}
+
+The system architecture will consist of several key components, including:
+
+\subsection{Result Collector}
+
+Responsible for collecting experiment statistics from participating devices and forwarding them to the Web Console for display and analysis.
+
+\subsection{Web Console}
+
+A user interface component that allows users to interact with the system, initiate new experiments, and monitor their progress in real-time.
+
+\section{Architecture and Frameworks}
+
+\begin{itemize}
+    \item Adopt the MVC (Model-View-Controller) pattern to structure the Web Console, promoting separation of concerns and maintainability.
+    \item Utilize Spring as the Java framework for building the Web Console, leveraging its robust features and ecosystem for rapid development.
+    \item Implement WebSockets to enable real-time data communication between the frontend and backend of the Web Console, providing a responsive and interactive user experience.
+    \item Employ MongoDB as the database for storing experiment data, benefiting from its flexibility, scalability, and support for complex data structures.
+\end{itemize}
