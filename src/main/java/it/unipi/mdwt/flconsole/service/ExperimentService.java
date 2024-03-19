@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.util.Pair;
@@ -20,11 +21,9 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.logging.Logger;
+
 
 import static java.lang.Thread.sleep;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -114,6 +113,41 @@ public class ExperimentService {
                 throw new BusinessException(BusinessTypeErrorsEnum.NOT_FOUND);
             }
         } catch (Exception e) {
+            throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public List<Experiment> searchExpByExecutionName(String name) throws BusinessException{
+        try{
+            List<Experiment> matchingExperiments = new ArrayList<>();
+
+            // Search using MongoTemplate
+            Query query = new Query();
+            query.addCriteria(Criteria.where("name").regex(name, "i")); // Case insensitive search
+            List<Experiment> experimentsByTemplate = mongoTemplate.find(query, Experiment.class);
+            matchingExperiments.addAll(experimentsByTemplate);
+
+            return matchingExperiments;
+
+        }catch (Exception e){
+            throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public List<Experiment> searchExpByConfigName(String configName) throws BusinessException{
+        try{
+            List<Experiment> matchingExperiments = new ArrayList<>();
+
+            Query query = new Query();
+            query.addCriteria(Criteria.where("expConfig.name").regex(configName, "i"));
+            List<Experiment> experimentsByTemplate = mongoTemplate.find(query,Experiment.class);
+            matchingExperiments.addAll(experimentsByTemplate);
+
+            return matchingExperiments;
+
+
+
+        }catch (Exception e){
             throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
         }
     }
