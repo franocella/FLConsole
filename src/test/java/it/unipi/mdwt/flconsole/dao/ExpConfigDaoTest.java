@@ -74,7 +74,7 @@ class ExpConfigDaoTest {
 
         List<Experiment> experiments = experimentDao.findAll();
         for (Experiment experiment: experiments){
-            ExpConfigSummary expConfigSummary = experiment.getExpConfigSummary();
+            ExpConfigSummary expConfigSummary = experiment.getExpConfig();
             if (expConfigSummary != null && expConfigSummary.getId().equals(expConfig.getId())) {
                 expConfigSummary.setName(savedConfig.getName());
                 experimentDao.save(experiment);
@@ -115,7 +115,7 @@ class ExpConfigDaoTest {
         // Verify that no experiments reference the deleted ExpConfig
         List<Experiment> updatedExperiments = experimentDao.findAll();
         for (Experiment experiment : updatedExperiments) {
-            ExpConfigSummary expConfigSummary = experiment.getExpConfigSummary();
+            ExpConfigSummary expConfigSummary = experiment.getExpConfig();
             assertNull(expConfigSummary);
         }
     }

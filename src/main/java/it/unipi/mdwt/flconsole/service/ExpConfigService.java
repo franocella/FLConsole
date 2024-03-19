@@ -4,6 +4,8 @@ import it.unipi.mdwt.flconsole.dao.ExpConfigDao;
 import it.unipi.mdwt.flconsole.dao.UserDAO;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.model.User;
+import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
+import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessTypeErrorsEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -11,9 +13,11 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import java.lang.management.OperatingSystemMXBean;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @Service
@@ -77,4 +81,53 @@ public class ExpConfigService {
     public List<ExpConfig> getExpConfigsList(List<String> configurations) {
         return expConfigDao.findByIdIn(configurations);
     }
+
+    public List<ExpConfig> searchExpConfigByConfigName(String name) throws BusinessException{
+        try{
+            List<ExpConfig> matchingConfigs = new ArrayList<>();
+
+            Query query = new Query();
+            query.addCriteria(Criteria.where("name").regex(name,"i"));
+            List<ExpConfig> configsByTemplate = mongoTemplate.find(query, ExpConfig.class);
+            matchingConfigs.addAll(configsByTemplate);
+
+            return matchingConfigs;
+
+        }catch (Exception e){
+            throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
+        }
+    }
+    public List<ExpConfig> searchExpConfigByStrategy(String strategy)throws BusinessException{
+        try{
+            List<ExpConfig> expConfigs = expConfigDao.findByStrategy(strategy);
+            if (!expConfigs.isEmpty()){
+                return expConfigs;
+            }else{
+                throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
+            }
+
+        }catch (Exception e){
+            throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
+        }
+    }
+    public List<ExpConfig> searchExpConfigByStopCondition(String stopCondition)throws BusinessException{
+        try{
+            List<ExpConfig> expConfigs = expConfigDao.findByStrategy(stopCondition);
+            if (!expConfigs.isEmpty()){
+                return expConfigs;
+            }else{
+                throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
+            }
+
+        }catch (Exception e){
+            throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+
+
+
 }
+//name, client strategy, stop condition

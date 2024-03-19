@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -153,9 +154,23 @@ class ExperimentDaoTest {
         assertEquals("Test Experiment", foundExperiment.getName());
     }
 
+    @Test
+    void findByExpConfigName(){
+        Experiment experiment = new Experiment();
+        experiment.setName("name");
+        ExpConfigSummary expConfigSummary = new ExpConfigSummary();
+        expConfigSummary.setName("test name");
+        experiment.setExpConfig(expConfigSummary);
+        Experiment savedExp = experimentDao.save(experiment);
+
+        Experiment foundExp = experimentDao.findByExpConfigName("test name");
+
+        assertNotNull(foundExp);
+        assertEquals("test name",foundExp.getName());
+    }
 
 
-
+    @Test
     void existsByName(){
         //Given
         String existName = "existingName";
@@ -169,6 +184,8 @@ class ExperimentDaoTest {
         assertTrue(existingNameResult, "Experiment with existing name should exist");
         assertTrue(nonExistingNameResult,"Experiment with non-existing name should not be exist");
     }
+
+    @Test
     void findByCreationDate(){
         // Given
         Date creationDate = new Date();
