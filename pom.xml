@@ -77,9 +77,13 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+<!--
+        mvn install:install-file -Dfile="C:\Program Files\Erlang OTP\lib\jinterface-1.14\priv\OtpErlang.jar" -DgroupId="com.ericsson.otp" -DartifactId="erlang-jinterface" -Dversion="1.14" -Dpackaging=jar -DgeneratePom=true
+-->
         <dependency>
             <groupId>com.ericsson.otp</groupId>
-            <artifactId >erlang</artifactId >
+            <artifactId>erlang-jinterface</artifactId>
             <version>1.14</version>
         </dependency>
 

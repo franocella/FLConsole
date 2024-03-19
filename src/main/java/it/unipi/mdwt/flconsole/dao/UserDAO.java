@@ -2,6 +2,7 @@ package it.unipi.mdwt.flconsole.dao;
 
 import com.mongodb.DuplicateKeyException;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
+import it.unipi.mdwt.flconsole.model.ExperimentSummary;
 import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoException;
 import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoTypeErrorsEnum;
@@ -53,6 +54,4 @@ public interface UserDAO extends MongoRepository<User, String> {
         User user = findConfigurationsByEmail(email);
         return user != null ? user.getConfigurations() : Collections.emptyList();
     }
-
-
 }

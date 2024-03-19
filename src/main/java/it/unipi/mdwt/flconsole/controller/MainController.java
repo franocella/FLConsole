@@ -3,6 +3,7 @@ package it.unipi.mdwt.flconsole.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unipi.mdwt.flconsole.model.Experiment;
+import it.unipi.mdwt.flconsole.model.ExperimentSummary;
 import it.unipi.mdwt.flconsole.service.CookieService;
 import it.unipi.mdwt.flconsole.service.ExpConfigService;
 import it.unipi.mdwt.flconsole.service.UserService;
@@ -10,6 +11,7 @@ import it.unipi.mdwt.flconsole.service.ExperimentService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -69,6 +71,7 @@ public class MainController {
     @GetMapping("/logout")
     public String logoutGET(HttpServletResponse response) {
         cookieService.deleteCookie("email", response);
+        cookieService.deleteCookie("role", response);
         return "redirect:/login";
     }
     @GetMapping("/signup")
@@ -97,7 +100,9 @@ public class MainController {
     }
 
     @GetMapping("/")
-    public String home() {
+    public String home(Model model, HttpServletRequest request) {
+        List<Pair<ExperimentSummary, String>> experiments = experimentService.getExperimentsSummaryList(10);
+        model.addAttribute("experiments", experiments);
         return "userDashboard";
     }
 
