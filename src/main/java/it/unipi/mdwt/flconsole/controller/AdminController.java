@@ -208,15 +208,9 @@ public class AdminController {
         }
     }
 
-    @GetMapping("/searchExpByName")
-    public ResponseEntity<List<ExperimentSummary>> searchExpByName(@RequestParam String search) {
-        List<ExperimentSummary> experiments = createExperimentsListSTUB(search);
-        return ResponseEntity.ok(experiments);
-    }
-
-    @GetMapping("/searchExpByConfigName")
-    public ResponseEntity<List<ExperimentSummary>> searchExpByConfigName(@RequestParam String search) {
-        List<ExperimentSummary> experiments = createExperimentsListSTUB(search);
+    @GetMapping("/searchExp")
+    public ResponseEntity<List<ExperimentSummary>> searchExp(String executionName, String configName) {
+        List<ExperimentSummary> experiments = createExperimentsListSTUB(executionName, configName);
         return ResponseEntity.ok(experiments);
     }
 
@@ -226,8 +220,8 @@ public class AdminController {
         return ResponseEntity.ok(expConfigs);
     }
 
-    private List<ExperimentSummary> createExperimentsListSTUB(String search) {
-        if (search == null || search.isBlank())
+    private List<ExperimentSummary> createExperimentsListSTUB(String search, String configName) {
+        if (search == null || search.isBlank() || configName == null || configName.isBlank())
             return null;
         else
             return List.of(

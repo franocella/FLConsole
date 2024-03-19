@@ -268,14 +268,8 @@
                 $(targetTab).show();
             });
 
-            $('#execution-name').on('input', function() {
-                const executionName = $(this).val();
-                searchByExecutionName(executionName);
-            });
-
-            $('#config-name').on('input', function() {
-                const configName = $(this).val();
-                searchByConfigName(configName);
+            $('#execution-name, #config-name').on('input', function() {
+                searchExp();
             });
 
             $('#ExpConfigName, #ClientStrategy, #StopCondition').on('input', function() {
@@ -622,31 +616,16 @@
             }
         }
 
-
-        // Function to perform search by execution name
-        function searchByExecutionName(executionName) {
-            $.ajax({
-                url: '/admin/searchExpByName',
-                method: 'GET',
-                data: {
-                    search: executionName
-                },
-                success: function(response) {
-                    updateExpTable(response);
-                },
-                error: function(xhr) {
-                    console.error(xhr.responseText);
-                }
-            });
-        }
-
         // Function to perform search by configuration name
-        function searchByConfigName(configName) {
+        function searchExp() {
+            const executionName = $('#execution-name').val();
+            const configName = $('#config-name').val();
             $.ajax({
-                url: '/admin/searchExpByConfigName',
+                url: '/admin/searchExp',
                 method: 'GET',
                 data: {
-                    search: configName
+                    configName: configName,
+                    executionName: executionName
                 },
                 success: function(response) {
                     updateExpTable(response);
@@ -657,20 +636,20 @@
             });
         }
 
-        // Function to update table with search results
         function updateExpTable(response) {
             $('#tab2Content tbody').empty();
             $.each(response, function(index, item) {
                 const row = $('<tr>').append(
-                    $('<td>').text(item.id),
-                    $('<td>').text(item.executionName),
-                    $('<td>').text(item.configName),
-                    $('<td>').text(item.creationDate),
-                    $('<td>').append($('<a>').attr('href', '#').append($('<img>').attr({src: item.imageSrc, alt: 'Open', width: '25px', height: '25px'})))
+                    '<td>' + item.id + '</td>',
+                    '<td>' + item.name + '</td>',
+                    '<td>' + item.configName + '</td>',
+                    '<td>' + item.creationDate + '</td>',
+                    '<td><a href="/experiment-' + item.id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>'
                 );
                 $('#tab2Content tbody').append(row);
             });
         }
+
 
         // Function to perform configuration search
         function searchConfig() {
