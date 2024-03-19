@@ -93,8 +93,8 @@
                     </tbody>
                 </table>
                 <div class="text-end my-3">
-                    <a onclick="addRow()" class="btn btn-outline-primary btn-sm me-2">Add Row</a>
-                    <a onclick="deleteRow()" class="btn btn-outline-danger btn-sm">Delete Row</a>
+                    <a onclick="addRow()" id="add-parameter" class="btn btn-outline-primary btn-sm me-2">Add Row</a>
+                    <a onclick="deleteRow()" id="remove-parameter" class="btn btn-outline-danger btn-sm">Delete Row</a>
                 </div>
                 <div class="text-end mt-5">
                     <a class="btn btn-primary me-2" onclick="submitConfigForm()">Save</a>
@@ -319,12 +319,11 @@
 
                 $("#Form table tbody tr").each(function (index, row) {
                     const parameterName = $(row).find("td:eq(0)").text();
-                    const parameterValue = $(row).find("td:eq(1)").text();
-                    parameters[parameterName] = parameterValue;
+                    parameters[parameterName] = $(row).find("td:eq(1)").text();
                 });
 
                 // Only add parameters field to formData if there are parameters
-                if (Object.keys(parameters).length > 0) {
+                if (Object.keys(parameters).rowCount > 0) {
                     formData["parameters"] = parameters;
                 }
 
@@ -357,20 +356,24 @@
 
         function addNewConfigToList(formData) {
             const table = $("#ConfigTable");
-            const newRow = $("<tr>");
             const id = formData.id;
             const name = formData.name;
             const algorithm = formData.algorithm;
-            newRow.append("<td class='align-middle'>" + id + "</td>");
-            newRow.append("<td class='align-middle'>" + name + "</td>");
-            newRow.append("<td class='align-middle'>" + algorithm + "</td>");
-            newRow.append("<td class='align-middle'>" + formData.strategy + "</td>");
-            newRow.append("<td class='align-middle'>" + formData.numClients + "</td>");
-            newRow.append("<td class='align-middle'>" + formData.stopCondition + "</td>");
-            newRow.append("<td class='align-middle'>" + formData.creationDate + "</td>");
-            newRow.append("<td class='align-middle'>" + formData.lastUpdate + "</td>");
-            newRow.append('<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + formData.id + '\')" height="20px" width="20px"></figure></td>');
+
+            const newRow = '<tr>' +
+                '<td class="align-middle">' + id + '</td>' +
+                '<td class="align-middle">' + name + '</td>' +
+                '<td class="align-middle">' + algorithm + '</td>' +
+                '<td class="align-middle">' + formData.strategy + '</td>' +
+                '<td class="align-middle">' + formData.numClients + '</td>' +
+                '<td class="align-middle">' + formData.stopCondition + '</td>' +
+                '<td class="align-middle">' + formData.creationDate + '</td>' +
+                '<td class="align-middle">' + formData.lastUpdate + '</td>' +
+                '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + id + '\')" height="20px" width="20px"></figure></td>' +
+                '</tr>';
+
             table.append(newRow);
+
             // Add the option to the dropdown menu
             const selectElement = document.getElementById("FL_config_value");
             const option = document.createElement("option");
@@ -378,6 +381,7 @@
             option.text = name;
             selectElement.appendChild(option);
         }
+
 
         function deleteConfig(id) {
             console.log("Deleting config with id:", id);
@@ -436,8 +440,22 @@
 
         function deleteRow() {
             const table = document.getElementById("parametersTable");
-            if (table.tBodies[0].rows.length > 1) {
-                table.tBodies[0].deleteRow(table.tBodies[0].rows.length - 1);
+            const rowCount = table.tBodies[0].rows.length;
+            if (rowCount > 1) {
+                table.tBodies[0].deleteRow(rowCount - 1);
+            }
+
+            const newRowCount =  rowCount - 1;
+            // Hide the delete button if there is only one row
+            if (newRowCount === 1) {
+                const deleteButton = document.getElementById("remove-parameter");
+                deleteButton.style.display = "none";
+            }
+
+            // Show the add button if there are less than 5 rows
+            if (newRowCount < 5) {
+                const addRowButton = document.getElementById("add-parameter");
+                addRowButton.style.display = "inline-block";
             }
         }
 
@@ -482,20 +500,19 @@
         function addNewExpToList(formData) {
             const table = $("#ExpTable");
 
-            const newRow = $("<tr>");
             const id = formData.id;
             const executionName = formData.name;
             const configName = formData.expConfig.name;
             const creationDate = formatDateString(formData.creationDate);
 
+            const newRow = "<tr>" +
+                "<td class='align-middle'>" + id + "</td>" +
+                "<td class='align-middle'>" + executionName + "</td>" +
+                "<td class='align-middle'>" + configName + "</td>" +
+                "<td class='align-middle'>" + creationDate + "</td>" +
+                '<td class="align-middle"><a href="/experiment-' + id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>' +
+                "</tr>";
 
-
-            newRow.append("<td class='align-middle'>" + id + "</td>");
-            newRow.append("<td class='align-middle'>" + executionName + "</td>");
-            newRow.append("<td class='align-middle'>" + configName + "</td>");
-            newRow.append("<td class='align-middle'>" + creationDate + "</td>");
-
-            newRow.append('<td class="align-middle"><a href="/experiment-' + id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>');
             table.append(newRow);
         }
 
@@ -560,35 +577,48 @@
             // Reset values in the parameters table
             const table = modal.find("#parametersTable")[0];
             if (table && table.tBodies[0]) {
-                const rowCount = table.tBodies[0].rows.length;
-
-                for (let i = rowCount - 1; i >= 2; i--) {
-                    table.tBodies[0].deleteRow(i);
-                }
+                const rowCount = table.tBodies[0].rows.rowCount;
 
                 // Update the first row values
                 const firstRow = table.tBodies[0].rows[0];
                 firstRow.cells[0].textContent = "Parameter 1";
                 firstRow.cells[1].textContent = "Value 1";
 
-                // Update the second row values
-                const secondRow = table.tBodies[0].rows[1];
-                secondRow.cells[0].textContent = "Parameter 2";
-                secondRow.cells[1].textContent = "Value 2";
+                // Remove all rows except the first one
+                for (let i = rowCount - 1; i >= 1; i--) {
+                    table.tBodies[0].deleteRow(i);
+                }
+
+                // Add the second default row
+                addRow();
             }
         }
 
         function addRow() {
             const table = document.getElementById("parametersTable");
-            if (table.tBodies[0].rows.length < 5) {
-                const newRow = table.tBodies[0].insertRow(table.tBodies[0].rows.length);
+            const rowCount = table.tBodies[0].rows.length;
+            let newRowCount;
+            if (rowCount < 5) {
+                const newRow = table.tBodies[0].insertRow(rowCount);
+                newRowCount = rowCount + 1;
                 const cell1 = newRow.insertCell(0);
                 const cell2 = newRow.insertCell(1);
                 cell1.contentEditable = true;
                 cell2.contentEditable = true;
-                cell1.textContent = "New Parameter";
-                cell2.textContent = "New Value";
+                cell1.textContent = "Parameter" + newRowCount;
+                cell2.textContent = "Value" + newRowCount;
+            }
 
+            // Hide the add button if there are 5 rows
+            if (newRowCount === 5) {
+                const addRowButton = document.getElementById("add-parameter");
+                addRowButton.style.display = "none";
+            }
+
+            // Show the delete button if there are more than 1 row
+            if (newRowCount > 1) {
+                const deleteButton = document.getElementById("remove-parameter");
+                deleteButton.style.display = "inline-block";
             }
         }
 
