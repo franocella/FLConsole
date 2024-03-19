@@ -187,8 +187,8 @@
         <div id="tab2Content" class="container tab-content" style="display: none;">
             <div class="container py-2 my-2" style="box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);">
                 <div class="d-flex align-items-center">
-                    <input type="text" class="form-control me-2" id="execution-name" required placeholder="Execution name"/>
-                    <input type="text" class="form-control me-2"id="config-name" required placeholder="Configuration name"/>
+                    <input type="text" class="form-control me-2" id="execution-name" placeholder="Execution name"/>
+                    <input type="text" class="form-control me-2" id="config-name" placeholder="Configuration name"/>
 
                     <button class="btn btn-primary me-2">Search</button>
                     <a onclick="displayExpModal()" class="btn btn-primary">New</a>
@@ -231,99 +231,106 @@
     let configurations = ${configurations};
     configurations.forEach(addNewConfigToList);
 
-        $(document).ready(function () {
-            // Event listener for tab clicks
-            $('.nav-link').on('click', function (e) {
-                e.preventDefault();
+    $(document).ready(function () {
+        // Event listener for tab clicks
+        $('.nav-link').on('click', function (e) {
+            e.preventDefault();
 
-                // Remove the "active" class from all links
-                $('.nav-link').removeClass('active');
+            // Remove the "active" class from all links
+            $('.nav-link').removeClass('active');
 
-                // Add the "active" class to the clicked link
-                $(this).addClass('active');
+            // Add the "active" class to the clicked link
+            $(this).addClass('active');
 
-                // Hide all tab contents
-                $('.tab-content').hide();
+            // Hide all tab contents
+            $('.tab-content').hide();
 
-                // Show the corresponding tab content
-                var targetTab = $(this).attr('href');
-                $(targetTab).show();
-            });
+            // Show the corresponding tab content
+            const targetTab = $(this).attr('href');
+            $(targetTab).show();
         });
 
+        $('#execution-name').on('input', function() {
+            const executionName = $(this).val();
+            searchByExecutionName(executionName);
+        });
 
+        $('#config-name').on('input', function() {
+            const configName = $(this).val();
+            searchByConfigName(configName);
+        });
+    });
 
-        function submitConfigForm() {
-            // Get values from input fields
-            const name = $("#config-name-modal").val().trim();
-            const strategy = $("#ClientStrategyModal").val();
-            const numClients = $("#NumberOfClients").val().trim();
-            const algorithm = $("#AlgorithmModal").val();
-            const stopCondition = $("#StopConditionModal").val();
-            const threshold = $("#StopThreshold").val().trim();
+    function submitConfigForm() {
+        // Get values from input fields
+        const name = $("#config-name-modal").val().trim();
+        const strategy = $("#ClientStrategyModal").val();
+        const numClients = $("#NumberOfClients").val().trim();
+        const algorithm = $("#AlgorithmModal").val();
+        const stopCondition = $("#StopConditionModal").val();
+        const threshold = $("#StopThreshold").val().trim();
 
-            // Check if mandatory parameters are provided
-            if (name === "" || strategy === "Client strategy" || numClients === "" || algorithm === "Algorithm" || stopCondition === "Stop condition" || threshold === "") {
-                // Display an error modal with the names of missing mandatory parameters
-                displayErrorModal("Parameters", {
-                    "Name": name === "" ? "Missing" : name,
-                    "Client Strategy": strategy === "Client strategy" ? "Missing" : strategy,
-                    "Number of Clients": numClients === "" ? "Missing" : numClients,
-                    "Algorithm": algorithm === "Algorithm" ? "Missing" : algorithm,
-                    "Stop Condition": stopCondition === "Stop condition" ? "Missing" : stopCondition,
-                    "Threshold": threshold === "" ? "Missing" : threshold
-                });
-            } else {
-                // If all mandatory parameters are provided, proceed with creating the formData object
-                const formData = {
-                    "name": name,
-                    "strategy": strategy,
-                    "numClients": numClients,
-                    "algorithm": algorithm,
-                    "stopCondition": stopCondition,
-                    "threshold": threshold
-                };
+        // Check if mandatory parameters are provided
+        if (name === "" || strategy === "Client strategy" || numClients === "" || algorithm === "Algorithm" || stopCondition === "Stop condition" || threshold === "") {
+            // Display an error modal with the names of missing mandatory parameters
+            displayErrorModal("Parameters", {
+                "Name": name === "" ? "Missing" : name,
+                "Client Strategy": strategy === "Client strategy" ? "Missing" : strategy,
+                "Number of Clients": numClients === "" ? "Missing" : numClients,
+                "Algorithm": algorithm === "Algorithm" ? "Missing" : algorithm,
+                "Stop Condition": stopCondition === "Stop condition" ? "Missing" : stopCondition,
+                "Threshold": threshold === "" ? "Missing" : threshold
+            });
+        } else {
+            // If all mandatory parameters are provided, proceed with creating the formData object
+            const formData = {
+                "name": name,
+                "strategy": strategy,
+                "numClients": numClients,
+                "algorithm": algorithm,
+                "stopCondition": stopCondition,
+                "threshold": threshold
+            };
 
-                // Take the parameters from the table and add them to the formData object
-                const parameters = {};  // Initialize parameters as an empty object
+            // Take the parameters from the table and add them to the formData object
+            const parameters = {};  // Initialize parameters as an empty object
 
-                $("#Form table tbody tr").each(function(index, row) {
-                    const parameterName = $(row).find("td:eq(0)").text();
-                    const parameterValue = $(row).find("td:eq(1)").text();
-                    parameters[parameterName] = parameterValue;
-                });
+            $("#Form table tbody tr").each(function(index, row) {
+                const parameterName = $(row).find("td:eq(0)").text();
+                parameters[parameterName] = $(row).find("td:eq(1)").text();
+            });
 
-                // Only add parameters field to formData if there are parameters
-                if (Object.keys(parameters).length > 0) {
-                    formData["parameters"] = parameters;
-                }
-
-                console.log("formData object:", formData);
-
-                $.ajax({
-                    type: "POST",
-                    url: "/admin/newConfig",
-                    contentType: "application/json",
-                    data: JSON.stringify(formData),
-                    success: function(response) {
-
-                        const jsonData = JSON.parse(response);
-
-                        formData["id"] = jsonData.id;
-                        formData["creationDate"] = jsonData.creationTime;
-                        formData["lastUpdate"] = jsonData.lastUpdate;
-
-                        console.log("New config:", formData);
-                        addNewConfigToList(formData);
-
-                        closeModal();
-                    },
-                    error: function(error) {
-                        console.error("Error:", error);
-                    }
-                });
+            // Only add parameters field to formData if there are parameters
+            if (Object.keys(parameters).length > 0) {
+                formData["parameters"] = parameters;
             }
+
+            console.log("formData object:", formData);
+
+            $.ajax({
+                type: "POST",
+                url: "/admin/newConfig",
+                contentType: "application/json",
+                data: JSON.stringify(formData),
+                success: function(response) {
+
+                    const jsonData = JSON.parse(response);
+
+                    formData["id"] = jsonData.id;
+                    formData["creationDate"] = jsonData.creationTime;
+                    formData["lastUpdate"] = jsonData.lastUpdate;
+
+                    console.log("New config:", formData);
+                    addNewConfigToList(formData);
+
+                    closeModal();
+                },
+                error: function(error) {
+                    console.error("Error:", error);
+                }
+            });
         }
+    }
 
     function addNewConfigToList(formData) {
         const table = $("#ConfigTable");
@@ -362,7 +369,6 @@
         });
     }
 
-
     function submitExpForm(){
         const formData = {
             "experimentName": $("#config-name-exp-modal").val(),
@@ -372,41 +378,40 @@
         closeModal();
     }
 
+    function displayConfigModal() {
 
-        function displayConfigModal() {
+        const overlayElement = document.getElementById("overlay");
+        overlayElement.style.display = "block";
 
-            const overlayElement = document.getElementById("overlay");
-            overlayElement.style.display = "block";
+        let body = document.getElementsByTagName("body")[0];
+        body.style.overflowY = "hidden";
 
-            let body = document.getElementsByTagName("body")[0];
-            body.style.overflowY = "hidden";
+        const modalElement = document.getElementById("config-modal");
+        modalElement.style.display = "block";
+    }
 
-            const modalElement = document.getElementById("config-modal");
-            modalElement.style.display = "block";
-        }
+    function displayExpModal() {
 
-        function displayExpModal() {
+        const overlayElement = document.getElementById("overlay");
+        overlayElement.style.display = "block";
 
-            const overlayElement = document.getElementById("overlay");
-            overlayElement.style.display = "block";
+        let body = document.getElementsByTagName("body")[0];
+        body.style.overflowY = "hidden";
 
-            let body = document.getElementsByTagName("body")[0];
-            body.style.overflowY = "hidden";
+        const modalElement = document.getElementById("exp-modal");
+        modalElement.style.display = "block";
+    }
 
-            const modalElement = document.getElementById("exp-modal");
-            modalElement.style.display = "block";
-        }
+    function closeModal() {
+        let body = document.getElementsByTagName("body")[0];
+        body.style.overflowY = "scroll";
+        document.getElementById("exp-modal").style.display = "none";
+        document.getElementById("config-modal").style.display = "none";
+        document.getElementById("overlay").style.display = "none";
 
-        function closeModal() {
-            let body = document.getElementsByTagName("body")[0];
-            body.style.overflowY = "scroll";
-            document.getElementById("exp-modal").style.display = "none";
-            document.getElementById("config-modal").style.display = "none";
-            document.getElementById("overlay").style.display = "none";
-
-            resetModalFields("config-modal");
-            resetModalFields("exp-modal");
-        }
+        resetModalFields("config-modal");
+        resetModalFields("exp-modal");
+    }
 
     function resetModalFields(modalId) {
         // Reset the values of the fields in the modal
@@ -447,64 +452,112 @@
 
 
     function addRow() {
-            const table = document.getElementById("parametersTable");
-            if (table.tBodies[0].rows.length < 5) {
-                const newRow = table.tBodies[0].insertRow(table.tBodies[0].rows.length);
-                const cell1 = newRow.insertCell(0);
-                const cell2 = newRow.insertCell(1);
-                cell1.contentEditable = true;
-                cell2.contentEditable = true;
-                cell1.textContent = "New Parameter";
-                cell2.textContent = "New Value";
+        const table = document.getElementById("parametersTable");
+        if (table.tBodies[0].rows.length < 5) {
+            const newRow = table.tBodies[0].insertRow(table.tBodies[0].rows.length);
+            const cell1 = newRow.insertCell(0);
+            const cell2 = newRow.insertCell(1);
+            cell1.contentEditable = true;
+            cell2.contentEditable = true;
+            cell1.textContent = "New Parameter";
+            cell2.textContent = "New Value";
 
+        }
+    }
+
+    function deleteRow() {
+        const table = document.getElementById("parametersTable");
+        if (table.tBodies[0].rows.length > 1) {
+            table.tBodies[0].deleteRow(table.tBodies[0].rows.length - 1);
+        }
+    }
+
+    function displayErrorModal(title, params) {
+        const overlayElement = $("#overlay-ov");
+        overlayElement.css("display", "block");
+
+        $("body").css("overflow-y", "hidden");
+
+        const modalElement = $("#error-modal");
+        modalElement.css("display", "block");
+
+        // Set the text of the Err-Title element
+        $("#Err-Title").text(title);
+
+        // Construct the HTML content for Err-Message using the JSON parameters
+        let errorMessage = "<ul>";
+        Object.keys(params).forEach(function(param) {
+            errorMessage += "<li>" + param + ": " + params[param] + "</li>";
+        });
+        errorMessage += "</ul>";
+
+        $("#Err-Message").html(errorMessage);
+
+        // Show the close button
+        $("#close-error-modal").css("display", "block");
+    }
+
+    function closeErrorModal() {
+        const overlayElement = $("#overlay-ov");
+        overlayElement.css("display", "none");
+
+        $("body").css("overflow-y", "auto");
+
+        const modalElement = $("#error-modal");
+        modalElement.css("display", "none");
+
+        // Hide the close button
+        $("#close-error-modal").css("display", "none");
+    }
+
+    // Function to perform search by execution name
+    function searchByExecutionName(executionName) {
+        $.ajax({
+            url: '/admin/searchExpByName',
+            method: 'GET',
+            data: {
+                search: executionName
+            },
+            success: function(response) {
+                updateExpTable(response);
+            },
+            error: function(xhr) {
+                console.error(xhr.responseText);
             }
-        }
+        });
+    }
 
-        function deleteRow() {
-            const table = document.getElementById("parametersTable");
-            if (table.tBodies[0].rows.length > 1) {
-                table.tBodies[0].deleteRow(table.tBodies[0].rows.length - 1);
+    // Function to perform search by configuration name
+    function searchByConfigName(configName) {
+        $.ajax({
+            url: '/admin/searchExpByConfigName',
+            method: 'GET',
+            data: {
+                search: configName
+            },
+            success: function(response) {
+                updateExpTable(response);
+            },
+            error: function(xhr) {
+                console.error(xhr.responseText);
             }
-        }
+        });
+    }
 
-        function displayErrorModal(title, params) {
-            const overlayElement = $("#overlay-ov");
-            overlayElement.css("display", "block");
-
-            $("body").css("overflow-y", "hidden");
-
-            const modalElement = $("#error-modal");
-            modalElement.css("display", "block");
-
-            // Set the text of the Err-Title element
-            $("#Err-Title").text(title);
-
-            // Construct the HTML content for Err-Message using the JSON parameters
-            let errorMessage = "<ul>";
-            Object.keys(params).forEach(function(param) {
-                errorMessage += "<li>" + param + ": " + params[param] + "</li>";
-            });
-            errorMessage += "</ul>";
-
-            $("#Err-Message").html(errorMessage);
-
-            // Show the close button
-            $("#close-error-modal").css("display", "block");
-        }
-
-        function closeErrorModal() {
-            const overlayElement = $("#overlay-ov");
-            overlayElement.css("display", "none");
-
-            $("body").css("overflow-y", "auto");
-
-            const modalElement = $("#error-modal");
-            modalElement.css("display", "none");
-
-            // Hide the close button
-            $("#close-error-modal").css("display", "none");
-        }
-
+    // Function to update table with search results
+    function updateExpTable(response) {
+        $('#tab2Content tbody').empty();
+        $.each(response, function(index, item) {
+            const row = $('<tr>').append(
+                $('<td>').text(item.id),
+                $('<td>').text(item.executionName),
+                $('<td>').text(item.configName),
+                $('<td>').text(item.creationDate),
+                $('<td>').append($('<a>').attr('href', '#').append($('<img>').attr({src: item.imageSrc, alt: 'Open', width: '25px', height: '25px'})))
+            );
+            $('#tab2Content tbody').append(row);
+        });
+    }
     </script>
 </body>
 

@@ -3,7 +3,9 @@ package it.unipi.mdwt.flconsole.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
+import it.unipi.mdwt.flconsole.model.ExpConfigSummary;
 import it.unipi.mdwt.flconsole.model.Experiment;
+import it.unipi.mdwt.flconsole.model.ExperimentSummary;
 import it.unipi.mdwt.flconsole.service.CookieService;
 import it.unipi.mdwt.flconsole.service.ExpConfigService;
 import it.unipi.mdwt.flconsole.service.ExperimentService;
@@ -198,4 +200,28 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/searchExpByName")
+    public ResponseEntity<List<ExperimentSummary>> searchExpByName(@RequestParam String search) {
+        List<ExperimentSummary> experiments = createExperimentsListSTUB(search);
+        return ResponseEntity.ok(experiments);
+    }
+
+    @GetMapping("/searchExpByConfigName")
+    public ResponseEntity<List<ExperimentSummary>> searchExpByConfigName(@RequestParam String search) {
+        List<ExperimentSummary> experiments = createExperimentsListSTUB(search);
+        return ResponseEntity.ok(experiments);
+    }
+
+    private List<ExperimentSummary> createExperimentsListSTUB(String search) {
+        if (search == null || search.isBlank())
+            return null;
+        else
+            return List.of(
+                new ExperimentSummary("1", "Experiment 1", "Config 1", null),
+                new ExperimentSummary("2", "Experiment 2", "Config 2", null),
+                new ExperimentSummary("3", "Experiment 3", "Config 3", null),
+                new ExperimentSummary("4", "Experiment 4", "Config 4", null),
+                new ExperimentSummary("5", "Experiment 5", "Config 5", null)
+            );
+    }
 }
