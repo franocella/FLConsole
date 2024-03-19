@@ -21,10 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Logger;
 
 @Controller
@@ -223,6 +220,12 @@ public class AdminController {
         return ResponseEntity.ok(experiments);
     }
 
+    @GetMapping("/searchConfig")
+    public ResponseEntity<List<ExpConfig>> searchConfig(String configName, String clientStrategy, String stopCondition) {
+        List<ExpConfig> expConfigs = createExpConfigsListSTUB(10);
+        return ResponseEntity.ok(expConfigs);
+    }
+
     private List<ExperimentSummary> createExperimentsListSTUB(String search) {
         if (search == null || search.isBlank())
             return null;
@@ -234,5 +237,34 @@ public class AdminController {
                 new ExperimentSummary("4", "Experiment 4", "Config 4", null),
                 new ExperimentSummary("5", "Experiment 5", "Config 5", null)
             );
+    }
+
+    // Method to create a list of random ExpConfig objects
+    public List<ExpConfig> createExpConfigsListSTUB(int size) {
+        List<ExpConfig> expConfigs = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            ExpConfig expConfig = new ExpConfig();
+            expConfig.setId(UUID.randomUUID().toString()); // Random ID
+            expConfig.setName(UUID.randomUUID().toString()); // Random name
+            expConfig.setAlgorithm(getRandomItem(Arrays.asList("Algorithm1", "Algorithm2", "Algorithm3"))); // Random algorithm
+            expConfig.setStrategy(getRandomItem(Arrays.asList("Strategy1", "Strategy2", "Strategy3"))); // Random strategy
+            expConfig.setNumClients(getRandomNumber()); // Random number of clients
+            expConfig.setStopCondition(getRandomItem(Arrays.asList("StopCondition1", "StopCondition2", "StopCondition3"))); // Random stop condition
+            expConfig.setCreationDate(new Date()); // Current date
+            expConfig.setLastUpdate(new Date()); // Current date
+            expConfigs.add(expConfig);
+            applicationLogger.info("ExpConfig created: " + expConfig);
+        }
+        return expConfigs;
+    }
+
+    // Method to get a random item from a list
+    private <T> T getRandomItem(List<T> list) {
+        return list.get(new Random().nextInt(list.size()));
+    }
+
+    // Method to generate a random number within a range
+    private int getRandomNumber() {
+        return new Random().nextInt(100 - 1 + 1) + 1;
     }
 }

@@ -146,21 +146,20 @@
                     <input type="text" class="form-control me-2" name="config-name" id="ExpConfigName" required
                         placeholder="Configuration name" />
 
-                    <select class="form-select me-2">
+                    <select class="form-select me-2" id="ClientStrategy">
                         <option selected>Client strategy</option>
                         <option value="1">One</option>
                         <option value="2">Two</option>
                         <option value="3">Three</option>
                     </select>
 
-                    <select class="form-select me-2">
+                    <select class="form-select me-2" id="StopCondition">
                         <option selected>Stop condition</option>
                         <option value="1">One</option>
                         <option value="2">Two</option>
                         <option value="3">Three</option>
                     </select>
 
-                    <button class="btn btn-primary me-2">Search</button>
                     <a onclick="displayConfigModal()" class="btn btn-primary">New</a>
                 </div>
 
@@ -195,7 +194,6 @@
                     <input type="text" class="form-control me-2" id="config-name" required
                         placeholder="Configuration name" />
 
-                    <button class="btn btn-primary me-2">Search</button>
                     <a onclick="displayExpModal()" class="btn btn-primary">New</a>
                 </div>
 
@@ -278,6 +276,10 @@
             $('#config-name').on('input', function() {
                 const configName = $(this).val();
                 searchByConfigName(configName);
+            });
+
+            $('#ExpConfigName, #ClientStrategy, #StopCondition').on('input', function() {
+                searchConfig();
             });
         });
 
@@ -637,6 +639,55 @@
                     $('<td>').append($('<a>').attr('href', '#').append($('<img>').attr({src: item.imageSrc, alt: 'Open', width: '25px', height: '25px'})))
                 );
                 $('#tab2Content tbody').append(row);
+            });
+        }
+
+        // Function to perform configuration search
+        function searchConfig() {
+            // Retrieve values from input fields
+            const configName = $('#ExpConfigName').val();
+            const clientStrategy = $('#ClientStrategy').val();
+            const stopCondition = $('#StopCondition').val();
+
+            // Send asynchronous request
+            $.ajax({
+                url: '/admin/searchConfig',
+                method: 'GET',
+                data: {
+                    configName: configName,
+                    clientStrategy: clientStrategy,
+                    stopCondition: stopCondition
+                },
+                success: function(response) {
+                    // Call function to update configuration table
+                    updateConfigTable(response);
+                },
+                error: function(xhr, status, error) {
+                    // Handle error
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+        // Function to update configuration table
+        function updateConfigTable(configurations) {
+            // Clear previous search results
+            $('#ConfigTable tbody').empty();
+
+            // Insert rows based on the response
+            $.each(configurations, function(index, item) {
+                const row = '<tr>' +
+                    '<td>' + item.id + '</td>' +
+                    '<td>' + item.name + '</td>' +
+                    '<td>' + item.algorithm + '</td>' +
+                    '<td>' + item.strategy + '</td>' +
+                    '<td>' + item.numClients + '</td>' +
+                    '<td>' + item.stopCondition + '</td>' +
+                    '<td>' + item.creationDate + '</td>' +
+                    '<td>' + item.lastUpdate + '</td>' +
+                    '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + item.id + '\')" height="20px" width="20px"></figure></td>' +
+                    '</tr>';
+                $('#ConfigTable tbody').append(row);
             });
         }
     </script>
