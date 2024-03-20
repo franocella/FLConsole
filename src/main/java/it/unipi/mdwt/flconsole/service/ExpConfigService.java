@@ -114,7 +114,7 @@ public class ExpConfigService {
      * @return              A Page containing the results.
      * @throws BusinessException If an error occurs during the search.
      */
-    public Page<ExpConfig> searchExpConfigByMultipleCriteria2(String configName, String clientStrategy, String stopCondition, int page, int nElem) throws BusinessException {
+    public Page<ExpConfig> searchExpConfigByMultipleCriteria(String configName, String clientStrategy, String stopCondition, int page, int nElem) throws BusinessException {
         try {
             // Validate page and nElem parameters
             if (page < 0 || nElem <= 0) {
@@ -159,39 +159,5 @@ public class ExpConfigService {
             throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
         }
     }
-
-
-    public List<ExpConfig> searchExpConfigByStrategy(String strategy)throws BusinessException{
-        try{
-            List<ExpConfig> expConfigs = expConfigDao.findByStrategy(strategy);
-            if (!expConfigs.isEmpty()){
-                return expConfigs;
-            }else{
-                throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
-            }
-
-        }catch (Exception e){
-            throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
-        }
-    }
-    public List<ExpConfig> searchExpConfigByStopCondition(String stopCondition)throws BusinessException{
-        try{
-            List<ExpConfig> expConfigs = expConfigDao.findByStrategy(stopCondition);
-            if (!expConfigs.isEmpty()){
-                return expConfigs;
-            }else{
-                throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
-            }
-
-        }catch (Exception e){
-            throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-
-
-
-
-
 }
-//name, client strategy, stop condition
+
