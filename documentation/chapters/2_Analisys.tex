@@ -1,22 +1,23 @@
-\chapter{Analysis}
+\chapter{Analysis}\label{ch:analysis}
 
-\section{Requirements}
+
+\section{Requirements}\label{sec:requirements}
 
 In this section, the requirements of the project are presented.
 
-\subsection{Functional Requirements}
+\subsection{Functional Requirements}\label{subsec:functional-requirements}
 
 The functional requirements of the project are described in this subsection.
 
-\subsection{Non-Functional Requirements}
+\subsection{Non-Functional Requirements}\label{subsec:non-functional-requirements}
 
 The non-functional requirements of the project are described in this subsection.
 
-\subsection{Constraints/Other Requirements}
+\subsection{Constraints/Other Requirements}\label{subsec:constraints/other-requirements}
 
 Any constraints or other requirements on the project are described in this subsection.
 
-\section{Actors}
+\section{Actors}\label{sec:actors}
 
 The actors who can interact with the web console system consist of the following:
 \begin{itemize}
@@ -24,46 +25,46 @@ The actors who can interact with the web console system consist of the following
     \item \textbf{Admin:} The admin is the actor who can manage the system, including creating and deleting configurations and experiments, and viewing the results of experiments.
 \end{itemize}
 
-\section{Use Case Modeling}
+\section{Use Case Modeling}\label{sec:use-case-modeling}
 
-\subsection{Use Case Diagram}
+\subsection{Use Case Diagram}\label{subsec:use-case-diagram}
 
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=0.8\textwidth]{images/2_analisys/FL_class_diag.drawio.png}
+    \includegraphics[width=0.8\textwidth]{images/2_analisys/FL_class_diag.drawio}
     \caption{Use Case Diagram}
-    \label{fig:use_case_diagram}
+    \label{fig:figure}
 \end{figure}
 
-\subsection{Scenarios}
+\subsection{Scenarios}\label{subsec:scenarios}
 
 \begin{table}[ht!]
     \centering
     \caption{Use Case: Find Recipes}
     \begin{tabular}{|Sl|Sl|}
         \hline
-        \textbf{\textit{Use Case}}      & \textbf{Find Recipes}                                     \\ \hline
-        \textbf{Primary Actor}           & User                                            \\ \hline
+        \textbf{\textit{Use Case}}      & \textbf{Find Recipes}                            \\ \hline
+        \textbf{Primary Actor}          & User                                            \\ \hline
         \textbf{Secondary Actor}         & -                                               \\ \hline
         \textbf{Description}             & Allows the user to find a specific recipe       \\ \hline
-        \textbf{Pre-Conditions}          & User must be logged in                          \\ \hline
-        \textbf{Main event steps}        & 1. The user navigates to the “Search” feature   \\ 
-                                          & 2. The user enters a string                     \\
-                                          & 3. The system searches the recipe database for  \\ 
+        \textbf{Pre-Conditions}          & User must be logged i                        \\ \hline
+        \textbf{Main event steps}        & 1) The user navigates to the “Search” feature   \\
+                                          & 2) The user enters a string                     \\
+                                          & 3) The system searches the recipe database for  \\
                                           & matching results (title, keywords, description) \\ 
-                                          & 4. Upon finding matching posts, the system      \\ 
-                                          & displays the search results                     \\ \hline
+                                          & 4) Upon finding matching posts, the system      \\
+                                         & displays the search results                     \\ \hline
         \textbf{Post-Conditions}         & The user views a list of recipes matching the   \\ 
-                                          & search criteria if there are any                \\ \hline
+                                         & search criteria if there are any                \\ \hline
         \textbf{Correlated Use cases}    & View Recipe, Browse Recipes                     \\ \hline
         \textbf{Alternative event steps} & -                                               \\ \hline
-    \end{tabular}
+    \end{tabular}\label{tab:table}
 \end{table}
-\subsection{Analysis Class Diagram}
+\subsection{Analysis Class Diagram}\label{subsec:analysis-class-diagram}
 
 The analysis class diagram of the project is presented in this subsection.
 
-\subsection{Sequence Diagrams}
+\subsection{Sequence Diagrams}\label{subsec:sequence-diagrams}
 
 The sequence diagrams of the project are presented in this subsection.
 
