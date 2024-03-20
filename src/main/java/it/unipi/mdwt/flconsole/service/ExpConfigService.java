@@ -7,10 +7,14 @@ import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessTypeErrorsEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.lang.management.OperatingSystemMXBean;
@@ -82,7 +86,7 @@ public class ExpConfigService {
         return expConfigDao.findByIdIn(configurations);
     }
 
-    public List<ExpConfig> searchExpConfigByConfigName(String name) throws BusinessException{
+    public List<ExpConfig> searchExpConfigByConfigName(String name, int nElem) throws BusinessException{
         try{
             List<ExpConfig> matchingConfigs = new ArrayList<>();
 
@@ -97,6 +101,66 @@ public class ExpConfigService {
             throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+    /**
+     * Searches ExpConfig by multiple criteria and returns a page of results.
+     *
+     * @param configName    The name to search for.
+     * @param clientStrategy   The client strategy to search for.
+     * @param stopCondition The stop condition to search for.
+     * @param page          The page number (0-based) to retrieve.
+     * @param nElem         The maximum number of elements per page.
+     * @return              A Page containing the results.
+     * @throws BusinessException If an error occurs during the search.
+     */
+    public Page<ExpConfig> searchExpConfigByMultipleCriteria2(String configName, String clientStrategy, String stopCondition, int page, int nElem) throws BusinessException {
+        try {
+            // Validate page and nElem parameters
+            if (page < 0 || nElem <= 0) {
+                throw new IllegalArgumentException("Page and nElem must be non-negative integers.");
+            }
+
+            // Create a list to hold the search criteria pairs
+            List<Pair<String, String>> criteriaList = new ArrayList<>();
+
+            // Add criteria pairs to the list if the values are provided and not empty
+            if (configName != null && !configName.isEmpty()) {
+                criteriaList.add(Pair.of("name", configName));
+            }
+            if (clientStrategy != null && !clientStrategy.isEmpty()) {
+                criteriaList.add(Pair.of("clientStrategy", clientStrategy));
+            }
+            if (stopCondition != null && !stopCondition.isEmpty()) {
+                criteriaList.add(Pair.of("stopCondition", stopCondition));
+            }
+
+            // Create a query to search for ExpConfig objects based on the provided criteria
+            Query query = new Query();
+            for (Pair<String, String> criterion : criteriaList) {
+                query.addCriteria(Criteria.where(criterion.getFirst()).regex(criterion.getSecond(), "i"));
+            }
+
+            // Set the page number and limit the results to the specified maximum number of elements
+            query.with(PageRequest.of(page, nElem));
+
+            // Retrieve the matching ExpConfig objects from the database
+            List<ExpConfig> matchingConfigs = mongoTemplate.find(query, ExpConfig.class);
+
+            // Retrieve the total count of matching ExpConfig objects
+            long totalCount = mongoTemplate.count(query, ExpConfig.class);
+
+            // Create a Page object using the retrieved ExpConfig objects, the requested page, and the total count
+            return PageableExecutionUtils.getPage(matchingConfigs, PageRequest.of(page, nElem), () -> totalCount);
+        } catch (Exception e) {
+            // Log the exception details
+            // logger.error("Error occurred while searching for ExpConfig.", e);
+            // If an error occurs during the search, throw a BusinessException
+            throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
     public List<ExpConfig> searchExpConfigByStrategy(String strategy)throws BusinessException{
         try{
             List<ExpConfig> expConfigs = expConfigDao.findByStrategy(strategy);
