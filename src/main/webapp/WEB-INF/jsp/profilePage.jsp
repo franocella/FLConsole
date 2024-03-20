@@ -13,6 +13,8 @@
     <!-- Bootstrap stylesheet -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
+    <!-- Bootstrap Icons stylesheet -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Custom stylesheet -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/main.css" />
 
@@ -24,18 +26,31 @@
 <%@ include file="components/header.txt" %>
 
 <!-- Main container -->
+<!-- Main container -->
 <div class="container my-5">
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-8 mt-2">
             <!-- User details -->
-            <h2>User Profile</h2>
-            <p><strong>Username:</strong> <span class="editable-field" id="username">JohnDoe</span></p>
-            <p><strong>Email:</strong> <span class="editable-field" id="email">johndoe@example.com</span></p>
+            <h2 class="mb-3">User Profile</h2>
+            <div class="mb-3">
+                <label for="email" class="form-label"><strong>Email:</strong></label>
+                <span class="editable-field form-control" id="email">johndoe@example.com</span>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label"><strong>Password:</strong></label>
+                <!-- Input field for password -->
+                <div class="input-group">
+                    <input type="password" id="password" class="editable-field form-control" placeholder="Your password" value="">
+                    <!-- Icon for showing/hiding password -->
+                    <button class="btn btn-outline-secondary bi-eye" type="button" id="togglePassword"></button>
+                </div>
+            </div>
             <!-- Additional details section -->
             <h3>Additional Details</h3>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla vitae ligula in nulla mattis
-                fermentum. Duis rutrum, odio vitae viverra mattis, magna felis bibendum libero, non tempus sapien
-                nisi id velit.</p>
+            <div class="mb-3">
+                <label for="description" class="form-label"><strong>Description:</strong></label>
+                <textarea class="editable-field form-control" id="description" rows="3">Lorem ipsum dolor sit amet.</textarea>
+            </div>
         </div>
     </div>
     <!-- Submit button -->
@@ -46,7 +61,6 @@
 </div>
 
 
-
 <!-- External scripts for jQuery, Bootstrap, and custom JavaScript files -->
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
@@ -54,31 +68,95 @@
         crossorigin="anonymous"></script>
 
 <script>
+    // Flags to track if fields have been modified
+    let emailModified = false;
+    let passwordModified = false;
+    let descriptionModified = false;
+
     $(document).ready(function() {
+
         // Function to enable field editing on click
         $('.editable-field').click(function() {
             $(this).prop('contenteditable', true).focus();
+
+            if ($(this).attr('id') === 'email' && !emailModified) {
+                $('#email').val($('#email').text());
+                emailModified = true;
+            } else if ($(this).attr('id') === 'password' && !passwordModified) {
+                $('#password').val($('#password').text());
+                passwordModified = true;
+            } else if ($(this).attr('id') === 'description' && !descriptionModified) {
+                $('#description').val($('#description').text());
+                descriptionModified = true;
+            }
+        });
+
+        // Function to toggle password visibility
+        $('#togglePassword').click(function() {
+            const passwordInput = $('#password');
+            const icon = $(this);
+
+            // Toggle password visibility
+            if (passwordInput.attr('type') === 'password') {
+                passwordInput.attr('type', 'text');
+                icon.removeClass('bi-eye').addClass('bi-eye-slash');
+            } else {
+                passwordInput.attr('type', 'password');
+                icon.removeClass('bi-eye-slash').addClass('bi-eye');
+            }
+        });
+
+
+        $('#deleteBtn').click(function (){
+            $.ajax({
+                type: 'GET',
+                url: '/admin/profile/delete',
+                success: function(response) {
+                    openErrorModal('Update','Profile update successful!');
+                },
+                error: function(xhr, status, error) {
+                    openErrorModal('Error', 'An error occurred while deleting the profile.');
+                }
+            });
         });
 
         // Function to handle submit button click
         $('#submitBtn').click(function() {
-            var username = $('#username').text(); // Get modified username
-            var email = $('#email').text(); // Get modified email
-            $.ajax({
-                type: 'POST',
-                url: '/admin/profile/update',
-                data: { username: username, email: email }, // Send modified values as request data
-                success: function(response) {
-                    alert('Profile update successful!');
-                    // Perform other actions upon success if needed
-                },
-                error: function(xhr, status, error) {
-                    openErrorModal('Error', 'An error occurred while updating the profile.');
-                    // Handle error as needed
-                }
-            });
+            // Check if fields have been modified
+            if (!emailModified && !passwordModified && !descriptionModified) {
+                return;
+            }
+
+            let data = {};
+            if (emailModified)
+                data.email=$('#email').val();
+
+            if (passwordModified)
+                data.password=$('#password').val();
+
+            if (descriptionModified)
+                data.description=$('#description').text();
+
+
+
+            // Reset modified flags
+            emailModified = false;
+            passwordModified = false;
+            descriptionModified = false;
+
+            // Reset password field
+            $('#password').val('');
+
+            // Log updated values (for testing purposes)
+            console.log(data)
+
+
+            // Perform further actions (e.g., AJAX request)
         });
+
     });
+
+
 
     function openErrorModal(title, message) {
         // Check if overlay already exists
