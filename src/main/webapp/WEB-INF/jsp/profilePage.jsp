@@ -29,7 +29,7 @@
 <!-- Main container -->
 <div class="container my-5">
     <div class="row">
-        <div class="col-md-8 mt-2">
+        <div class="col-md mt-2">
             <!-- User details -->
             <h2 class="mb-3">User Profile</h2>
             <div class="mb-3">
@@ -51,13 +51,15 @@
                 <label for="description" class="form-label"><strong>Description:</strong></label>
                 <textarea class="editable-field form-control" id="description" rows="3">Lorem ipsum dolor sit amet.</textarea>
             </div>
+            <!-- Submit button -->
+            <div class="d-flex justify-content-end gap-3">
+                <button id="submitBtn" class="btn btn-primary">Update Profile</button>
+                <button id="deleteBtn" class="btn btn-danger">Delete Profile</button>
+            </div>
         </div>
+
     </div>
-    <!-- Submit button -->
-    <div class="d-flex justify-content-end gap-3">
-        <button id="submitBtn" class="btn btn-primary">Update Profile</button>
-        <button id="deleteBtn" class="btn btn-danger">Delete Profile</button>
-    </div>
+
 </div>
 
 
@@ -110,9 +112,9 @@
         $('#deleteBtn').click(function (){
             $.ajax({
                 type: 'GET',
-                url: '/admin/profile/delete',
+                url: '/profile/delete',
                 success: function(response) {
-                    openErrorModal('Update','Profile update successful!');
+                    openErrorModal('Delete','Profile deleted successful!');
                 },
                 error: function(xhr, status, error) {
                     openErrorModal('Error', 'An error occurred while deleting the profile.');
@@ -152,7 +154,17 @@
 
 
             // Perform further actions (e.g., AJAX request)
-        });
+            $.ajax({
+                type: 'POST',
+                url: '/profile/update',
+                data: data,
+                success: function(response) {
+                    openErrorModal('Update', 'Profile update successful!');
+                },
+                error: function(xhr, status, error) {
+                    openErrorModal('Error', 'An error occurred while deleting the profile.');
+                }
+            });
 
     });
 

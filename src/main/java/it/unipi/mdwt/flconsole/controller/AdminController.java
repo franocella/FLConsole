@@ -211,12 +211,6 @@ public class AdminController {
     }
 
 
-    @GetMapping("profile")
-    public String profile(Model model, HttpServletRequest request) {
-        String email = cookieService.getCookieValue(request.getCookies(),"email");
-        User user = userService.getUser(email);
-        model.addAttribute("user", user);
-        return "profilePage";
-    }
+
 
 }

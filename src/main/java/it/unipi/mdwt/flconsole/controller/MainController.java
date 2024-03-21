@@ -2,8 +2,10 @@ package it.unipi.mdwt.flconsole.controller;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.unipi.mdwt.flconsole.dto.UserDTO;
 import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.ExperimentSummary;
+import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.service.CookieService;
 import it.unipi.mdwt.flconsole.service.ExpConfigService;
 import it.unipi.mdwt.flconsole.service.UserService;
@@ -154,6 +156,48 @@ public class MainController {
         }
 
     }
+    @GetMapping("profile")
+    public String profile(Model model, HttpServletRequest request) {
+        String email = cookieService.getCookieValue(request.getCookies(),"email");
+        User user = userService.getUser(email);
+        model.addAttribute("user", user);
+        return "profilePage";
+    }
 
+    @PostMapping("/profile/update")
+    public ResponseEntity<String> updateProfile(@RequestBody UserDTO updateRequest, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            String email = cookieService.getCookieValue(request.getCookies(),"email");
+            userService.updateUserProfile(email, updateRequest);
+            cookieService.setCookie("email", updateRequest.getEmail(), response);
+            // Return success response
+            return ResponseEntity.ok().body("Profile update successful!");
+        } catch (Exception e) {
+            // Log exception
+            applicationLogger.severe("Error occurred while updating profile: " + e.getMessage());
+
+            // Return error response
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the profile.");
+        }
+    }
+
+
+    @GetMapping("/profile/delete")
+    public ResponseEntity<String> deleteUser(HttpServletRequest request, HttpServletResponse response) {
+        // Delete the user details calling the service
+        // Return the JSON response
+        try {
+            String email = cookieService.getCookieValue(request.getCookies(),"email");
+            userService.deleteAccount(email);
+            // Return success response
+            return ResponseEntity.ok().body("Profile deleted successful!");
+        } catch (Exception e) {
+            // Log exception
+            applicationLogger.severe("Error occurred while deleting profile: " + e.getMessage());
+
+            // Return error response
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the profile.");
+        }
+    }
 }
 

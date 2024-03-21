@@ -28,6 +28,10 @@ public class User {
     @Field("password")
     private String password;
 
+    @Field("description")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private String description;
+
     @Field("creationDate")
     @CreatedDate
     private Date creationDate;

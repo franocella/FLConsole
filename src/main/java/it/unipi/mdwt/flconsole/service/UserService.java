@@ -2,8 +2,7 @@ package it.unipi.mdwt.flconsole.service;
 
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
 import it.unipi.mdwt.flconsole.dao.UserDAO;
-import it.unipi.mdwt.flconsole.model.ExpConfig;
-import it.unipi.mdwt.flconsole.model.Experiment;
+import it.unipi.mdwt.flconsole.dto.UserDTO;
 import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.Validator;
 
@@ -11,13 +10,13 @@ import javax.naming.AuthenticationException;
 
 import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoException;
 import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoTypeErrorsEnum;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -28,11 +27,14 @@ public class UserService {
 
     private final UserDAO userDAO;
     private final ExperimentDao experimentDao;
+    private final MongoTemplate mongoTemplate;
+
 
     @Autowired
-    public UserService(UserDAO userDAO, ExperimentDao experimentDao) {
+    public UserService(UserDAO userDAO, ExperimentDao experimentDao, MongoTemplate mongoTemplate) {
         this.userDAO = userDAO;
         this.experimentDao = experimentDao;
+        this.mongoTemplate = mongoTemplate;
     }
 
     /**
@@ -92,4 +94,21 @@ public class UserService {
     public User getUser(String email) {
         return userDAO.findByEmail(email);
     }
+
+    public void updateUserProfile(String email, UserDTO updateRequest) {
+        Query query = new Query(Criteria.where("email").is(email));
+        Update update = new Update();
+
+        if (updateRequest.getEmail() != null) {
+            update.set("email", updateRequest.getEmail());
+        }
+        if (updateRequest.getPassword() != null) {
+            update.set("password", updateRequest.getPassword());
+        }
+        if (updateRequest.getDescription() != null) {
+            update.set("description", updateRequest.getDescription());
+        }
+        mongoTemplate.updateFirst(query, update, User.class);
+    }
+
 }
