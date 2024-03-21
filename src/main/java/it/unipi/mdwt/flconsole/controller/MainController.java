@@ -165,21 +165,52 @@ public class MainController {
     }
 
     @PostMapping("/profile/update")
-    public ResponseEntity<String> updateProfile(@RequestBody UserDTO updateRequest, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<String> updateProfile(HttpServletRequest request, HttpServletResponse response) {
         try {
-            String email = cookieService.getCookieValue(request.getCookies(),"email");
-            userService.updateUserProfile(email, updateRequest);
-            cookieService.setCookie("email", updateRequest.getEmail(), response);
-            // Return success response
+            // Get the new email, password, and description from the request parameters
+            String newEmail = request.getParameter("email");
+            String newPassword = request.getParameter("password");
+            String newDescription = request.getParameter("description");
+
+            // Print the received data for debugging
+            System.out.println("Email: " + newEmail);
+            System.out.println("Password: " + newPassword);
+            System.out.println("Description: " + newDescription);
+
+            // Get the email from the cookie
+            String email = cookieService.getCookieValue(request.getCookies(), "email");
+            System.out.println("Email retrieved from cookie: " + email);
+
+            // Check if all three parameters are null
+            if (newEmail == null && newPassword == null && newDescription == null) {
+                // Return bad request response if all parameters are null
+                return ResponseEntity.badRequest().body("At least one parameter (email, password, description) must be provided for update.");
+            }
+
+            // Create a new UserDTO object with the updated fields
+            UserDTO updateUser = new UserDTO(newEmail, newPassword, newDescription);
+            // Update the user profile
+            userService.updateUserProfile(email, updateUser);
+
+            // Set the email cookie with the new value
+            if (newEmail != null) {
+                cookieService.setCookie("email", newEmail, response);
+            }
+
+            // Return a success response
             return ResponseEntity.ok().body("Profile update successful!");
         } catch (Exception e) {
-            // Log exception
+            // Log the exception
             applicationLogger.severe("Error occurred while updating profile: " + e.getMessage());
 
-            // Return error response
+            // Return an error response
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the profile.");
         }
     }
+
+
+
+
 
 
     @GetMapping("/profile/delete")
@@ -189,6 +220,8 @@ public class MainController {
         try {
             String email = cookieService.getCookieValue(request.getCookies(),"email");
             userService.deleteAccount(email);
+            cookieService.deleteCookie("email", response);
+            cookieService.deleteCookie("role", response);
             // Return success response
             return ResponseEntity.ok().body("Profile deleted successful!");
         } catch (Exception e) {
