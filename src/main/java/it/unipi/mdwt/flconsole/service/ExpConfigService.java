@@ -16,6 +16,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -110,11 +111,19 @@ public class ExpConfigService {
      * @return              A Page containing the results.
      * @throws BusinessException If an error occurs during the search.
      */
-    public Page<ExpConfig> searchExpConfig(String configName, String clientStrategy, String stopCondition, int page, int nElem) throws BusinessException {
+    public Page<ExpConfig> searchMyExpConfigs(String email, String configName, String clientStrategy, String stopCondition, int page, int nElem) throws BusinessException {
         try {
             // Validate page and nElem parameters
             if (page < 0 || nElem <= 0) {
                 throw new IllegalArgumentException("Page and nElem must be non-negative integers.");
+            }
+
+            User user = userDAO.findByEmail(email);
+            List<String> confList = user.getConfigurations();
+
+            if (!StringUtils.hasText(configName) && !StringUtils.hasText(clientStrategy) && !StringUtils.hasText(stopCondition)) {
+                List<ExpConfig> matchingConfigs = expConfigDao.findTopNByIdIn(confList, PageRequest.of(page, nElem));
+                return PageableExecutionUtils.getPage(matchingConfigs, PageRequest.of(page, nElem), confList::size);
             }
 
             // Create a list to hold the search criteria pairs
@@ -135,6 +144,11 @@ public class ExpConfigService {
             Query query = new Query();
             for (Pair<String, String> criterion : criteriaList) {
                 query.addCriteria(Criteria.where(criterion.getFirst()).regex(criterion.getSecond(), "i"));
+            }
+
+            // Add criteria for matching the configuration IDs in the confList
+            if (!confList.isEmpty()) {
+                query.addCriteria(Criteria.where("id").in(confList));
             }
 
             // Set the page number and limit the results to the specified maximum number of elements

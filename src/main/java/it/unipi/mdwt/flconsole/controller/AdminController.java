@@ -209,14 +209,16 @@ public class AdminController {
     }
 
     @GetMapping("/searchExp")
-    public ResponseEntity<Page<ExperimentSummary>> searchExp(String executionName, String configName) {
-        Page<ExperimentSummary> experiments = experimentService.searchExperiment(executionName, configName, 0, 10);
+    public ResponseEntity<Page<ExperimentSummary>> searchExp(String executionName, String configName, HttpServletRequest request) {
+        String email = cookieService.getCookieValue(request.getCookies(),"email");
+        Page<ExperimentSummary> experiments = experimentService.searchMyExperiments(email, executionName, configName, 0, 10);
         return ResponseEntity.ok(experiments);
     }
 
     @GetMapping("/searchConfig")
-    public ResponseEntity<Page<ExpConfig>> searchConfig(String configName, String clientStrategy, String stopCondition) {
-        Page<ExpConfig> expConfigs = expConfigService.searchExpConfig(configName, clientStrategy, stopCondition, 0, 10);
+    public ResponseEntity<Page<ExpConfig>> searchConfig(String configName, String clientStrategy, String stopCondition, HttpServletRequest request) {
+        String email = cookieService.getCookieValue(request.getCookies(),"email");
+        Page<ExpConfig> expConfigs = expConfigService.searchMyExpConfigs(email, configName, clientStrategy, stopCondition, 0, 10);
         return ResponseEntity.ok(expConfigs);
     }
 

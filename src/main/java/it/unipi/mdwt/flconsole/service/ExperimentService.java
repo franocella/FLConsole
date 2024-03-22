@@ -3,6 +3,7 @@ package it.unipi.mdwt.flconsole.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
 import it.unipi.mdwt.flconsole.dao.UserDAO;
+import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.ExperimentSummary;
 import it.unipi.mdwt.flconsole.model.User;
@@ -15,6 +16,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -24,6 +27,7 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.w3c.dom.ls.LSException;
 
 import java.util.*;
@@ -123,9 +127,11 @@ public class ExperimentService {
     }
 
 
-    public Page<ExperimentSummary> searchExperiment(String expName, String configName, int page, int nElem) throws BusinessException{
-        try{
-            Assert.isTrue(page >= 0 && nElem > 0, "Page and nElem must be non-negative integers");
+    public Page<ExperimentSummary> searchMyExperiments(String email, String expName, String configName, int page, int nElem) throws BusinessException {
+        try {
+            if (page < 0 || nElem <= 0) {
+                throw new IllegalArgumentException("Page and nElem must be non-negative integers.");
+            }
 
             List<Criteria> criteriaList = new ArrayList<>();
 
@@ -142,35 +148,30 @@ public class ExperimentService {
             // Combine criteria with AND operator
             Criteria criteria = new Criteria().andOperator(criteriaList.toArray(new Criteria[0]));
 
-            // Create query
-            Query query = new Query(criteria);
+            // Create aggregation operation to include/exclude fields
+            AggregationOperation projectOperation = Aggregation.project("id", "name", "config", "creationDate");
 
-            // Apply pagination
-            query.with(PageRequest.of(page, nElem));
+            // Create aggregation pipeline
+            Aggregation aggregation = Aggregation.newAggregation(
+                    Aggregation.match(criteria),
+                    Aggregation.skip((long) page * nElem), // Calculate skip based on page and nElem
+                    Aggregation.limit(nElem), // Limit the results to nElem
+                    projectOperation
+            );
 
-            // Execute query to find matching Experiment documents
-            List<Experiment> matchingExperiments = mongoTemplate.find(query, Experiment.class);
-
-            // Convert matching Experiment documents to ExperimentSummary objects
-            List<ExperimentSummary> summaryList = new ArrayList<>();
-            for (Experiment experiment : matchingExperiments) {
-                ExperimentSummary summary = new ExperimentSummary();
-                summary.setId(experiment.getId());
-                summary.setName(experiment.getName());
-                summary.setConfigName(experiment.getExpConfig().getName());
-                summary.setCreationDate(experiment.getCreationDate());
-                summaryList.add(summary);
-            }
+            // Execute aggregation
+            List<ExperimentSummary> summaryList = mongoTemplate.aggregate(aggregation, "experiment", ExperimentSummary.class).getMappedResults();
 
             // Count total matching documents
-            long totalCount = mongoTemplate.count(query, Experiment.class);
+            long totalCount = mongoTemplate.count(Query.query(criteria), Experiment.class);
 
             // Return Page object
             return new PageImpl<>(summaryList, PageRequest.of(page, nElem), totalCount);
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
         }
     }
+
 
 
 

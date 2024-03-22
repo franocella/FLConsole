@@ -20,7 +20,7 @@ public interface ExperimentDao extends MongoRepository<Experiment, String> {
     // No need to provide implementations for CRUD methods,
     // Spring Data MongoDB will automatically generate them.
 
-
+    List<Experiment> findTopNByIdIn(List<String> configurationIds, Pageable pageable);
     Experiment findByName(String name);
     void deleteByName(String name);
     Boolean existsByName(String Name);
