@@ -10,21 +10,25 @@ import it.unipi.mdwt.flconsole.utils.ErlangMessageHandler;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessTypeErrorsEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.Pair;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+import org.w3c.dom.ls.LSException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.logging.Logger;
+
 
 import static java.lang.Thread.sleep;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -119,7 +123,60 @@ public class ExperimentService {
     }
 
 
-    public void saveExperiment(Experiment exp, String email) {
+    public Page<ExperimentSummary> searchExperiment(String expName, String configName, int page, int nElem) throws BusinessException{
+        try{
+            Assert.isTrue(page >= 0 && nElem > 0, "Page and nElem must be non-negative integers");
+
+            List<Criteria> criteriaList = new ArrayList<>();
+
+            // Add criteria for name
+            if (expName != null && !expName.isEmpty()) {
+                criteriaList.add(Criteria.where("name").regex(expName, "i"));
+            }
+
+            // Add criteria for configName
+            if (configName != null && !configName.isEmpty()) {
+                criteriaList.add(Criteria.where("expConfig.name").regex(configName, "i"));
+            }
+
+            // Combine criteria with AND operator
+            Criteria criteria = new Criteria().andOperator(criteriaList.toArray(new Criteria[0]));
+
+            // Create query
+            Query query = new Query(criteria);
+
+            // Apply pagination
+            query.with(PageRequest.of(page, nElem));
+
+            // Execute query to find matching Experiment documents
+            List<Experiment> matchingExperiments = mongoTemplate.find(query, Experiment.class);
+
+            // Convert matching Experiment documents to ExperimentSummary objects
+            List<ExperimentSummary> summaryList = new ArrayList<>();
+            for (Experiment experiment : matchingExperiments) {
+                ExperimentSummary summary = new ExperimentSummary();
+                summary.setId(experiment.getId());
+                summary.setName(experiment.getName());
+                summary.setConfigName(experiment.getExpConfig().getName());
+                summary.setCreationDate(experiment.getCreationDate());
+                summaryList.add(summary);
+            }
+
+            // Count total matching documents
+            long totalCount = mongoTemplate.count(query, Experiment.class);
+
+            // Return Page object
+            return new PageImpl<>(summaryList, PageRequest.of(page, nElem), totalCount);
+        }catch (Exception e){
+            throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+
+
+        public void saveExperiment(Experiment exp, String email) {
         experimentDao.save(exp);
         ExperimentSummary expSummary = new ExperimentSummary();
         expSummary.setId(exp.getId());
