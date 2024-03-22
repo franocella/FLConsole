@@ -123,7 +123,7 @@ public class ExperimentService {
     }
 
 
-    public Page<ExperimentSummary> searchExpByMultipleParameters(String expName, String configName, int page, int nElem) throws BusinessException{
+    public Page<ExperimentSummary> searchExperiment(String expName, String configName, int page, int nElem) throws BusinessException{
         try{
             Assert.isTrue(page >= 0 && nElem > 0, "Page and nElem must be non-negative integers");
 
