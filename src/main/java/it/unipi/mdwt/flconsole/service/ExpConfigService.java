@@ -87,6 +87,12 @@ public class ExpConfigService {
         return expConfigDao.findByIdIn(configurations);
     }
 
+    public Page<ExpConfig> getNconfigsList(List<String> configurations) {
+        List<ExpConfig> configs = expConfigDao.findTopNByIdIn(configurations, PageRequest.of(0, PAGE_SIZE));
+        return PageableExecutionUtils.getPage(configs, PageRequest.of(0, PAGE_SIZE), configurations::size);
+    }
+
+
     public List<ExpConfig> searchExpConfigByConfigName(String name, int nElem) throws BusinessException{
         try{
 

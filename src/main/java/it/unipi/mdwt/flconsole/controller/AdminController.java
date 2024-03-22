@@ -55,8 +55,8 @@ public class AdminController {
         try {
             String email = cookieService.getCookieValue(request.getCookies(),"email");
             User user = userService.getUser(email);
-            List<ExpConfig> userConfigurations = expConfigService.getExpConfigsList(user.getConfigurations());
-            int totalConfigPages = (int) Math.ceil((double) userConfigurations.size() / PAGE_SIZE);
+            Page<ExpConfig> userConfigurations = expConfigService.getNconfigsList(user.getConfigurations());
+            int totalConfigPages = userConfigurations.getTotalPages();
             int totalExpPages = (int) Math.ceil((double) user.getExperiments().size() / PAGE_SIZE);
             List<String> jsonList = userConfigurations.stream()
                     .filter(Objects::nonNull) // Filter out null values
@@ -221,9 +221,9 @@ public class AdminController {
     }
 
     @GetMapping("/getConfigurations")
-    public ResponseEntity<Page<ExpConfig>> searchConfig(@RequestParam int page, String configName, String clientStrategy, String stopCondition, HttpServletRequest request) {
+    public ResponseEntity<Page<ExpConfig>> searchConfig(@RequestParam int page, String name, String clientStrategy, String stopCondition, HttpServletRequest request) {
         String email = cookieService.getCookieValue(request.getCookies(),"email");
-        Page<ExpConfig> expConfigs = expConfigService.searchMyExpConfigs(email, configName, clientStrategy, stopCondition, page);
+        Page<ExpConfig> expConfigs = expConfigService.searchMyExpConfigs(email, name, clientStrategy, stopCondition, page);
         return ResponseEntity.ok(expConfigs);
     }
 

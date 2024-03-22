@@ -223,7 +223,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <c:forEach items="${experiments.subList(0, experiments.size() > 10 ? 10 : experiments.size())}" var="exp">
+                        <c:forEach items="${experiments.subList(0, experiments.size() > 1 ? 1 : experiments.size())}" var="exp">
                             <tr>
                                 <td>${exp.id}</td>
                                 <td>${exp.name}</td>
@@ -776,14 +776,14 @@
                 url: '/admin/getConfigurations',
                 method: 'GET',
                 data: {
-                    configName: configName,
+                    name: configName,
                     clientStrategy: clientStrategy,
                     stopCondition: stopCondition,
                     page: currentConfigPage
                 },
                 success: function(response) {
                     currentConfigPage = response.number;
-                    totalExpPages = response.totalPages;
+                    totalConfigPages = response.totalPages;
                     updateConfigTable(response);
                 },
                 error: function(xhr, status, error) {
@@ -805,8 +805,8 @@
                     page: currentExpPage
                 },
                 success: function(response) {
-                    currentConfigPage = response.number;
-                    totalConfigPages = response.totalPages;
+                    currentExpPage = response.number;
+                    totalExpPages = response.totalPages;
                     updateExpTable(response);
                 },
                 error: function(xhr, status, error) {

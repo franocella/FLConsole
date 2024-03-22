@@ -135,11 +135,11 @@ public class ExperimentService {
                 throw new IllegalArgumentException("Page and nElem must be non-negative integers.");
             }
 
-            List<Criteria> criteriaList = new ArrayList<>();
-
             User user = userDAO.findByEmail(email);
             if (!StringUtils.hasText(expName) && !StringUtils.hasText(configName)) {
-                return PageableExecutionUtils.getPage(user.getExperiments(), PageRequest.of(page, PAGE_SIZE), user.getExperiments()::size);
+                // Return the first PAGE_SIZE experiments
+                List<ExperimentSummary> pagedExperiments = user.getExperiments().subList(page * PAGE_SIZE, Math.min((page + 1) * PAGE_SIZE, user.getExperiments().size()));
+                return PageableExecutionUtils.getPage(pagedExperiments, PageRequest.of(page, PAGE_SIZE), user.getExperiments()::size);
             }
 
             // Filter experiments based on expName and configName criteria
@@ -148,9 +148,9 @@ public class ExperimentService {
                             (configName == null || experiment.getConfigName().toLowerCase().contains(configName.toLowerCase())))
                     .collect(Collectors.toList());
 
-            // Limit the result to the first 10 matching experiments
             int startIndex = page * PAGE_SIZE;
             int endIndex = Math.min(startIndex + PAGE_SIZE, filteredExperiments.size());
+
             List<ExperimentSummary> firstTenFilteredExperiments = filteredExperiments.subList(startIndex, endIndex);
 
             // Return the first 10 matching experiments as a Page object
