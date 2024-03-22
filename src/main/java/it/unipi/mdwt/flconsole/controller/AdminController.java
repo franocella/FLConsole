@@ -72,7 +72,7 @@ public class AdminController {
                     .toList();
 
             model.addAttribute("configurations", jsonList);
-            model.addAttribute("experiments", user.getExperiments());
+            model.addAttribute("experiments", user.getExperiments().subList(0, Math.min(user.getExperiments().size(), PAGE_SIZE)));
             model.addAttribute("totalConfigPages", totalConfigPages);
             model.addAttribute("totalExpPages", totalExpPages);
             return "adminDashboard";

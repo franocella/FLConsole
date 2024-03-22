@@ -223,13 +223,16 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <c:forEach items="${experiments.subList(0, experiments.size() > 1 ? 1 : experiments.size())}" var="exp">
+
+
+
+                    <c:forEach items="${experiments}" var="exp">
                             <tr>
-                                <td>${exp.id}</td>
-                                <td>${exp.name}</td>
-                                <td>${exp.configName}</td>
-                                <td>${exp.creationDate}</td>
-                                <td><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
+                                <td class='align-middle'>${exp.id}</td>
+                                <td class='align-middle'>${exp.name}</td>
+                                <td class='align-middle'>${exp.configName}</td>
+                                <td class='align-middle'>${exp.creationDate}</td>
+                                <td class='align-middle'><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
                             </tr>
                         </c:forEach>
                     </tbody>
@@ -663,12 +666,12 @@
 
             $.each(configurations, function(index, item) {
                 const row = $('<tr>').append(
-                    '<td>' + item.id + '</td>',
-                    '<td>' + item.name + '</td>',
-                    '<td>' + item.configName + '</td>',
-                    '<td>' + item.creationDate + '</td>',
-                    '<td><a href="/experiment-' + item.id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>'
-                );
+                    "<td class='align-middle'>" + item.id + "</td>" +
+                    "<td class='align-middle'>" + item.name + "</td>" +
+                    "<td class='align-middle'>" + item.configName + "</td>" +
+                    "<td class='align-middle'>" + item.creationDate + "</td>" +
+                    '<td class="align-middle"><a href="/experiment-' + item.id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>'
+            );
                 $('#tab2Content tbody').append(row);
             });
         }
@@ -714,18 +717,20 @@
             // Insert rows based on the response
             $.each(configurations, function(index, item) {
                 const row = '<tr>' +
-                    '<td>' + item.id + '</td>' +
-                    '<td>' + item.name + '</td>' +
-                    '<td>' + item.algorithm + '</td>' +
-                    '<td>' + item.strategy + '</td>' +
-                    '<td>' + item.numClients + '</td>' +
-                    '<td>' + item.stopCondition + '</td>' +
-                    '<td>' + item.creationDate + '</td>' +
-                    '<td>' + item.lastUpdate + '</td>' +
+                    '<td class="align-middle">' + item.id + '</td>' +
+                    '<td class="align-middle">' + item.name + '</td>' +
+                    '<td class="align-middle">' + item.algorithm + '</td>' +
+                    '<td class="align-middle">' + item.strategy + '</td>' +
+                    '<td class="align-middle">' + item.numClients + '</td>' +
+                    '<td class="align-middle">' + item.stopCondition + '</td>' +
+                    '<td class="align-middle">' + item.creationDate + '</td>' +
+                    '<td class="align-middle">' + item.lastUpdate + '</td>' +
                     '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + item.id + '\')" height="20px" width="20px"></figure></td>' +
                     '</tr>';
+
                 $('#ConfigTable tbody').append(row);
             });
+
         }
 
         // Variables for pagination of configurations
