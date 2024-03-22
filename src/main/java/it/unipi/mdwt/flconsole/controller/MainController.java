@@ -8,8 +8,8 @@ import it.unipi.mdwt.flconsole.model.ExperimentSummary;
 import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.service.CookieService;
 import it.unipi.mdwt.flconsole.service.ExpConfigService;
-import it.unipi.mdwt.flconsole.service.UserService;
 import it.unipi.mdwt.flconsole.service.ExperimentService;
+import it.unipi.mdwt.flconsole.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +18,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+
 import javax.naming.AuthenticationException;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @Controller
@@ -207,11 +211,6 @@ public class MainController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the profile.");
         }
     }
-
-
-
-
-
 
     @GetMapping("/profile/delete")
     public ResponseEntity<String> deleteUser(HttpServletRequest request, HttpServletResponse response) {

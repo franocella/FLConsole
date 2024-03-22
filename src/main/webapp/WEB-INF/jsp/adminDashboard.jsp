@@ -183,6 +183,19 @@
                     </tbody>
                 </table>
             </div>
+            <!-- Pagination buttons -->
+            <div class="d-flex justify-content-between position-fixed bottom-0 end-0" style="margin-bottom: 120px; margin-right: 80px">
+                <div class="d-flex gap-2">
+                    <!-- Left arrow to decrease the page -->
+                    <button class="btn btn-primary" onclick="prevConfigPage()">
+                        &lt; Previous
+                    </button>
+                    <!-- Right arrow to increase the page -->
+                    <button class="btn btn-primary" onclick="nextConfigPage()">
+                        Next &gt;
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- TAB 2 -->
@@ -210,28 +223,33 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <%--<!-- Examples -->
+                        <c:forEach items="${experiments.subList(0, experiments.size() > 10 ? 10 : experiments.size())}" var="exp">
                             <tr>
-                                <td>1</td>
-                                <td>Experiment A</td>
-                                <td>Configuration 1</td>
-                                <td>2022-10-10</td>
-                                <td><a href="#"><img
-                                            src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg"
-                                            alt="Open" width="25px" height="25px"></a></td>
-                            </tr>--%>
-                            <c:forEach items="${experiments}" var="exp">
-                                <tr>
-                                    <td>${exp.id}</td>
-                                    <td>${exp.name}</td>
-                                    <td>${exp.configName}</td>
-                                    <td>${exp.creationDate}</td>
-                                    <td><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
-                                </tr>
-                            </c:forEach>
+                                <td>${exp.id}</td>
+                                <td>${exp.name}</td>
+                                <td>${exp.configName}</td>
+                                <td>${exp.creationDate}</td>
+                                <td><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
+                            </tr>
+                        </c:forEach>
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination buttons -->
+            <div class="d-flex justify-content-between position-fixed bottom-0 end-0" style="margin-bottom: 120px; margin-right: 80px">
+                <div class="d-flex gap-2">
+                    <!-- Left arrow to decrease the page -->
+                    <button class="btn btn-primary" onclick="prevExpPage()">
+                        &lt; Previous
+                    </button>
+                    <!-- Right arrow to increase the page -->
+                    <button class="btn btn-primary" onclick="nextExpPage()">
+                        Next &gt;
+                    </button>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -621,11 +639,12 @@
             const executionName = $('#execution-name').val();
             const configName = $('#config-name').val();
             $.ajax({
-                url: '/admin/searchExp',
+                url: '/admin/getExperiments',
                 method: 'GET',
                 data: {
                     configName: configName,
-                    executionName: executionName
+                    executionName: executionName,
+                    page: 0
                 },
                 success: function(response) {
                     updateExpTable(response);
@@ -664,12 +683,13 @@
 
             // Send asynchronous request
             $.ajax({
-                url: '/admin/searchConfig',
+                url: '/admin/getConfigurations',
                 method: 'GET',
                 data: {
                     configName: configName,
                     clientStrategy: clientStrategy,
-                    stopCondition: stopCondition
+                    stopCondition: stopCondition,
+                    page: 0
                 },
                 success: function(response) {
                     // Call function to update configuration table
@@ -705,6 +725,93 @@
                     '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + item.id + '\')" height="20px" width="20px"></figure></td>' +
                     '</tr>';
                 $('#ConfigTable tbody').append(row);
+            });
+        }
+
+        // Variables for pagination of configurations
+        let currentConfigPage = 0;
+        let totalConfigPages = ${totalConfigPages};
+
+        // Variables for pagination of experiments
+        let currentExpPage = 0;
+        let totalExpPages = ${totalExpPages};
+
+        // Function to retrieve the next page of configurations
+        function nextConfigPage() {
+            if (currentConfigPage < totalConfigPages-1) {
+                currentConfigPage++;
+                getConfigurations();
+            }
+        }
+        // Function to retrieve the previous page of configurations
+        function prevConfigPage() {
+            if (currentConfigPage > 0) {
+                currentConfigPage--;
+                getConfigurations();
+            }
+        }
+
+        // Function to retrieve the next page of experiments
+        function nextExpPage() {
+            if (currentExpPage < totalExpPages-1) {
+                currentExpPage++;
+                getExperiments();
+            }
+        }
+
+        // Function to retrieve the previous page of experiments
+        function prevExpPage() {
+            if (currentExpPage > 0) {
+                currentExpPage--;
+                getExperiments();
+            }
+        }
+
+        // Function to retrieve configurations of the current page via an AJAX call
+        function getConfigurations() {
+            const configName = $('#ExpConfigName').val();
+            const clientStrategy = $('#ClientStrategy').val();
+            const stopCondition = $('#StopCondition').val();
+            $.ajax({
+                url: '/admin/getConfigurations',
+                method: 'GET',
+                data: {
+                    configName: configName,
+                    clientStrategy: clientStrategy,
+                    stopCondition: stopCondition,
+                    page: currentConfigPage
+                },
+                success: function(response) {
+                    currentConfigPage = response.number;
+                    totalExpPages = response.totalPages;
+                    updateConfigTable(response);
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+        // Function to retrieve experiments of the current page via an AJAX call
+        function getExperiments() {
+            const executionName = $('#execution-name').val();
+            const configName = $('#config-name').val();
+            $.ajax({
+                url: '/admin/getExperiments',
+                method: 'GET',
+                data: {
+                    configName: configName,
+                    executionName: executionName,
+                    page: currentExpPage
+                },
+                success: function(response) {
+                    currentConfigPage = response.number;
+                    totalConfigPages = response.totalPages;
+                    updateExpTable(response);
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
             });
         }
     </script>

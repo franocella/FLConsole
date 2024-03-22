@@ -24,6 +24,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
 
+import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
+
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
@@ -54,7 +56,8 @@ public class AdminController {
             String email = cookieService.getCookieValue(request.getCookies(),"email");
             User user = userService.getUser(email);
             List<ExpConfig> userConfigurations = expConfigService.getExpConfigsList(user.getConfigurations());
-
+            int totalConfigPages = (int) Math.ceil((double) userConfigurations.size() / PAGE_SIZE);
+            int totalExpPages = (int) Math.ceil((double) user.getExperiments().size() / PAGE_SIZE);
             List<String> jsonList = userConfigurations.stream()
                     .filter(Objects::nonNull) // Filter out null values
                     .map(expConfig -> {
@@ -69,7 +72,9 @@ public class AdminController {
                     .toList();
 
             model.addAttribute("configurations", jsonList);
-            model.addAttribute("experiments",user.getExperiments());
+            model.addAttribute("experiments", user.getExperiments());
+            model.addAttribute("totalConfigPages", totalConfigPages);
+            model.addAttribute("totalExpPages", totalExpPages);
             return "adminDashboard";
         } catch (BusinessException e) {
             // If an exception occurs during the process, return a server error message
@@ -208,19 +213,20 @@ public class AdminController {
         }
     }
 
-    @GetMapping("/searchExp")
-    public ResponseEntity<Page<ExperimentSummary>> searchExp(String executionName, String configName, HttpServletRequest request) {
+    @GetMapping("/getExperiments")
+    public ResponseEntity<Page<ExperimentSummary>> searchExp(@RequestParam int page, String executionName, String configName, HttpServletRequest request) {
         String email = cookieService.getCookieValue(request.getCookies(),"email");
-        Page<ExperimentSummary> experiments = experimentService.searchMyExperiments(email, executionName, configName, 0, 10);
+        Page<ExperimentSummary> experiments = experimentService.searchMyExperiments(email, executionName, configName, page);
         return ResponseEntity.ok(experiments);
     }
 
-    @GetMapping("/searchConfig")
-    public ResponseEntity<Page<ExpConfig>> searchConfig(String configName, String clientStrategy, String stopCondition, HttpServletRequest request) {
+    @GetMapping("/getConfigurations")
+    public ResponseEntity<Page<ExpConfig>> searchConfig(@RequestParam int page, String configName, String clientStrategy, String stopCondition, HttpServletRequest request) {
         String email = cookieService.getCookieValue(request.getCookies(),"email");
-        Page<ExpConfig> expConfigs = expConfigService.searchMyExpConfigs(email, configName, clientStrategy, stopCondition, 0, 10);
+        Page<ExpConfig> expConfigs = expConfigService.searchMyExpConfigs(email, configName, clientStrategy, stopCondition, page);
         return ResponseEntity.ok(expConfigs);
     }
+
 
 
 }

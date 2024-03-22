@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
+import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
+
 @Service
 public class ExpConfigService {
 
@@ -107,14 +109,13 @@ public class ExpConfigService {
      * @param clientStrategy   The client strategy to search for.
      * @param stopCondition The stop condition to search for.
      * @param page          The page number (0-based) to retrieve.
-     * @param nElem         The maximum number of elements per page.
      * @return              A Page containing the results.
      * @throws BusinessException If an error occurs during the search.
      */
-    public Page<ExpConfig> searchMyExpConfigs(String email, String configName, String clientStrategy, String stopCondition, int page, int nElem) throws BusinessException {
+    public Page<ExpConfig> searchMyExpConfigs(String email, String configName, String clientStrategy, String stopCondition, int page) throws BusinessException {
         try {
             // Validate page and nElem parameters
-            if (page < 0 || nElem <= 0) {
+            if (page < 0 || PAGE_SIZE <= 0) {
                 throw new IllegalArgumentException("Page and nElem must be non-negative integers.");
             }
 
@@ -122,8 +123,8 @@ public class ExpConfigService {
             List<String> confList = user.getConfigurations();
 
             if (!StringUtils.hasText(configName) && !StringUtils.hasText(clientStrategy) && !StringUtils.hasText(stopCondition)) {
-                List<ExpConfig> matchingConfigs = expConfigDao.findTopNByIdIn(confList, PageRequest.of(page, nElem));
-                return PageableExecutionUtils.getPage(matchingConfigs, PageRequest.of(page, nElem), confList::size);
+                List<ExpConfig> matchingConfigs = expConfigDao.findTopNByIdIn(confList, PageRequest.of(page, PAGE_SIZE));
+                return PageableExecutionUtils.getPage(matchingConfigs, PageRequest.of(page, PAGE_SIZE), confList::size);
             }
 
             // Create a list to hold the search criteria pairs
@@ -152,7 +153,7 @@ public class ExpConfigService {
             }
 
             // Set the page number and limit the results to the specified maximum number of elements
-            query.with(PageRequest.of(page, nElem));
+            query.with(PageRequest.of(page, PAGE_SIZE));
             // Retrieve the matching ExpConfig objects from the database
             List<ExpConfig> matchingConfigs = mongoTemplate.find(query, ExpConfig.class);
 
@@ -160,11 +161,8 @@ public class ExpConfigService {
             long totalCount = mongoTemplate.count(query, ExpConfig.class);
 
             // Create a Page object using the retrieved ExpConfig objects, the requested page, and the total count
-            return PageableExecutionUtils.getPage(matchingConfigs, PageRequest.of(page, nElem), () -> totalCount);
+            return PageableExecutionUtils.getPage(matchingConfigs, PageRequest.of(page, PAGE_SIZE), () -> totalCount);
         } catch (Exception e) {
-            // Log the exception details
-            // logger.error("Error occurred while searching for ExpConfig.", e);
-            // If an error occurs during the search, throw a BusinessException
             throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
         }
     }
