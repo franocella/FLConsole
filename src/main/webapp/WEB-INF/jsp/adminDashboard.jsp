@@ -147,14 +147,14 @@
                         placeholder="Configuration name" />
 
                     <select class="form-select me-2" id="ClientStrategy">
-                        <option selected>Client strategy</option>
+                        <option value="" selected>Client strategy</option>
                         <option value="1">One</option>
                         <option value="2">Two</option>
                         <option value="3">Three</option>
                     </select>
 
                     <select class="form-select me-2" id="StopCondition">
-                        <option selected>Stop condition</option>
+                        <option value="" selected>Stop condition</option>
                         <option value="1">One</option>
                         <option value="2">Two</option>
                         <option value="3">Three</option>
@@ -638,7 +638,11 @@
 
         function updateExpTable(response) {
             $('#tab2Content tbody').empty();
-            $.each(response, function(index, item) {
+
+            // Extract the list from the response
+            const configurations = response.content;
+
+            $.each(configurations, function(index, item) {
                 const row = $('<tr>').append(
                     '<td>' + item.id + '</td>',
                     '<td>' + item.name + '</td>',
@@ -669,6 +673,7 @@
                 },
                 success: function(response) {
                     // Call function to update configuration table
+                    console.log(response);
                     updateConfigTable(response);
                 },
                 error: function(xhr, status, error) {
@@ -679,9 +684,12 @@
         }
 
         // Function to update configuration table
-        function updateConfigTable(configurations) {
+        function updateConfigTable(response) {
             // Clear previous search results
             $('#ConfigTable tbody').empty();
+
+            // Extract the list from the response
+            const configurations = response.content;
 
             // Insert rows based on the response
             $.each(configurations, function(index, item) {

@@ -22,12 +22,14 @@ public class ExpConfigServiceTest {
     private ExpConfigService expConfigService;
 
     @Test
-    void searchExpConfigByMultipleCriteria(){
-        String configName = "test";
+    void searchExpConfig(){
+        String configName = "fdgtd";
+        String clientStrategy = "1";
+        String stopCondition = "3";
         int page = 0; // Page number
         int size = 10; // Page size
 
-        Page<ExpConfig> matchingConfigs = expConfigService.searchExpConfigByMultipleCriteria(configName,null,null,page,size);
+        Page<ExpConfig> matchingConfigs = expConfigService.searchExpConfig(configName,clientStrategy,stopCondition,page,size);
 
 
         assertNotNull(matchingConfigs);

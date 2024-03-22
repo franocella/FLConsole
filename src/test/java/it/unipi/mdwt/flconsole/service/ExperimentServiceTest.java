@@ -21,12 +21,12 @@ public class ExperimentServiceTest {
     private ExperimentService experimentService;
 
     @Test
-    void searchExpByMultipleParameters(){
+    void searchExperiment(){
         String expName = "Experiment";
         int page = 0; // Page number
         int size = 10; // Page size
 
-        Page<ExperimentSummary> matchingExps = experimentService.searchExpByMultipleParameters(expName, "First test",page,size);
+        Page<ExperimentSummary> matchingExps = experimentService.searchExperiment(expName, "First test",page,size);
 
         assertNotNull(matchingExps);
         assertFalse((matchingExps.isEmpty()));
@@ -39,7 +39,5 @@ public class ExperimentServiceTest {
             System.out.println("Exp Name: "+experiment.getName());
         }
     }
-
-
 
 }

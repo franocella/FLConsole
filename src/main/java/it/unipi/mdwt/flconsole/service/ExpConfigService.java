@@ -17,11 +17,9 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import java.lang.management.OperatingSystemMXBean;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 @Service
@@ -88,14 +86,12 @@ public class ExpConfigService {
 
     public List<ExpConfig> searchExpConfigByConfigName(String name, int nElem) throws BusinessException{
         try{
-            List<ExpConfig> matchingConfigs = new ArrayList<>();
 
             Query query = new Query();
             query.addCriteria(Criteria.where("name").regex(name,"i"));
             List<ExpConfig> configsByTemplate = mongoTemplate.find(query, ExpConfig.class);
-            matchingConfigs.addAll(configsByTemplate);
 
-            return matchingConfigs;
+            return new ArrayList<>(configsByTemplate);
 
         }catch (Exception e){
             throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
@@ -114,7 +110,7 @@ public class ExpConfigService {
      * @return              A Page containing the results.
      * @throws BusinessException If an error occurs during the search.
      */
-    public Page<ExpConfig> searchExpConfigByMultipleCriteria(String configName, String clientStrategy, String stopCondition, int page, int nElem) throws BusinessException {
+    public Page<ExpConfig> searchExpConfig(String configName, String clientStrategy, String stopCondition, int page, int nElem) throws BusinessException {
         try {
             // Validate page and nElem parameters
             if (page < 0 || nElem <= 0) {
@@ -129,7 +125,7 @@ public class ExpConfigService {
                 criteriaList.add(Pair.of("name", configName));
             }
             if (clientStrategy != null && !clientStrategy.isEmpty()) {
-                criteriaList.add(Pair.of("clientStrategy", clientStrategy));
+                criteriaList.add(Pair.of("strategy", clientStrategy));
             }
             if (stopCondition != null && !stopCondition.isEmpty()) {
                 criteriaList.add(Pair.of("stopCondition", stopCondition));
@@ -143,7 +139,6 @@ public class ExpConfigService {
 
             // Set the page number and limit the results to the specified maximum number of elements
             query.with(PageRequest.of(page, nElem));
-
             // Retrieve the matching ExpConfig objects from the database
             List<ExpConfig> matchingConfigs = mongoTemplate.find(query, ExpConfig.class);
 
