@@ -3,6 +3,7 @@ package it.unipi.mdwt.flconsole.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
 import it.unipi.mdwt.flconsole.dao.UserDAO;
+import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.ExperimentSummary;
 import it.unipi.mdwt.flconsole.model.User;
@@ -15,6 +16,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -24,12 +27,15 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.w3c.dom.ls.LSException;
 
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 
+import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
 import static java.lang.Thread.sleep;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
@@ -123,51 +129,36 @@ public class ExperimentService {
     }
 
 
-    public Page<ExperimentSummary> searchExpByMultipleParameters(String expName, String configName, int page, int nElem) throws BusinessException{
-        try{
-            Assert.isTrue(page >= 0 && nElem > 0, "Page and nElem must be non-negative integers");
-
-            List<Criteria> criteriaList = new ArrayList<>();
-
-            // Add criteria for name
-            if (expName != null && !expName.isEmpty()) {
-                criteriaList.add(Criteria.where("name").regex(expName, "i"));
+    public Page<ExperimentSummary> searchMyExperiments(String email, String expName, String configName, int page) throws BusinessException {
+        try {
+            if (page < 0 || PAGE_SIZE <= 0) {
+                throw new IllegalArgumentException("Page and nElem must be non-negative integers.");
             }
 
-            // Add criteria for configName
-            if (configName != null && !configName.isEmpty()) {
-                criteriaList.add(Criteria.where("expConfig.name").regex(configName, "i"));
+            User user = userDAO.findByEmail(email);
+            if (!StringUtils.hasText(expName) && !StringUtils.hasText(configName)) {
+                // Return the first PAGE_SIZE experiments
+                List<ExperimentSummary> pagedExperiments = user.getExperiments().subList(page * PAGE_SIZE, Math.min((page + 1) * PAGE_SIZE, user.getExperiments().size()));
+                return PageableExecutionUtils.getPage(pagedExperiments, PageRequest.of(page, PAGE_SIZE), user.getExperiments()::size);
             }
 
-            // Combine criteria with AND operator
-            Criteria criteria = new Criteria().andOperator(criteriaList.toArray(new Criteria[0]));
+            // Filter experiments based on expName and configName criteria
+            List<ExperimentSummary> filteredExperiments = user.getExperiments().stream()
+                    .filter(experiment -> (expName == null || experiment.getName().toLowerCase().contains(expName.toLowerCase())) &&
+                            (configName == null || experiment.getConfigName().toLowerCase().contains(configName.toLowerCase())))
+                    .collect(Collectors.toList());
 
-            // Create query
-            Query query = new Query(criteria);
+            int startIndex = page * PAGE_SIZE;
+            int endIndex = Math.min(startIndex + PAGE_SIZE, filteredExperiments.size());
 
-            // Apply pagination
-            query.with(PageRequest.of(page, nElem));
+            List<ExperimentSummary> firstTenFilteredExperiments = filteredExperiments.subList(startIndex, endIndex);
 
-            // Execute query to find matching Experiment documents
-            List<Experiment> matchingExperiments = mongoTemplate.find(query, Experiment.class);
+            // Return the first 10 matching experiments as a Page object
+            return new PageImpl<>(firstTenFilteredExperiments, PageRequest.of(page, PAGE_SIZE), filteredExperiments.size());
 
-            // Convert matching Experiment documents to ExperimentSummary objects
-            List<ExperimentSummary> summaryList = new ArrayList<>();
-            for (Experiment experiment : matchingExperiments) {
-                ExperimentSummary summary = new ExperimentSummary();
-                summary.setId(experiment.getId());
-                summary.setName(experiment.getName());
-                summary.setConfigName(experiment.getExpConfig().getName());
-                summary.setCreationDate(experiment.getCreationDate());
-                summaryList.add(summary);
-            }
 
-            // Count total matching documents
-            long totalCount = mongoTemplate.count(query, Experiment.class);
-
-            // Return Page object
-            return new PageImpl<>(summaryList, PageRequest.of(page, nElem), totalCount);
-        }catch (Exception e){
+        } catch (Exception e) {
+            applicationLogger.severe("Error searching experiments: " + e.getMessage());
             throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
         }
     }
@@ -176,7 +167,8 @@ public class ExperimentService {
 
 
 
-        public void saveExperiment(Experiment exp, String email) {
+
+    public void saveExperiment(Experiment exp, String email) {
         experimentDao.save(exp);
         ExperimentSummary expSummary = new ExperimentSummary();
         expSummary.setId(exp.getId());

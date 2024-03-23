@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.model.Experiment;
+import it.unipi.mdwt.flconsole.model.ExperimentSummary;
 import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.service.CookieService;
 import it.unipi.mdwt.flconsole.service.ExpConfigService;
@@ -12,19 +13,18 @@ import it.unipi.mdwt.flconsole.service.UserService;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Logger;
+
+import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
 
 @Controller
 @RequestMapping("/admin")
@@ -55,8 +55,9 @@ public class AdminController {
         try {
             String email = cookieService.getCookieValue(request.getCookies(),"email");
             User user = userService.getUser(email);
-            List<ExpConfig> userConfigurations = expConfigService.getExpConfigsList(user.getConfigurations());
-
+            Page<ExpConfig> userConfigurations = expConfigService.getNconfigsList(user.getConfigurations());
+            int totalConfigPages = userConfigurations.getTotalPages();
+            int totalExpPages = (int) Math.ceil((double) user.getExperiments().size() / PAGE_SIZE);
             List<String> jsonList = userConfigurations.stream()
                     .filter(Objects::nonNull) // Filter out null values
                     .map(expConfig -> {
@@ -71,7 +72,9 @@ public class AdminController {
                     .toList();
 
             model.addAttribute("configurations", jsonList);
-            model.addAttribute("experiments",user.getExperiments());
+            model.addAttribute("experiments", user.getExperiments().subList(0, Math.min(user.getExperiments().size(), PAGE_SIZE)));
+            model.addAttribute("totalConfigPages", totalConfigPages);
+            model.addAttribute("totalExpPages", totalExpPages);
             return "adminDashboard";
         } catch (BusinessException e) {
             // If an exception occurs during the process, return a server error message
@@ -209,5 +212,21 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error starting the task");
         }
     }
+
+    @GetMapping("/getExperiments")
+    public ResponseEntity<Page<ExperimentSummary>> searchExp(@RequestParam int page, String executionName, String configName, HttpServletRequest request) {
+        String email = cookieService.getCookieValue(request.getCookies(),"email");
+        Page<ExperimentSummary> experiments = experimentService.searchMyExperiments(email, executionName, configName, page);
+        return ResponseEntity.ok(experiments);
+    }
+
+    @GetMapping("/getConfigurations")
+    public ResponseEntity<Page<ExpConfig>> searchConfig(@RequestParam int page, String name, String clientStrategy, String stopCondition, HttpServletRequest request) {
+        String email = cookieService.getCookieValue(request.getCookies(),"email");
+        Page<ExpConfig> expConfigs = expConfigService.searchMyExpConfigs(email, name, clientStrategy, stopCondition, page);
+        return ResponseEntity.ok(expConfigs);
+    }
+
+
 
 }
