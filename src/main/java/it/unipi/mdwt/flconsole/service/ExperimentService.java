@@ -1,13 +1,16 @@
 package it.unipi.mdwt.flconsole.service;
 
+import com.ericsson.otp.erlang.OtpErlangPid;
+import com.ericsson.otp.erlang.OtpMbox;
+import com.ericsson.otp.erlang.OtpNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
 import it.unipi.mdwt.flconsole.dao.UserDAO;
-import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.ExperimentSummary;
 import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.ErlangMessageHandler;
+import it.unipi.mdwt.flconsole.utils.ErlangUtils;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessTypeErrorsEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +19,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -26,11 +26,12 @@ import org.springframework.data.util.Pair;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.ls.LSException;
 
+import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -49,61 +50,48 @@ public class ExperimentService {
     private final UserDAO userDAO;
     private final ObjectMapper objectMapper;
 
+    private final ErlangUtils erlangUtils;
     private final MongoTemplate mongoTemplate;
 
 
     @Autowired
-    public ExperimentService(SimpMessagingTemplate messagingTemplate, ExperimentDao experimentDao, ErlangMessageHandler erlangMessageHandler, Logger applicationLogger, UserDAO userDAO, MongoTemplate mongoTemplate) {
+    public ExperimentService(SimpMessagingTemplate messagingTemplate, ExperimentDao experimentDao, ErlangMessageHandler erlangMessageHandler, Logger applicationLogger, UserDAO userDAO, ErlangUtils erlangUtils, MongoTemplate mongoTemplate) {
         this.messagingTemplate = messagingTemplate;
         this.experimentDao = experimentDao;
         this.erlangMessageHandler = erlangMessageHandler;
         this.applicationLogger = applicationLogger;
         this.userDAO = userDAO;
+        this.erlangUtils = erlangUtils;
         this.mongoTemplate = mongoTemplate;
         this.objectMapper = new ObjectMapper();
     }
 
 
 
-    // Fake experiment to test WebSocket
-    public void runExp() throws BusinessException{
+    /**
+     * This method runs an experiment based on the provided configuration and email.
+     *
+     * @param config The serialized JSON string with the configuration and the name for the experiment.
+     * @param email The email associated with the experiment.
+     * @throws BusinessException If an error occurs during the execution of the experiment.
+     */
+    public void runExp(String config, String email) throws BusinessException{
+        try {
+            // Create a mailbox to send a request to the director and return the mailbox to receive the messages from the experiment node
+            Pair<OtpNode, OtpMbox> expNodeInfo = erlangUtils.sendRequest(config, email);
 
-        // Jinterface send message to the Director
+            // Get the pid of the collector if the message is an ack
+            OtpErlangPid collectorPid = erlangUtils.ackMessage(expNodeInfo.getSecond());
 
-        // Wait for acknowledgement from the Director
-
-        // Start the websocket connection
-
-        /*
-        While in cui controlli se arrivano messaggi dal director, se contegono informazioni
-        sulla progressione dell'esperimento li invii tramite websocket al frontend,
-        se è un messaggio di errore o di stop, interrompi l'esperimento ed inoltralo
-        e chiudi la connessione websocket
-        */
-
-        long startTime = System.currentTimeMillis();
-        long endTime = startTime + 10000;
-
-        Random random = new Random();
-
-        while (System.currentTimeMillis() < endTime) {
-            int randomNumber = random.nextInt(100);
-
+            // Start a new thread runnable to receive the messages from the experiment node without blocking the main thread
+            ExecutorService executor = Executors.newSingleThreadExecutor();
             try {
-                // try to send a message to the WebSocket topic
-                String jsonMessage = String.format("{\"%s\": %d}", "RandomValue", randomNumber);
-                messagingTemplate.convertAndSend("/experiment/progress", jsonMessage);
-
-            } catch (MessageDeliveryException e) {
-                System.out.println("WebSocket connection is closed. Cannot send message.");
-                break;
+                executor.execute(() -> erlangUtils.receiveMessage(expNodeInfo, collectorPid));
+            } finally {
+                executor.shutdown(); // Shutdown the executor when done
             }
-
-            try {
-                sleep(1000);
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -162,11 +150,6 @@ public class ExperimentService {
             throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
         }
     }
-
-
-
-
-
 
     public void saveExperiment(Experiment exp, String email) {
         experimentDao.save(exp);

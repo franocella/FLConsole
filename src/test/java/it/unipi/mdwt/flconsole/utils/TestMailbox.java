@@ -13,13 +13,17 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static java.lang.Thread.sleep;
+
 @SpringBootTest
 public class TestMailbox {
 
+    private static final String COLLECTOR_MAILBOX = "collectorMbox";
     private OtpNode webConsoleNode;
 
     private static final String DIRECTOR_NODE_NAME = "directorNode";
     private static final String DIRECTOR_MAILBOX = "expRequestHandler";
+    private static final String COLLECTOR_NAME_NODE = "collectorNode";
 
     // Get the instance of the otpNode that send requests of new experiments to the director
     // If the node does not exist, create a new one
@@ -151,8 +155,6 @@ public class TestMailbox {
 
     @Test
     void directorSimulator() {
-        // start a simulated director node that wait a message with the pid
-        // of the receiver and the configuration as a string and send a static message (random data/stop message)
         try {
             OtpNode node = new OtpNode(DIRECTOR_NODE_NAME, "cookie");
             OtpMbox mbox = node.createMbox(DIRECTOR_MAILBOX);
@@ -168,12 +170,53 @@ public class TestMailbox {
                     ackMessage[1] = collectorMbox.self();
                     System.out.println("Sending ack message...");
                     mbox.send(pid, new OtpErlangTuple(ackMessage));
+
+                    System.out.println("Sending to FL partecipants...");
+                    sleep(3000);
+                    System.out.println("Sending to collector node...");
+                    OtpErlangObject[] colMessage = new OtpErlangObject[1];
+                    Random random = new Random();
+                    String response =
+                            "{"
+                                    + "\"type\": \"data\","
+                                    + "\"parameters\": {"
+                                    + "\"param1\": " + random.nextInt(100) + ","
+                                    + "\"param2\": " + random.nextInt(100)
+                                    + "},"
+                                    + "\"timestamp\": \"2024-03-13T12:34:56\","
+                                    + "\"status\": \"running\""
+                                    + "}";
+                    colMessage[0] = new OtpErlangString(response);
+                    mbox.send(collectorMbox.self(), new OtpErlangTuple(colMessage));
                 } else {
                     System.out.println("Invalid message format.");
                 }
             }
+        } catch (IOException | OtpErlangDecodeException | OtpErlangExit | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    void collectorSimulator() {
+        try {
+            OtpNode node = new OtpNode(COLLECTOR_NAME_NODE, "cookie");
+            OtpMbox mbox = node.createMbox(COLLECTOR_MAILBOX);
+
+            while(true) {
+                System.out.println("Waiting for progresses...");
+                OtpErlangObject message = mbox.receive();
+                if (message instanceof OtpErlangTuple tuple && tuple.arity() == 1 &&
+                        tuple.elementAt(0) instanceof OtpErlangString response) {
+                    System.out.println("Received message: " + response.stringValue());
+                } else {
+                    System.out.println("Invalid message format.");
+                }
+            }
+
         } catch (IOException | OtpErlangDecodeException | OtpErlangExit e) {
             throw new RuntimeException(e);
         }
     }
+
 }
