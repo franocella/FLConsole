@@ -4,10 +4,12 @@ import com.ericsson.otp.erlang.*;
 import it.unipi.mdwt.flconsole.config.ApplicationLogConfig;
 import it.unipi.mdwt.flconsole.utils.exceptions.messages.MessageException;
 import it.unipi.mdwt.flconsole.utils.exceptions.messages.MessageTypeErrorsEnum;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.util.Pair;
 
 import java.io.IOException;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,8 +33,8 @@ public class TestMailbox {
         return webConsoleNode;
     }
 
-    @
-    public void serviceSimulator() {
+    @Test
+    void serviceSimulator() {
         String config = "config";
 
         try {
@@ -43,8 +45,11 @@ public class TestMailbox {
             OtpErlangPid collectorPid = ackMessage(expNodeInfo.getSecond());
 
             // Start a new thread runnable to receive the messages from the experiment node without blocking the main thread
-            try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            try {
                 executor.execute(() -> receiveMessage(expNodeInfo, collectorPid));
+            } finally {
+                executor.shutdown(); // Shutdown the executor when done
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -60,7 +65,7 @@ public class TestMailbox {
         OtpMbox mboxSender = webConsoleNode.createMbox("mboxSender");
 
         // Create the experiment node to handle the incoming messages
-        OtpNode experimentNode = new OtpNode("experimentNode", "cookieExp");
+        OtpNode experimentNode = new OtpNode("experimentNode", "cookie");
 
         // Create a mailbox to receive the request from the webConsole
         OtpMbox mboxReceiver = experimentNode.createMbox("mboxReceiver");
@@ -84,14 +89,18 @@ public class TestMailbox {
 
     private OtpErlangPid ackMessage(OtpMbox mboxReceiver) {
         try {
+            System.out.println("Waiting for ack message...");
             OtpErlangObject message = mboxReceiver.receive();
             if (message instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
                     tuple.elementAt(0) instanceof OtpErlangAtom atom && tuple.elementAt(1) instanceof OtpErlangPid pid) {
                 if (!(atom.atomValue().equals("ack"))) {
+                    System.out.println("Invalid ack message.");
                     throw new MessageException(MessageTypeErrorsEnum.INVALID_ACK);
                 }
+                System.out.println("Received ack message.");
                 return pid;
             } else {
+                System.out.println("Invalid message format.");
                 throw new MessageException(MessageTypeErrorsEnum.INVALID_MESSAGE_FORMAT);
             }
         } catch (OtpErlangExit e) {
@@ -138,5 +147,33 @@ public class TestMailbox {
         }
         expNodeInfo.getSecond().close();
         expNodeInfo.getFirst().close();
+    }
+
+    @Test
+    void directorSimulator() {
+        // start a simulated director node that wait a message with the pid
+        // of the receiver and the configuration as a string and send a static message (random data/stop message)
+        try {
+            OtpNode node = new OtpNode(DIRECTOR_NODE_NAME, "cookie");
+            OtpMbox mbox = node.createMbox(DIRECTOR_MAILBOX);
+            while(true) {
+                System.out.println("Waiting for message...");
+                OtpErlangObject message = mbox.receive();
+                if (message instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
+                        tuple.elementAt(0) instanceof OtpErlangPid pid && tuple.elementAt(1) instanceof OtpErlangString expConfig) {
+                    OtpNode collectorNode = new OtpNode("collectorNode", "cookie");
+                    OtpMbox collectorMbox = collectorNode.createMbox("collectorMbox");
+                    OtpErlangObject[] ackMessage = new OtpErlangObject[2];
+                    ackMessage[0] = new OtpErlangAtom("ack");
+                    ackMessage[1] = collectorMbox.self();
+                    System.out.println("Sending ack message...");
+                    mbox.send(pid, new OtpErlangTuple(ackMessage));
+                } else {
+                    System.out.println("Invalid message format.");
+                }
+            }
+        } catch (IOException | OtpErlangDecodeException | OtpErlangExit e) {
+            throw new RuntimeException(e);
+        }
     }
 }
