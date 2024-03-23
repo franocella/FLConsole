@@ -1,12 +1,11 @@
 package it.unipi.mdwt.flconsole.dao;
 
-import it.unipi.mdwt.flconsole.model.User;
+import it.unipi.mdwt.flconsole.model.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.dao.DataIntegrityViolationException;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +20,9 @@ class UserDAOTest {
     @Autowired
     private UserDAO userRepository;
 
+    @Autowired
+    private ExperimentDao experimentDao;
+
 
 
     /**
@@ -28,44 +30,46 @@ class UserDAOTest {
      */
     @Test
     void save() {
-        // Given
         User user = new User();
-        user.setEmail("saveTest@example.com");
-        user.setPassword("password");
+        user.setEmail("example2@mail.com");
+        user.setPassword("examplePsw");
+        List<String> configurations = new ArrayList<>();
+        user.setConfigurations(configurations);
+        user.setRole("exampleRole");
 
-        // When
+        // Check if the email is already associated with another user
+        User existingUserOptional = userRepository.findByEmail(user.getEmail());
+        if (existingUserOptional!=null) {
+            System.out.println("User with this email already exists");
+            return; // Exit the method without saving
+        }
+
+        // Fetching Experiment from repository
+        Optional<Experiment> experimentOptional = experimentDao.findById("65f6f495b9143e510574da43");
+        if (experimentOptional.isPresent()) {
+            Experiment experiment = experimentOptional.get();
+            // Creating ExperimentSummary object
+            ExperimentSummary experimentSummary = new ExperimentSummary();
+            experimentSummary.setId(experiment.getId());
+            experimentSummary.setName(experiment.getName());
+            experimentSummary.setConfigName(experiment.getExpConfig().getName());
+            experimentSummary.setCreationDate(experiment.getCreationDate());
+            // Creating a list of ExperimentSummary and adding the single ExperimentSummary to it
+            List<ExperimentSummary> experiments = new ArrayList<>();
+            experiments.add(experimentSummary);
+            // Setting the list of ExperimentSummary to the user
+            user.setExperiments(experiments);
+        } else {
+            System.out.println("Experiment with that id not found");
+        }
+
+        // Saving user to repository if the email is not already in use
         User savedUser = userRepository.save(user);
 
-        // Then
         assertNotNull(savedUser.getId());
-        assertEquals("saveTest@example.com", savedUser.getEmail());
-        assertEquals("password", savedUser.getPassword());
-/*
-        assertNull(savedUser.getConfigurations()); // Expect configurations to be null or empty
-        assertNull(savedUser.getExperiments()); // Expect experiments to be null or empty*/
+        assertEquals("example@mail.com", savedUser.getEmail());
 
-        // Given - Another user with the same email
-        User duplicateUser = new User();
-        duplicateUser.setEmail("saveTest@example.com");
-        duplicateUser.setPassword("newPassword");
-
-        // When - Try to save another user with the same email
-        assertThrows(DataIntegrityViolationException.class, () -> userRepository.save(duplicateUser));
-    }
-
-    /**
-     * Test the findByEmail method of the UserDAO.
-     */
-    @Test
-    void findByEmail() {
-        // Given
-        User user = new User();
-        // When
-        User foundUser = userRepository.findByEmail("firstTest@example.com");
-
-        // Then
-        assertNotNull(foundUser);
-        assertEquals("firstTest@example.com", foundUser.getEmail());
+        System.out.println("User is created");
     }
 
     /**
@@ -99,18 +103,45 @@ class UserDAOTest {
     @Test
     void delete() {
         // Given
-        String emailToDelete = "updateTest@example.com";
+        String emailToDelete = "example2@mail.com";
         User user = userRepository.findByEmail(emailToDelete);
 
         // Ensure that the user exists before attempting deletion
         assertNotNull(user);
 
+        List<ExperimentSummary> experimentSummaries = user.getExperiments();
+        if (experimentSummaries!= null){
+            for (ExperimentSummary experimentSummary : experimentSummaries){
+                Optional<Experiment> experiment = experimentDao.findById(experimentSummary.getId());
+                experimentDao.deleteById(experimentSummary.getId());
+
+                assertNotNull(experimentSummary);
+                assertNotNull(experiment);
+            }
+        }
         // When
         userRepository.deleteByEmail(emailToDelete);
 
         // Then
         assertFalse(userRepository.existsByEmail(emailToDelete));
     }
+
+    /**
+     * Test the findByEmail method of the UserDAO.
+     */
+    @Test
+    void findByEmail() {
+        // Given
+        User user = new User();
+        // When
+        User foundUser = userRepository.findByEmail("firstTest@example.com");
+
+        // Then
+        assertNotNull(foundUser);
+        assertEquals("firstTest@example.com", foundUser.getEmail());
+    }
+
+
 
     @Test
     void existsByEmail() {

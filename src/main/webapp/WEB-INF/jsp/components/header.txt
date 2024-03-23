@@ -2,11 +2,22 @@
     <nav class="navbar bg-custom-c1 p-3">
         <div class="container-fluid">
             <img src="${pageContext.request.contextPath}/Images/UNIPI_LOGO_SCONTORNATO.png" alt="Logo" width="80" height="80">
-            <h4 class="navbar-brand" style="color: #346bab;">Federated Learning Console</h4>
+            <c:choose>
+                <c:when test="${not empty cookie.role.value}">
+                    <a href="/admin/dashboard" class="navbar-brand" style="color: #346bab;">Federated Learning Console</a>
+                </c:when>
+                <c:otherwise>
+                    <a  href="/" class="navbar-brand" style="color: #346bab;">Federated Learning Console</a>
+                </c:otherwise>
+            </c:choose>
+
+
+
 
             <!-- Check for the presence of the "email" cookie -->
             <c:if test="${not empty cookie.email.value}">
                 <!-- Render the logout button if the "email" cookie is present -->
+                <a href="/profile"  style="color: #346bab;" class="navbar-brand">Profile</a>
                 <a href="/logout"  style="color: #346bab;" class="navbar-brand">Logout</a>
             </c:if>
         </div>

@@ -14,7 +14,9 @@
     <name>FLConsole</name>
     <description>FLConsole</description>
     <properties>
-        <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
     </properties>
     <dependencies>
 
@@ -78,6 +80,14 @@
             <scope>test</scope>
         </dependency>
 
+<!--
+        mvn install:install-file -Dfile="C:\Program Files\Erlang OTP\lib\jinterface-1.14\priv\OtpErlang.jar" -DgroupId="com.ericsson.otp" -DartifactId="erlang-jinterface" -Dversion="1.14" -Dpackaging=jar -DgeneratePom=true
+-->
+        <dependency>
+            <groupId>com.ericsson.otp</groupId>
+            <artifactId>erlang-jinterface</artifactId>
+            <version>1.14</version>
+        </dependency>
 
     </dependencies>
 
