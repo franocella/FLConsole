@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 
+import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -24,7 +25,7 @@ public class ExperimentServiceTest {
     void searchExperiment(){
         String expName = "Experiment";
         int page = 0; // Page number
-        int size = 10; // Page size
+        int size = PAGE_SIZE; // Page size
 
 //        Page<ExperimentSummary> matchingExps = experimentService.searchExperiment(expName, "First test",page,size);
 //

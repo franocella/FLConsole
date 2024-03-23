@@ -183,6 +183,19 @@
                     </tbody>
                 </table>
             </div>
+            <!-- Pagination buttons -->
+            <div class="d-flex justify-content-between position-fixed bottom-0 end-0" style="margin-bottom: 120px; margin-right: 80px">
+                <div class="d-flex gap-2">
+                    <!-- Left arrow to decrease the page -->
+                    <button class="btn btn-primary" onclick="prevConfigPage()">
+                        &lt; Previous
+                    </button>
+                    <!-- Right arrow to increase the page -->
+                    <button class="btn btn-primary" onclick="nextConfigPage()">
+                        Next &gt;
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- TAB 2 -->
@@ -210,28 +223,36 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <%--<!-- Examples -->
+
+
+
+                    <c:forEach items="${experiments}" var="exp">
                             <tr>
-                                <td>1</td>
-                                <td>Experiment A</td>
-                                <td>Configuration 1</td>
-                                <td>2022-10-10</td>
-                                <td><a href="#"><img
-                                            src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg"
-                                            alt="Open" width="25px" height="25px"></a></td>
-                            </tr>--%>
-                            <c:forEach items="${experiments}" var="exp">
-                                <tr>
-                                    <td>${exp.id}</td>
-                                    <td>${exp.name}</td>
-                                    <td>${exp.configName}</td>
-                                    <td>${exp.creationDate}</td>
-                                    <td><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
-                                </tr>
-                            </c:forEach>
+                                <td class='align-middle'>${exp.id}</td>
+                                <td class='align-middle'>${exp.name}</td>
+                                <td class='align-middle'>${exp.configName}</td>
+                                <td class='align-middle'>${exp.creationDate}</td>
+                                <td class='align-middle'><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
+                            </tr>
+                        </c:forEach>
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination buttons -->
+            <div class="d-flex justify-content-between position-fixed bottom-0 end-0" style="margin-bottom: 120px; margin-right: 80px">
+                <div class="d-flex gap-2">
+                    <!-- Left arrow to decrease the page -->
+                    <button class="btn btn-primary" onclick="prevExpPage()">
+                        &lt; Previous
+                    </button>
+                    <!-- Right arrow to increase the page -->
+                    <button class="btn btn-primary" onclick="nextExpPage()">
+                        Next &gt;
+                    </button>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -621,11 +642,12 @@
             const executionName = $('#execution-name').val();
             const configName = $('#config-name').val();
             $.ajax({
-                url: '/admin/searchExp',
+                url: '/admin/getExperiments',
                 method: 'GET',
                 data: {
                     configName: configName,
-                    executionName: executionName
+                    executionName: executionName,
+                    page: 0
                 },
                 success: function(response) {
                     updateExpTable(response);
@@ -644,12 +666,12 @@
 
             $.each(configurations, function(index, item) {
                 const row = $('<tr>').append(
-                    '<td>' + item.id + '</td>',
-                    '<td>' + item.name + '</td>',
-                    '<td>' + item.configName + '</td>',
-                    '<td>' + item.creationDate + '</td>',
-                    '<td><a href="/experiment-' + item.id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>'
-                );
+                    "<td class='align-middle'>" + item.id + "</td>" +
+                    "<td class='align-middle'>" + item.name + "</td>" +
+                    "<td class='align-middle'>" + item.configName + "</td>" +
+                    "<td class='align-middle'>" + item.creationDate + "</td>" +
+                    '<td class="align-middle"><a href="/experiment-' + item.id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>'
+            );
                 $('#tab2Content tbody').append(row);
             });
         }
@@ -664,12 +686,13 @@
 
             // Send asynchronous request
             $.ajax({
-                url: '/admin/searchConfig',
+                url: '/admin/getConfigurations',
                 method: 'GET',
                 data: {
                     configName: configName,
                     clientStrategy: clientStrategy,
-                    stopCondition: stopCondition
+                    stopCondition: stopCondition,
+                    page: 0
                 },
                 success: function(response) {
                     // Call function to update configuration table
@@ -694,17 +717,106 @@
             // Insert rows based on the response
             $.each(configurations, function(index, item) {
                 const row = '<tr>' +
-                    '<td>' + item.id + '</td>' +
-                    '<td>' + item.name + '</td>' +
-                    '<td>' + item.algorithm + '</td>' +
-                    '<td>' + item.strategy + '</td>' +
-                    '<td>' + item.numClients + '</td>' +
-                    '<td>' + item.stopCondition + '</td>' +
-                    '<td>' + item.creationDate + '</td>' +
-                    '<td>' + item.lastUpdate + '</td>' +
+                    '<td class="align-middle">' + item.id + '</td>' +
+                    '<td class="align-middle">' + item.name + '</td>' +
+                    '<td class="align-middle">' + item.algorithm + '</td>' +
+                    '<td class="align-middle">' + item.strategy + '</td>' +
+                    '<td class="align-middle">' + item.numClients + '</td>' +
+                    '<td class="align-middle">' + item.stopCondition + '</td>' +
+                    '<td class="align-middle">' + item.creationDate + '</td>' +
+                    '<td class="align-middle">' + item.lastUpdate + '</td>' +
                     '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + item.id + '\')" height="20px" width="20px"></figure></td>' +
                     '</tr>';
+
                 $('#ConfigTable tbody').append(row);
+            });
+
+        }
+
+        // Variables for pagination of configurations
+        let currentConfigPage = 0;
+        let totalConfigPages = ${totalConfigPages};
+
+        // Variables for pagination of experiments
+        let currentExpPage = 0;
+        let totalExpPages = ${totalExpPages};
+
+        // Function to retrieve the next page of configurations
+        function nextConfigPage() {
+            if (currentConfigPage < totalConfigPages-1) {
+                currentConfigPage++;
+                getConfigurations();
+            }
+        }
+        // Function to retrieve the previous page of configurations
+        function prevConfigPage() {
+            if (currentConfigPage > 0) {
+                currentConfigPage--;
+                getConfigurations();
+            }
+        }
+
+        // Function to retrieve the next page of experiments
+        function nextExpPage() {
+            if (currentExpPage < totalExpPages-1) {
+                currentExpPage++;
+                getExperiments();
+            }
+        }
+
+        // Function to retrieve the previous page of experiments
+        function prevExpPage() {
+            if (currentExpPage > 0) {
+                currentExpPage--;
+                getExperiments();
+            }
+        }
+
+        // Function to retrieve configurations of the current page via an AJAX call
+        function getConfigurations() {
+            const configName = $('#ExpConfigName').val();
+            const clientStrategy = $('#ClientStrategy').val();
+            const stopCondition = $('#StopCondition').val();
+            $.ajax({
+                url: '/admin/getConfigurations',
+                method: 'GET',
+                data: {
+                    name: configName,
+                    clientStrategy: clientStrategy,
+                    stopCondition: stopCondition,
+                    page: currentConfigPage
+                },
+                success: function(response) {
+                    currentConfigPage = response.number;
+                    totalConfigPages = response.totalPages;
+                    updateConfigTable(response);
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+        // Function to retrieve experiments of the current page via an AJAX call
+        function getExperiments() {
+            const executionName = $('#execution-name').val();
+            const configName = $('#config-name').val();
+            $.ajax({
+                url: '/admin/getExperiments',
+                method: 'GET',
+                data: {
+                    configName: configName,
+                    executionName: executionName,
+                    page: currentExpPage
+                },
+                success: function(response) {
+                    currentExpPage = response.number;
+                    totalExpPages = response.totalPages;
+                    updateExpTable(response);
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
             });
         }
     </script>

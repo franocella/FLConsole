@@ -32,8 +32,10 @@ import org.w3c.dom.ls.LSException;
 
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 
+import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
 import static java.lang.Thread.sleep;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
@@ -127,47 +129,36 @@ public class ExperimentService {
     }
 
 
-    public Page<ExperimentSummary> searchMyExperiments(String email, String expName, String configName, int page, int nElem) throws BusinessException {
+    public Page<ExperimentSummary> searchMyExperiments(String email, String expName, String configName, int page) throws BusinessException {
         try {
-            if (page < 0 || nElem <= 0) {
+            if (page < 0 || PAGE_SIZE <= 0) {
                 throw new IllegalArgumentException("Page and nElem must be non-negative integers.");
             }
 
-            List<Criteria> criteriaList = new ArrayList<>();
-
-            // Add criteria for name
-            if (expName != null && !expName.isEmpty()) {
-                criteriaList.add(Criteria.where("name").regex(expName, "i"));
+            User user = userDAO.findByEmail(email);
+            if (!StringUtils.hasText(expName) && !StringUtils.hasText(configName)) {
+                // Return the first PAGE_SIZE experiments
+                List<ExperimentSummary> pagedExperiments = user.getExperiments().subList(page * PAGE_SIZE, Math.min((page + 1) * PAGE_SIZE, user.getExperiments().size()));
+                return PageableExecutionUtils.getPage(pagedExperiments, PageRequest.of(page, PAGE_SIZE), user.getExperiments()::size);
             }
 
-            // Add criteria for configName
-            if (configName != null && !configName.isEmpty()) {
-                criteriaList.add(Criteria.where("expConfig.name").regex(configName, "i"));
-            }
+            // Filter experiments based on expName and configName criteria
+            List<ExperimentSummary> filteredExperiments = user.getExperiments().stream()
+                    .filter(experiment -> (expName == null || experiment.getName().toLowerCase().contains(expName.toLowerCase())) &&
+                            (configName == null || experiment.getConfigName().toLowerCase().contains(configName.toLowerCase())))
+                    .collect(Collectors.toList());
 
-            // Combine criteria with AND operator
-            Criteria criteria = new Criteria().andOperator(criteriaList.toArray(new Criteria[0]));
+            int startIndex = page * PAGE_SIZE;
+            int endIndex = Math.min(startIndex + PAGE_SIZE, filteredExperiments.size());
 
-            // Create aggregation operation to include/exclude fields
-            AggregationOperation projectOperation = Aggregation.project("id", "name", "config", "creationDate");
+            List<ExperimentSummary> firstTenFilteredExperiments = filteredExperiments.subList(startIndex, endIndex);
 
-            // Create aggregation pipeline
-            Aggregation aggregation = Aggregation.newAggregation(
-                    Aggregation.match(criteria),
-                    Aggregation.skip((long) page * nElem), // Calculate skip based on page and nElem
-                    Aggregation.limit(nElem), // Limit the results to nElem
-                    projectOperation
-            );
+            // Return the first 10 matching experiments as a Page object
+            return new PageImpl<>(firstTenFilteredExperiments, PageRequest.of(page, PAGE_SIZE), filteredExperiments.size());
 
-            // Execute aggregation
-            List<ExperimentSummary> summaryList = mongoTemplate.aggregate(aggregation, "experiment", ExperimentSummary.class).getMappedResults();
 
-            // Count total matching documents
-            long totalCount = mongoTemplate.count(Query.query(criteria), Experiment.class);
-
-            // Return Page object
-            return new PageImpl<>(summaryList, PageRequest.of(page, nElem), totalCount);
         } catch (Exception e) {
+            applicationLogger.severe("Error searching experiments: " + e.getMessage());
             throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
         }
     }
