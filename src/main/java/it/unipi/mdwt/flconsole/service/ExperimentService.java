@@ -9,7 +9,6 @@ import it.unipi.mdwt.flconsole.dao.UserDAO;
 import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.ExperimentSummary;
 import it.unipi.mdwt.flconsole.model.User;
-import it.unipi.mdwt.flconsole.utils.ErlangMessageHandler;
 import it.unipi.mdwt.flconsole.utils.ErlangUtils;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessTypeErrorsEnum;
@@ -23,15 +22,16 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.Pair;
-import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -45,7 +45,6 @@ public class ExperimentService {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final ExperimentDao experimentDao;
-    private final ErlangMessageHandler erlangMessageHandler;
     private final Logger applicationLogger;
     private final UserDAO userDAO;
     private final ObjectMapper objectMapper;
@@ -55,10 +54,9 @@ public class ExperimentService {
 
 
     @Autowired
-    public ExperimentService(SimpMessagingTemplate messagingTemplate, ExperimentDao experimentDao, ErlangMessageHandler erlangMessageHandler, Logger applicationLogger, UserDAO userDAO, ErlangUtils erlangUtils, MongoTemplate mongoTemplate) {
+    public ExperimentService(SimpMessagingTemplate messagingTemplate, ExperimentDao experimentDao, Logger applicationLogger, UserDAO userDAO, ErlangUtils erlangUtils, MongoTemplate mongoTemplate) {
         this.messagingTemplate = messagingTemplate;
         this.experimentDao = experimentDao;
-        this.erlangMessageHandler = erlangMessageHandler;
         this.applicationLogger = applicationLogger;
         this.userDAO = userDAO;
         this.erlangUtils = erlangUtils;
@@ -86,7 +84,12 @@ public class ExperimentService {
             // Start a new thread runnable to receive the messages from the experiment node without blocking the main thread
             ExecutorService executor = Executors.newSingleThreadExecutor();
             try {
-                executor.execute(() -> erlangUtils.receiveMessage(expNodeInfo, collectorPid));
+                // TODO: remove the future.get() and handle the future properly to avoid blocking the main thread
+                // future.get() is used only for testing purposes
+                Future<?> future = executor.submit(() -> erlangUtils.receiveMessage(expNodeInfo, collectorPid));
+                future.get(); // Wait for the future to complete
+            } catch (ExecutionException | InterruptedException e) {
+                throw new RuntimeException(e);
             } finally {
                 executor.shutdown(); // Shutdown the executor when done
             }
@@ -94,14 +97,6 @@ public class ExperimentService {
             throw new RuntimeException(e);
         }
     }
-
-    public void runExperiment() throws BusinessException {
-        erlangMessageHandler.initialize("provaEmail");
-        erlangMessageHandler.startExperiment("exp_config");
-    }
-
-
-
 
     public Experiment getExpDetails(String id) throws BusinessException {
         try {

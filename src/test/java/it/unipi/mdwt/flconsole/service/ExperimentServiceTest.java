@@ -5,6 +5,7 @@ import it.unipi.mdwt.flconsole.dao.ExperimentDao;
 import it.unipi.mdwt.flconsole.dao.UserDAO;
 import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.ExperimentSummary;
+import it.unipi.mdwt.flconsole.utils.ErlangUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,6 +21,7 @@ public class ExperimentServiceTest {
 
     @Autowired
     private ExperimentService experimentService;
+
 
     @Test
     void searchExperiment(){
@@ -41,4 +43,8 @@ public class ExperimentServiceTest {
 //        }
     }
 
+    @Test
+    void runExp() {
+        experimentService.runExp("expConfig", "email@gmail.com");
+    }
 }
