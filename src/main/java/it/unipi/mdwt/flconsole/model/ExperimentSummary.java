@@ -22,7 +22,8 @@ public class ExperimentSummary {
     private String name;
     @Field("config")
     private String configName;
-
+    @Field("status")
+    private String status;
     @Field("creationDate")
     @CreatedDate
     private Date creationDate;

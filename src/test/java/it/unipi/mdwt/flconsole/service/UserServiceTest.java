@@ -1,7 +1,7 @@
 package it.unipi.mdwt.flconsole.service;
 
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
-import it.unipi.mdwt.flconsole.dao.UserDAO;
+import it.unipi.mdwt.flconsole.dao.UserDao;
 import it.unipi.mdwt.flconsole.model.Experiment;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +15,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserServiceTest {
 
 
-    private final UserDAO userDAO;
+    private final UserDao userDAO;
     private final ExperimentDao experimentDao;
 
     @Autowired
-    UserServiceTest(UserDAO userDAO, ExperimentDao experimentDao) {
+    UserServiceTest(UserDao userDAO, ExperimentDao experimentDao) {
         this.userDAO = userDAO;
         this.experimentDao = experimentDao;
     }

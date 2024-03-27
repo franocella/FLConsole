@@ -27,7 +27,7 @@ class ExperimentDaoTest {
     private  ExpConfigDao expConfigDao;
 
     @Autowired
-    private UserDAO userDao;
+    private UserDao userDao;
 
     /**
      * test to save method of the ExperimentDAO
