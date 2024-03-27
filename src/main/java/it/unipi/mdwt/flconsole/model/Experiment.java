@@ -32,10 +32,6 @@ public class Experiment {
     @LastModifiedDate
     private Date lastUpdate;
 
-    @Field("progressList")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private List<ExpMetrics> progressList;
-
     @Field("status")
     private String status;
 }

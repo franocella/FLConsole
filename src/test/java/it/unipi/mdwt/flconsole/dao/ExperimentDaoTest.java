@@ -56,7 +56,7 @@ class ExperimentDaoTest {
         }
 
         List<ExpMetrics> expMetrics = new ArrayList<>();
-        experiment.setProgressList(expMetrics);
+
 
         Experiment savedExperiment = experimentDao.save(experiment);
 
