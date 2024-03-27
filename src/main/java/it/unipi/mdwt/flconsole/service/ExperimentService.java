@@ -1,11 +1,12 @@
 package it.unipi.mdwt.flconsole.service;
 
-import com.ericsson.otp.erlang.OtpErlangPid;
 import com.ericsson.otp.erlang.OtpMbox;
 import com.ericsson.otp.erlang.OtpNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.unipi.mdwt.flconsole.dao.ExpProgressDao;
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
-import it.unipi.mdwt.flconsole.dao.UserDAO;
+import it.unipi.mdwt.flconsole.dao.UserDao;
+import it.unipi.mdwt.flconsole.model.ExpProgress;
 import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.ExperimentSummary;
 import it.unipi.mdwt.flconsole.model.User;
@@ -28,10 +29,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -46,22 +44,25 @@ public class ExperimentService {
     private final SimpMessagingTemplate messagingTemplate;
     private final ExperimentDao experimentDao;
     private final Logger applicationLogger;
-    private final UserDAO userDAO;
+    private final UserDao userDAO;
     private final ObjectMapper objectMapper;
-
     private final ErlangUtils erlangUtils;
     private final MongoTemplate mongoTemplate;
-
+    private final ExecutorService experimentExecutor;
+    private final ExpProgressDao expProgressDao;
 
     @Autowired
-    public ExperimentService(SimpMessagingTemplate messagingTemplate, ExperimentDao experimentDao, Logger applicationLogger, UserDAO userDAO, ErlangUtils erlangUtils, MongoTemplate mongoTemplate) {
+    public ExperimentService(SimpMessagingTemplate messagingTemplate, ExperimentDao experimentDao, Logger applicationLogger,
+                             UserDao userDAO, ErlangUtils erlangUtils, MongoTemplate mongoTemplate, ExecutorService executorService, ExpProgressDao expProgressDao) {
         this.messagingTemplate = messagingTemplate;
         this.experimentDao = experimentDao;
         this.applicationLogger = applicationLogger;
         this.userDAO = userDAO;
         this.erlangUtils = erlangUtils;
         this.mongoTemplate = mongoTemplate;
+        this.expProgressDao = expProgressDao;
         this.objectMapper = new ObjectMapper();
+        this.experimentExecutor = executorService;
     }
 
 
@@ -78,23 +79,28 @@ public class ExperimentService {
             // Create a mailbox to send a request to the director and return the mailbox to receive the messages from the experiment node
             Pair<OtpNode, OtpMbox> expNodeInfo = erlangUtils.sendRequest(config, email);
 
-            // Get the pid of the collector if the message is an ack
-            OtpErlangPid collectorPid = erlangUtils.ackMessage(expNodeInfo.getSecond());
+            // Wait for the director to send an acknowledgment message to the experiment node
+            erlangUtils.ackMessage(expNodeInfo.getSecond());
 
             // Start a new thread runnable to receive the messages from the experiment node without blocking the main thread
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            try {
-                // TODO: remove the future.get() and handle the future properly to avoid blocking the main thread
-                // future.get() is used only for testing purposes
-                Future<?> future = executor.submit(() -> erlangUtils.receiveMessage(expNodeInfo, collectorPid));
-                future.get(); // Wait for the future to complete
-            } catch (ExecutionException | InterruptedException e) {
-                throw new RuntimeException(e);
-            } finally {
-                executor.shutdown(); // Shutdown the executor when done
-            }
+            experimentExecutor.execute(() -> erlangUtils.receiveMessage(expNodeInfo));
+
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public List<ExpProgress> subscribeExperiment(String expId, String status) throws BusinessException {
+        try {
+            List<ExpProgress> expProgressList = expProgressDao.findByExpId(expId);
+            if (status.equals("running")) {
+                // Subscribe to the websocket
+                // TODO: Create a runnable thread to subscribe to the websocket
+            }
+
+            return expProgressList;
+        } catch (Exception e) {
+            throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
         }
     }
 
