@@ -1,7 +1,7 @@
 package it.unipi.mdwt.flconsole.service;
 
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
-import it.unipi.mdwt.flconsole.dao.UserDAO;
+import it.unipi.mdwt.flconsole.dao.UserDao;
 import it.unipi.mdwt.flconsole.dto.UserDTO;
 import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.Validator;
@@ -25,13 +25,13 @@ import java.util.Optional;
 @Service
 public class UserService {
 
-    private final UserDAO userDAO;
+    private final UserDao userDAO;
     private final ExperimentDao experimentDao;
     private final MongoTemplate mongoTemplate;
 
 
     @Autowired
-    public UserService(UserDAO userDAO, ExperimentDao experimentDao, MongoTemplate mongoTemplate) {
+    public UserService(UserDao userDAO, ExperimentDao experimentDao, MongoTemplate mongoTemplate) {
         this.userDAO = userDAO;
         this.experimentDao = experimentDao;
         this.mongoTemplate = mongoTemplate;

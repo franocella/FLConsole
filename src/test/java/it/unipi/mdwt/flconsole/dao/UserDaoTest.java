@@ -15,10 +15,10 @@ import static org.junit.jupiter.api.Assertions.*;
  * This class contains JUnit tests for the UserDAO class.
  */
 @DataMongoTest
-class UserDAOTest {
+class UserDaoTest {
 
     @Autowired
-    private UserDAO userRepository;
+    private UserDao userRepository;
 
     @Autowired
     private ExperimentDao experimentDao;

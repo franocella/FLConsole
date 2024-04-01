@@ -14,6 +14,8 @@ import java.util.Map;
 @Document
 public class ExpProgress {
 
+    @Field("id")
+    private String id;
     @Field("creationDate")
     @CreatedDate
     private Date creationDate;
@@ -21,5 +23,6 @@ public class ExpProgress {
     private Map<String, String> parameters;
     @Field("status")
     private String status;
-
+    @Field("expId")
+    private String expId;
 }

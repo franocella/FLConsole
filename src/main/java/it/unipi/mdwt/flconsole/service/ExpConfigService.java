@@ -1,7 +1,7 @@
 package it.unipi.mdwt.flconsole.service;
 
 import it.unipi.mdwt.flconsole.dao.ExpConfigDao;
-import it.unipi.mdwt.flconsole.dao.UserDAO;
+import it.unipi.mdwt.flconsole.dao.UserDao;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
@@ -29,14 +29,14 @@ import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
 public class ExpConfigService {
 
     private final ExpConfigDao expConfigDao;
-    private final UserDAO userDAO;
+    private final UserDao userDAO;
     private final MongoTemplate mongoTemplate;
 
     private final Logger applicationLogger;
 
 
     @Autowired
-    public ExpConfigService(ExpConfigDao experimentDao, UserDAO userDAO, MongoTemplate mongoTemplate, Logger applicationLogger) {
+    public ExpConfigService(ExpConfigDao experimentDao, UserDao userDAO, MongoTemplate mongoTemplate, Logger applicationLogger) {
         this.expConfigDao = experimentDao;
         this.userDAO = userDAO;
         this.mongoTemplate = mongoTemplate;
