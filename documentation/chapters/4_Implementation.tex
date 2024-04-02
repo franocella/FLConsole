@@ -2,32 +2,81 @@
 
 \section{Development Environment}
 
-The development environment used for the project is described in this section.
+%The development environment used for the project is described in this section.
+To be able to have efficient and successful implementation of Federated Learning Web Console Project, having a well-chosen development environment is one of the
+most important aspects. In this section, it is specified that the necessary tools, frameworks, and configuration requirements of the project. \\
+\begin{itemize}
+    \item \textbf{Programming Language:} Java is used for creating a Web Application. Erlang is used for facilitation the development of middleware component and FL director is an Erlang node.
+    So that effective communication between the Web Application and the FL director is provided.
+    \item \textbf{Frameworks:}  Spring is used for Java framework. It ensures to integrate dependencies for WebSocket communication and MongoDB support.
+    WebSocket is implemented to provide real-time communication between frontend and backend components.
+    \item \textbf{Database Management:} Spring is used for Java framework. It ensures to integrate dependencies for WebSocket communication and MongoDB support.
+    WebSocket is implemented to provide real-time communication between frontend and backend components.
+    \item \textbf{Version Control:} Git is used for version control. It is used to manage the source code of the project. GitHub is used to provide a collaborative development with its version control system. Efficient code management and collaboration is ensured by using repositories which is provided by the platform itself.
+    \item \textbf{Integrated Development Environment:} IntelliJ IDEA is used as an IDE. It is a Java integrated development environment for developing computer software. It is developed by JetBrains. It is used to write, compile, and run the code. It also provides a user-friendly interface for developers.
+    \item \textbf{Build Automation:} Maven is used for build automation. It is a build automation tool used primarily for Java projects. It is used to manage the project's build, reporting, and documentation from a central piece of information. Maven is used to control project dependencies and build configurations.
+    \item \textbf{Testing: } Junit testing is used for testing Java code.
+\end{itemize}
+
 
 \section{Main Modules}
 
-The main modules of the project are described in this section.
+%The main modules of the project are described in this section.
+Implementation of the project is structured by diving the project into modules. Each module ensures specific requirements of the project architecture. The modules are:\\
+\begin{itemize}
+    \item Configuration
+    \item Controller
+    \item DAO (Data Access Object)
+    \item DTO (Data Transfer Object)
+    \item Model
+    \item Service
+    \item Utils
+\end{itemize}
 
 \section{Configuration}
 
-The configuration of the project is described in this section.
+%The configuration of the project is described in this section.
+Configuration classes of the Federated Learning Web Console project are created to provide responsibilities for configuring different parts of the application such as
+logging, execution, HTTP request handling, MVC setup and WebSocket communication. Efficient operation, security and scalability of the system can be ensured by those configuration properties.
 
 \section{Data Access}
 
-The data access layer of the project is described in this section.
+%The data access layer of the project is described in this section.
+The data access classes are fulfilling the requirements of interacting with the database layers, providing data retrieval, storage, and manipulation. This module includes classes includes CRUD
+(create, read, update, delete) operations and query executions. With the Data Access classes such as ExpConfigDao, ExperimentDao, ExpProgressDao, UserDao the applications guarantee effective operations,
+management of experiments and tracking of the progress.
+
 
 \section{Data Transfer}
 
-The data transfer mechanisms used in the project are described in this section.
+%The data transfer mechanisms used in the project are described in this section.
+Data Transfer layer contains a UserDto class to ensure the functionality of transferring data structure between different layers and components of the application. With the help of the UserDto class,
+user related information such as email, password and description will be able to be transferred between frontend, backend, and service layers. User information is transferred in a more standardized way
+for achieving better communication.
 
 \section{Service}
 
-The services provided by the project are described in this section.
+%The services provided by the project are described in this section.
+Service module includes business logic and operations for ensuring the fully functional application. It provides data processing and interaction between different components. Service module includes:\\
+\begin{itemize}
+    \item Cookie Service is for managing cookie operations such as cookie creation, retrieval, and deletion. The purpose of this service is ensuring session management and personalized user experience.
+    \item Experiment Configuration Service is for implementing business logic for experiment configuration includes creation, deletion, retrieval and searching by some parameters.
+    \item Experiment Service is for creating operations that are related with experiment like creation, running, deletion, retrieval and searching.
+    \item User Service is implemented for ensuring business logic for user-based operations. Those operations include authentication of user, sign up, deletion of account, updating user information and retrieval of the user
+\end{itemize}
 
 \section{User Interface}
 
-The user interface of the project is described in this section.
+%The user interface of the project is described in this section.
+User Interface module is responsible for providing a user-friendly interface for the users. This module makes application functionalities visible for the end-user. It includes the following components:\\
+\begin{itemize}
+    \item Login and Sign Up Page: This page is for user authentication and registration. Users can log in to the system by providing their email and password. If the user does not have an account, they can sign up by providing their email, password, and description.
+    \item User Dashboard: This page is for displaying the experiments to the user. Users can see experiments and their progress on this page.
+    \item Experiment Page: This page is for displaying the details of the experiment. The page shows the details of the experiment and its progress on this page.
+    \item Admin Dashboard: This page is for displaying all experiments. Admins can see all experiments and their progress on this page and also it provides creating new experiments for the admin.
+    \item Profile Page: The profile page allows users to view and manage their account settings and profile information.
+\end{itemize}
 
 \section{Adopted Patterns and Techniques}
 
-The patterns and techniques adopted in the project are described in this section.
+%The patterns and techniques adopted in the project are described in this section.
