@@ -188,7 +188,7 @@ public class AdminController {
     public String experimentDetails(@PathVariable String id, Model model, HttpServletRequest request) {
 
         Experiment experiment;
-
+        ExpConfig expConfig;
         try {
             String role = cookieService.getCookieValue(request.getCookies(),"role");
             if (role != null && role.equals("admin")) {
@@ -196,9 +196,12 @@ public class AdminController {
                 model.addAttribute("isAuthor", isAuthor);
             }
 
-
             experiment = experimentService.getExpDetails(id);
             model.addAttribute("experiment", experiment);
+
+            // TODO: Implement getExpConfigById (better)
+            expConfig = expConfigService.getNconfigsList(List.of(experiment.getExpConfig().getId())).getContent().get(0);
+            model.addAttribute("expConfig", expConfig);
 
             return "experimentDetails";
         } catch (Exception e) {
@@ -209,9 +212,10 @@ public class AdminController {
     }
 
     @PostMapping("/start-exp")
-    public ResponseEntity<?> startTask() {
+    public ResponseEntity<?> startTask(HttpServletRequest request) {
         try {
             // TODO: Implement the task start
+            String email = cookieService.getCookieValue(request.getCookies(),"email");
             // experimentService.runExp();
             return ResponseEntity.ok("Task started successfully");
         } catch (Exception e) {

@@ -85,7 +85,7 @@ public class ExperimentService {
      * @param email The email associated with the experiment.
      * @throws BusinessException If an error occurs during the execution of the experiment.
      */
-    public void runExp(String config, String email) throws BusinessException{
+    public void runExp(String config, String email, String expId) throws BusinessException{
         try {
             // Create a mailbox to send a request to the director and return the mailbox to receive the messages from the experiment node
             Pair<OtpNode, OtpMbox> expNodeInfo = erlangUtils.sendRequest(config, email);
@@ -94,7 +94,7 @@ public class ExperimentService {
             erlangUtils.ackMessage(expNodeInfo.getSecond());
 
             // Start a new thread runnable to receive the messages from the experiment node without blocking the main thread
-            experimentExecutor.execute(() -> erlangUtils.receiveMessage(expNodeInfo));
+            experimentExecutor.execute(() -> erlangUtils.receiveMessage(expNodeInfo, expId));
 
         } catch (IOException e) {
             throw new RuntimeException(e);

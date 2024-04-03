@@ -1,11 +1,10 @@
-<jsp:useBean id="experiment" scope="request" type="it.unipi.mdwt.flconsole.model.Experiment" />
-
-<jsp:useBean id="isAuthor" scope="request" type="java.lang.Boolean"/>
-
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page session="false" %>
 
+<jsp:useBean id="experiment" scope="request" type="it.unipi.mdwt.flconsole.model.Experiment" />
+<jsp:useBean id="isAuthor" scope="request" type="java.lang.Boolean"/>
+<jsp:useBean id="expConfig" scope="request" type="it.unipi.mdwt.flconsole.model.ExpConfig" />
 <!DOCTYPE html>
 <html lang="en">
 
@@ -50,16 +49,53 @@
                                     style="font-weight: bold; font-size: large; width: 240px;">Configuration
                                     Name:</span>
                                 <input type="text" disabled aria-label="Configuration Name" class="form-control"
-                                    value="${experiment.expConfig.name}">
+                                    value="${expConfig.name}">
                             </div>
 
                             <div class="input-group">
                                 <span class="input-group-text"
-                                    style="font-weight: bold; font-size: large; width: 240px;">Algorithm:</span>
+                                      style="font-weight: bold; font-size: large; width: 240px;">Algorithm:</span>
                                 <input type="text" disabled aria-label="Algorithm" class="form-control"
-                                    value="${experiment.expConfig.algorithm}">
+                                       value="${expConfig.algorithm}">
                             </div>
 
+                            <div class="input-group">
+                                <span class="input-group-text"
+                                      style="font-weight: bold; font-size: large; width: 240px;">Strategy:</span>
+                                <input type="text" disabled aria-label="Strategy" class="form-control"
+                                       value="${expConfig.strategy}">
+                            </div>
+
+                            <div class="input-group">
+                                <span class="input-group-text"
+                                      style="font-weight: bold; font-size: large; width: 240px;">Number of Clients:</span>
+                                <input type="text" disabled aria-label="Number of Clients" class="form-control"
+                                       value="${expConfig.numClients}">
+                            </div>
+
+                            <div class="input-group">
+                                <span class="input-group-text"
+                                      style="font-weight: bold; font-size: large; width: 240px;">Stop Condition:</span>
+                                <input type="text" disabled aria-label="Stop Condition" class="form-control"
+                                       value="${expConfig.stopCondition}">
+                            </div>
+
+                            <div class="input-group">
+                                <span class="input-group-text"
+                                      style="font-weight: bold; font-size: large; width: 240px;">Threshold:</span>
+                                <input type="text" disabled aria-label="Threshold" class="form-control"
+                                       value="${expConfig.threshold}">
+                            </div>
+
+                            <c:set var="map" value="${expConfig.parameters}" />
+                            <c:forEach items="${map}" var="entry">
+                                <div class="input-group">
+                                    <span class="input-group-text"
+                                          style="font-weight: bold; font-size: large; width: 240px;">${entry.key}:</span>
+                                    <input type="text" disabled aria-label="${entry.key}" class="form-control"
+                                           value="${entry.value}">
+                                </div>
+                            </c:forEach>
 
                             <div class="input-group">
                                 <span class="input-group-text"
@@ -87,15 +123,14 @@
 
 
                     <div id="data-container">
-
                     </div>
-
 
                 </div>
             </div>
 
             <script>
                 let status = "${experiment.status}";
+                const id = "${experiment.id}";
 
                 <c:if test="${experiment.status == 'running'}">
                     const socketUrl = 'http://localhost:8080/ws';
@@ -134,13 +169,18 @@
                     stompClient.connect({}, () => {
                         console.log("Connected to WebSocket");
 
-                        stompClient.subscribe("/experiment/metrics", (message) => {
+                        stompClient.subscribe("/experiment/" + id + "/metrics", (message) => {
                             const progressUpdate = JSON.parse(message.body);
                             updateData(progressUpdate);
+                            if (message.type === 'END_EXPERIMENT') {
+                                stompClient.disconnect();
+                                displayErrorModal("Experiment finished", "The experiment has finished running");
+                            }
                         });
                     }, (error) => {
                         console.error("WebSocket connection error:", error);
                     });
+
 
                     // Send a request to start the experiment
                     // If the request is successful, update the status and remove the button

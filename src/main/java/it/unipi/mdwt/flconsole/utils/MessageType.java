@@ -21,6 +21,16 @@ public enum MessageType {
     ALL_WORKERS_READY,
 
     /**
+     * Indicates that the message contains metrics from the strategy server.
+     */
+    STRATEGY_SERVER_METRICS,
+
+    /**
+     * Indicates that the message contains metrics from a worker.
+     */
+    WORKER_METRICS,
+
+    /**
      * Indicates the start of a round.
      */
     START_ROUND,
