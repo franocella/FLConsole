@@ -2,11 +2,10 @@ package it.unipi.mdwt.flconsole.service;
 
 import com.ericsson.otp.erlang.OtpMbox;
 import com.ericsson.otp.erlang.OtpNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import it.unipi.mdwt.flconsole.dao.ExpProgressDao;
+import it.unipi.mdwt.flconsole.dao.MetricsDao;
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
 import it.unipi.mdwt.flconsole.dao.UserDao;
-import it.unipi.mdwt.flconsole.model.ExpProgress;
+import it.unipi.mdwt.flconsole.model.ExpMetrics;
 import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.ExperimentSummary;
 import it.unipi.mdwt.flconsole.model.User;
@@ -23,7 +22,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.Pair;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -41,31 +39,43 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 @Service
 public class ExperimentService {
 
-    private final SimpMessagingTemplate messagingTemplate;
     private final ExperimentDao experimentDao;
     private final Logger applicationLogger;
     private final UserDao userDAO;
-    private final ObjectMapper objectMapper;
     private final ErlangUtils erlangUtils;
     private final MongoTemplate mongoTemplate;
     private final ExecutorService experimentExecutor;
-    private final ExpProgressDao expProgressDao;
+    private final MetricsDao metricsDao;
 
     @Autowired
-    public ExperimentService(SimpMessagingTemplate messagingTemplate, ExperimentDao experimentDao, Logger applicationLogger,
-                             UserDao userDAO, ErlangUtils erlangUtils, MongoTemplate mongoTemplate, ExecutorService executorService, ExpProgressDao expProgressDao) {
-        this.messagingTemplate = messagingTemplate;
+    public ExperimentService(ExperimentDao experimentDao, Logger applicationLogger,
+                             UserDao userDAO, ErlangUtils erlangUtils, MongoTemplate mongoTemplate, ExecutorService executorService, MetricsDao metricsDao) {
         this.experimentDao = experimentDao;
         this.applicationLogger = applicationLogger;
         this.userDAO = userDAO;
         this.erlangUtils = erlangUtils;
         this.mongoTemplate = mongoTemplate;
-        this.expProgressDao = expProgressDao;
-        this.objectMapper = new ObjectMapper();
+        this.metricsDao = metricsDao;
         this.experimentExecutor = executorService;
     }
 
+    // View Experiment progress
+    // Check the status of the experiment from the database and retrieve the metrics
+    // if the experiment status is "running" subscribe to the experiment metrics broadcast
 
+
+    /*
+
+        runExp
+        Utente admin manda richiesta di esecuzione di un esperimento
+        Viene chimato il meccanismo di comunicazione con Erlang
+        Viene ricuvuto l'ack
+        Viene inviato in broadcast il messaggio con le metriche
+        Viene salvato il messaggio con le metriche  nel db
+
+        una volta ricevuto il messaggio di stop dal director viene chiuso il broadcast e vengono fatti disconnettere i clients
+
+    */
 
     /**
      * This method runs an experiment based on the provided configuration and email.
@@ -90,15 +100,15 @@ public class ExperimentService {
         }
     }
 
-    public List<ExpProgress> subscribeExperiment(String expId, String status) throws BusinessException {
+    public List<ExpMetrics> subscribeExperiment(String expId, String status) throws BusinessException {
         try {
-            List<ExpProgress> expProgressList = expProgressDao.findByExpId(expId);
+            List<ExpMetrics> expMetricsList = metricsDao.findByExpId(expId);
             if (status.equals("running")) {
                 // Subscribe to the websocket
                 // TODO: Create a runnable thread to subscribe to the websocket
             }
 
-            return expProgressList;
+            return expMetricsList;
         } catch (Exception e) {
             throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
         }
@@ -116,7 +126,6 @@ public class ExperimentService {
             throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
         }
     }
-
 
     public Page<ExperimentSummary> searchMyExperiments(String email, String expName, String configName, int page) throws BusinessException {
         try {

@@ -55,8 +55,8 @@ class ExperimentDaoTest {
             System.out.println("ExpConfig with that id not found");
         }
 
-        List<ExpProgress> expProgresses = new ArrayList<>();
-        experiment.setProgressList(expProgresses);
+        List<ExpMetrics> expMetrics = new ArrayList<>();
+        experiment.setProgressList(expMetrics);
 
         Experiment savedExperiment = experimentDao.save(experiment);
 

@@ -124,9 +124,15 @@ public class ErlangUtils {
                         // TODO: send the strategy server metrics to the webConsole with the web socket
                         try {
                             // try to send a message to the WebSocket topic
-                            String jsonMessage = "{\"timestamp\":1711533285,\"type\":\"strategy_server_metrics\", \"round\": 1, \"hostMetrics\": \n" +
-                                    "{\"cpuUsage\": 15.5, \"memoryUsage\": 85}, \"modelMetrics\": {\"FRO\": 0.154}\n";
+                            String jsonMessage = """
+                                    {"timestamp":1711533285,"type":"strategy_server_metrics", "round": 1, "hostMetrics":\s
+                                    {"cpuUsage": 15.5, "memoryUsage": 85}, "modelMetrics": {"FRO": 0.154}
+                                    """;
+
                             messagingTemplate.convertAndSend("/experiment/progress", jsonMessage);
+
+                            // TODO: save in the database
+
 
                         } catch (MessageDeliveryException e) {
                             System.out.println("WebSocket connection is closed. Cannot send message.");

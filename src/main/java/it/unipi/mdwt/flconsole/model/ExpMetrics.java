@@ -11,18 +11,18 @@ import java.util.Map;
 
 @Data
 @NoArgsConstructor
-@Document
-public class ExpProgress {
+@Document(collection = "expMetrics")
+public class ExpMetrics {
 
     @Field("id")
     private String id;
-    @Field("creationDate")
-    @CreatedDate
-    private Date creationDate;
+    @Field("expId")
+    private String expId;
+    @Field("timestamp")
+    private Date timestamp;
     @Field("parameters")
     private Map<String, String> parameters;
     @Field("status")
     private String status;
-    @Field("expId")
-    private String expId;
+
 }

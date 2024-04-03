@@ -34,7 +34,7 @@ public class Experiment {
 
     @Field("progressList")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private List<ExpProgress> progressList;
+    private List<ExpMetrics> progressList;
 
     @Field("status")
     private String status;
