@@ -2,6 +2,7 @@ package it.unipi.mdwt.flconsole.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.common.util.StringUtils;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.ExperimentSummary;
@@ -214,11 +215,32 @@ public class AdminController {
     @PostMapping("/start-exp")
     public ResponseEntity<?> startTask(HttpServletRequest request) {
         try {
-            // TODO: Implement the task start
-            String email = cookieService.getCookieValue(request.getCookies(),"email");
-            // experimentService.runExp();
+            // Check if there are any query parameters (GET parameters)
+            if (request.getQueryString() == null) {
+                return ResponseEntity.badRequest().body("No query parameters provided");
+            }
+
+            // Get the value of the 'config' parameter from the query string
+            String config = request.getParameter("config");
+
+            // Get the value of the 'expId' parameter from the query string
+            String expId = request.getParameter("expId");
+
+            // Check if the 'config' and 'expId' parameters are present and not blank
+            if (StringUtils.isBlank(config) || StringUtils.isBlank(expId)) {
+                return ResponseEntity.badRequest().body("Missing or blank required parameters");
+            }
+
+            // Get the email from the cookie
+            String email = cookieService.getCookieValue(request.getCookies(), "email");
+
+            // Run the experiment task
+            experimentService.runExp(config, email, expId);
+
+            // Return success response
             return ResponseEntity.ok("Task started successfully");
         } catch (Exception e) {
+            // Return internal server error response if an exception occurs
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error starting the task");
         }
     }

@@ -131,6 +131,7 @@
             <script>
                 let status = "${experiment.status}";
                 const id = "${experiment.id}";
+                const conf = ${expConfig.toJson()};
 
                 <c:if test="${experiment.status == 'running'}">
                     const socketUrl = 'http://localhost:8080/ws';
@@ -181,12 +182,15 @@
                         console.error("WebSocket connection error:", error);
                     });
 
-
                     // Send a request to start the experiment
                     // If the request is successful, update the status and remove the button
                     $.ajax({
-                        type: "GET",
+                        type: "POST",
                         url: "/admin/start-exp",
+                        data: {
+                            config: JSON.stringify(conf),
+                            expId: id
+                        },
                         success: function() {
                             status = 'running';
                             $('#startTaskBtn').remove();
