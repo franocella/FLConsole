@@ -129,7 +129,7 @@ public class ErlangUtils {
                                     {"cpuUsage": 15.5, "memoryUsage": 85}, "modelMetrics": {"FRO": 0.154}
                                     """;
 
-                            messagingTemplate.convertAndSend("/experiment/progress", jsonMessage);
+                            messagingTemplate.convertAndSend("/experiment/metrics", jsonMessage);
 
                             // TODO: save in the database
 

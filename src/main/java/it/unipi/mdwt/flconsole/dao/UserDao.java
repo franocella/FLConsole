@@ -48,4 +48,8 @@ public interface UserDao extends MongoRepository<User, String> {
         User user = findConfigurationsByEmail(email);
         return user != null ? user.getConfigurations() : Collections.emptyList();
     }
+
+    @Query(value = "{ 'email' : ?0, 'experiments.id' : ?1 }", exists = true)
+    boolean existsUserByEmailAndExperimentId(String email, String experimentId);
+
 }

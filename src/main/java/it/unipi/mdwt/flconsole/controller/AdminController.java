@@ -188,13 +188,18 @@ public class AdminController {
     public String experimentDetails(@PathVariable String id, Model model, HttpServletRequest request) {
 
         Experiment experiment;
-        String role = cookieService.getCookieValue(request.getCookies(),"role");
-        if (role != null && role.equals("admin")) {
-            model.addAttribute("role", "admin");
-        }
+
         try {
+            String role = cookieService.getCookieValue(request.getCookies(),"role");
+            if (role != null && role.equals("admin")) {
+                Boolean isAuthor = userService.isExperimentAuthor(cookieService.getCookieValue(request.getCookies(),"email"), id);
+                model.addAttribute("isAuthor", isAuthor);
+            }
+
+
             experiment = experimentService.getExpDetails(id);
             model.addAttribute("experiment", experiment);
+
             return "experimentDetails";
         } catch (Exception e) {
             model.addAttribute("error", "Error fetching experiment details");

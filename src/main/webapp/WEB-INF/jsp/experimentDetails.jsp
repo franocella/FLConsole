@@ -1,6 +1,6 @@
 <jsp:useBean id="experiment" scope="request" type="it.unipi.mdwt.flconsole.model.Experiment" />
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page session="false" %>
 
 <!DOCTYPE html>
@@ -68,20 +68,13 @@
 
                             <div class="input-group">
                                 <span class="input-group-text"
-                                    style="font-weight: bold; font-size: large; width: 240px;">Updated
-                                    At:</span>
-                                <input type="text" disabled aria-label="Updated At" class="form-control"
-                                    value="${experiment.lastUpdate}">
-                            </div>
-
-                            <div class="input-group">
-                                <span class="input-group-text"
                                     style="font-weight: bold; font-size: large; width: 240px;">Status:</span>
                                 <input type="text" disabled aria-label="Finished At" class="form-control"
                                     value="${experiment.status}">
                             </div>
-                            <c:if test="${role == 'admin'}">
-                                <button class="btn btn-primary mt-4 float-end" onclick="startTask()">Start
+
+                            <c:if test="${experiment.status == 'pending'}">
+                                <button id="startTaskBtn" class="btn btn-primary mt-4 float-end" onclick="startTask()">Start
                                     Experiment</button>
                             </c:if>
                         </div>
@@ -98,45 +91,66 @@
             </div>
 
             <script>
-                let status = '';
-                <c:if test="${experiment.status == 'fineshed'}">
-                    status = 'finished';
+                let status = "${experiment.status}";
+
+                <c:if test="${experiment.status == 'running'}">
+                    const socketUrl = 'http://localhost:8080/ws';
+                    const socket = new SockJS(socketUrl);
+                    const stompClient = Stomp.over(socket);
+
+                    stompClient.connect({}, () => {
+                        console.log("Connected to WebSocket");
+
+                        stompClient.subscribe("/experiment/metrics", (message) => {
+                            const progressUpdate = JSON.parse(message.body);
+                            updateData(progressUpdate);
+                        });
+                    }, (error) => {
+                        console.error("WebSocket connection error:", error);
+                    });
                 </c:if>
 
-                const socketUrl = 'http://localhost:8080/ws';
-                const socket = new SockJS(socketUrl);
-                const stompClient = Stomp.over(socket);
-
-                stompClient.connect({}, (frame) => {
-                    console.log("Connected to WebSocket");
-
-                    stompClient.subscribe("/experiment/progress", (message) => {
-                        const progressUpdate = JSON.parse(message.body);
-                        updateData(progressUpdate);
-                    });
-                }, (error) => {
-                    console.error("WebSocket connection error:", error);
-                });
-
                 function updateData(data) {
-                    const dataContainer = document.getElementById('data-container');
                     const labels = Object.keys(data);
                     const dataValues = Object.values(data);
                     updateChart(labels, dataValues);
                 }
 
 
-
                 function startTask() {
-                    if (status === 'finished') {
-                        displayErrorModal('Experiment already finished');
+
+                    if (status === 'running') {
                         return;
                     }
-                    fetch('/admin/start-exp', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
+
+                    const socketUrl = 'http://localhost:8080/ws';
+                    const socket = new SockJS(socketUrl);
+                    const stompClient = Stomp.over(socket);
+
+                    stompClient.connect({}, () => {
+                        console.log("Connected to WebSocket");
+
+                        stompClient.subscribe("/experiment/metrics", (message) => {
+                            const progressUpdate = JSON.parse(message.body);
+                            updateData(progressUpdate);
+                        });
+                    }, (error) => {
+                        console.error("WebSocket connection error:", error);
+                    });
+
+                    // Send a request to start the experiment
+                    // If the request is successful, update the status and remove the button
+                    $.ajax({
+                        type: "GET",
+                        url: "/admin/start-exp",
+                        success: function() {
+                            status = 'running';
+                            $('#startTaskBtn').remove();
+                            openErrorModal("Success", "Experiment started successfully");
                         },
+                        error: function(error) {
+                            openErrorModal("Error", error.responseText);
+                        }
                     });
                 }
 
@@ -183,9 +197,9 @@
                 }
             </script>
 
-            <!-- Your existing script tags for jQuery and Bootstrap -->
-            <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        <!-- Your existing script tags for jQuery and Bootstrap -->
+        <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
                 integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
                 crossorigin="anonymous"></script>
     </body>
