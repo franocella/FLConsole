@@ -1,4 +1,7 @@
 <jsp:useBean id="experiment" scope="request" type="it.unipi.mdwt.flconsole.model.Experiment" />
+
+<jsp:useBean id="isAuthor" scope="request" type="java.lang.Boolean"/>
+
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page session="false" %>
@@ -72,10 +75,11 @@
                                 <input type="text" disabled aria-label="Finished At" class="form-control"
                                     value="${experiment.status}">
                             </div>
-
                             <c:if test="${experiment.status == 'pending'}">
-                                <button id="startTaskBtn" class="btn btn-primary mt-4 float-end" onclick="startTask()">Start
-                                    Experiment</button>
+                                <c:if test="${isAuthor}">
+                                    <button id="startTaskBtn" class="btn btn-primary mt-4 float-end" onclick="startTask()">Start
+                                        Experiment</button>
+                                </c:if>
                             </c:if>
                         </div>
 

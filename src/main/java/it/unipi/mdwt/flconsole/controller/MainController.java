@@ -153,6 +153,7 @@ public class MainController {
         try {
             experiment = experimentService.getExpDetails(id);
             model.addAttribute("experiment", experiment);
+            model.addAttribute("isAuthor", false);
             return "experimentDetails";
         } catch (Exception e) {
             model.addAttribute("error", "Error fetching experiment details");
