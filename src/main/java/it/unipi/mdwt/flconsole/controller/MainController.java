@@ -3,6 +3,7 @@ package it.unipi.mdwt.flconsole.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unipi.mdwt.flconsole.dto.UserDTO;
+import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.ExperimentSummary;
 import it.unipi.mdwt.flconsole.model.User;
@@ -144,6 +145,8 @@ public class MainController {
     public String experimentDetails(@PathVariable String id, Model model, HttpServletRequest request) {
 
         Experiment experiment;
+        ExpConfig expConfig;
+
         String role = cookieService.getCookieValue(request.getCookies(),"role");
         if (role != null && role.equals("admin")) {
             model.addAttribute("role", "admin");
@@ -153,6 +156,12 @@ public class MainController {
         try {
             experiment = experimentService.getExpDetails(id);
             model.addAttribute("experiment", experiment);
+            model.addAttribute("isAuthor", false);
+
+            // TODO: Implement getExpConfigById (better)
+            expConfig = expConfigService.getNconfigsList(List.of(experiment.getExpConfig().getId())).getContent().get(0);
+            model.addAttribute("config", expConfig);
+
             return "experimentDetails";
         } catch (Exception e) {
             model.addAttribute("error", "Error fetching experiment details");

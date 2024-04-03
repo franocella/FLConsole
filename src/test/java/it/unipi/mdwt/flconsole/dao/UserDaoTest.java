@@ -232,6 +232,18 @@ class UserDaoTest {
         System.out.println(retrievedConfigurations);
     }
 
+    @Test
+    void existsUserByEmailAndExperimentId() {
+        // Given
+        String adminEmail = "admin@example.com";
+        String experimentId = "65f7623ce52fdb3b082cf821";
 
+        // When
+        boolean userExists = userRepository.existsUserByEmailAndExperimentId(adminEmail, experimentId);
+
+        // Then
+        assertTrue(userExists);
+        System.out.println("The experiment is created by the user");
+    }
 
 }

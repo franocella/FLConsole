@@ -223,18 +223,15 @@
                         </tr>
                     </thead>
                     <tbody>
-
-
-
                     <c:forEach items="${experiments}" var="exp">
-                            <tr>
-                                <td class='align-middle'>${exp.id}</td>
-                                <td class='align-middle'>${exp.name}</td>
-                                <td class='align-middle'>${exp.configName}</td>
-                                <td class='align-middle'>${exp.creationDate}</td>
-                                <td class='align-middle'><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
-                            </tr>
-                        </c:forEach>
+                        <tr>
+                            <td class='align-middle'>${exp.id}</td>
+                            <td class='align-middle'>${exp.name}</td>
+                            <td class='align-middle'>${exp.configName}</td>
+                            <td class='align-middle'>${exp.creationDate}</td>
+                            <td class='align-middle'><a href="/admin/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
+                        </tr>
+                    </c:forEach>
                     </tbody>
                 </table>
             </div>

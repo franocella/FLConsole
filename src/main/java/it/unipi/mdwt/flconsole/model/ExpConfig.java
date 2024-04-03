@@ -1,5 +1,8 @@
 package it.unipi.mdwt.flconsole.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
@@ -43,4 +46,25 @@ public class ExpConfig {
     @LastModifiedDate
     private Date lastUpdate;
 
+    public String toJson() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            ObjectNode jsonNode = objectMapper.createObjectNode();
+            jsonNode.put("algorithm", this.algorithm);
+            jsonNode.put("strategy", this.strategy);
+            jsonNode.put("numClients", this.numClients);
+            jsonNode.put("stopCondition", this.stopCondition);
+            jsonNode.put("threshold", this.threshold);
+
+            ObjectNode parametersNode = objectMapper.createObjectNode();
+            for (Map.Entry<String, String> entry : this.parameters.entrySet()) {
+                parametersNode.put(entry.getKey(), entry.getValue());
+            }
+            jsonNode.set("parameters", parametersNode);
+
+            return objectMapper.writeValueAsString(jsonNode);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
+    }
 }

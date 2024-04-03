@@ -52,25 +52,25 @@ Additionally, the database design will be examined, with particular attention to
             },
             "creationDate": "2024-03-14T00:00:00Z",
             "lastUpdate": "2024-03-14T12:00:00Z",
-            "progressList": [
-                {
-                "creationDate": "2024-03-14T06:00:00Z",
-                "parameters": {
-                    "param1": "value1",
-                    "param2": "value2"
-                },
-                "status": "In progress"
-                },
-                {
-                "creationDate": "2024-03-14T09:00:00Z",
-                "parameters": {
-                    "param1": "value1",
-                    "param2": "value2",
-                    "param3": "value3"
-                },
-                "status": "Completed"
-                }
-            ]
+            "status": "Completed"
+        }
+    \end{verbatim}
+
+    \textbf{ExperimentMetrics document example:} \begin{verbatim}
+        {
+            "id": "id",
+            "expId": "exp_id",
+            "type": "type",
+            "hostMetrics": {
+                "cpuUsage": 15.5,
+                "memoryUsage": 65,
+            },
+            "modelMetrics": {
+                "FRO": 0.154,
+                "F1": 0.654,
+            },
+            "Timestamp": "2024-03-14T00:00:00Z",
+            "expStatus": "running"
         }
     \end{verbatim}
 

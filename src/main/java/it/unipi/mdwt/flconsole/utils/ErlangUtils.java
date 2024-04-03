@@ -8,6 +8,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+import it.unipi.mdwt.flconsole.utils.MessageType;
 
 import java.io.IOException;
 
@@ -103,7 +104,7 @@ public class ErlangUtils {
         }
     }
 
-    public void receiveMessage(Pair<OtpNode, OtpMbox> expNodeInfo) {
+    public void receiveMessage(Pair<OtpNode, OtpMbox> expNodeInfo, String expId) {
         while (true) {
             try {
                 System.out.println("Receiver: Waiting for message...");
@@ -111,36 +112,48 @@ public class ErlangUtils {
                 if (message instanceof OtpErlangMap map &&
                         map.get(new OtpErlangAtom("type")) != null) {
                     OtpErlangAtom type = (OtpErlangAtom) map.get(new OtpErlangAtom("type"));
-                    if (type.atomValue().equals("fl_federation_end")) {
-                        System.out.println("Receiver: Stopping the experiment node...");
-                        expNodeInfo.getSecond().close();
-                        expNodeInfo.getFirst().close();
-                        break;
-                    } else if (type.atomValue().equals("error")) {
-                        // TODO: handle the error
-                        System.out.println("Receiver: Error message received.");
-                    } else if (type.atomValue().equals("strategy_server_metrics")) {
-                        System.out.println("Receiver: Progress message received.");
-                        // TODO: send the strategy server metrics to the webConsole with the web socket
-                        try {
-                            // try to send a message to the WebSocket topic
-                            String jsonMessage = "{\"timestamp\":1711533285,\"type\":\"strategy_server_metrics\", \"round\": 1, \"hostMetrics\": \n" +
-                                    "{\"cpuUsage\": 15.5, \"memoryUsage\": 85}, \"modelMetrics\": {\"FRO\": 0.154}\n";
-                            messagingTemplate.convertAndSend("/experiment/progress", jsonMessage);
+                    ;
+                    switch (MessageType.valueOf(type.atomValue().toUpperCase())) {
+                        case STRATEGY_SERVER_METRICS -> {
+                            System.out.println("Receiver: Progress message received.");
+                            // TODO: send the strategy server metrics to the webConsole with the web socket
+                            try {
+                                // try to send a message to the WebSocket topic
+                                String jsonMessage = """
+                                    {"timestamp":1711533285,"type":"strategy_server_metrics", "round": 1, "hostMetrics":\s
+                                    {"cpuUsage": 15.5, "memoryUsage": 85}, "modelMetrics": {"FRO": 0.154}
+                                    """;
 
-                        } catch (MessageDeliveryException e) {
-                            System.out.println("WebSocket connection is closed. Cannot send message.");
+                                messagingTemplate.convertAndSend("/experiment/" + expId + "/metrics", jsonMessage);
+
+                                // TODO: save in the database
+
+
+                            } catch (MessageDeliveryException e) {
+                                System.out.println("WebSocket connection is closed. Cannot send message.");
+                                break;
+                            }
+                            // TODO: save the strategy server metrics in the database
                             break;
                         }
-                        // TODO: save the strategy server metrics in the database
-                    } else if (type.atomValue().equals("worker_metrics")) {
-                    // TODO: send the worker metrics to the webConsole with the web socket
-                    // TODO: save the worker metrics in the database
-                    System.out.println("Receiver: Progress message received.");
-                    } else {
-                        // TODO: handle log message for type mismatch
-                        System.out.println("Receiver: Unknown message type.");
-                        System.out.println("Message type: " + type.atomValue());
+                        case WORKER_METRICS -> {
+                            // TODO: send the worker metrics to the webConsole with the web socket
+                            // TODO: save the worker metrics in the database
+                            System.out.println("Receiver: Progress message received.");
+                        }
+                        case END_EXPERIMENT -> {
+                            System.out.println("Receiver: Stopping the experiment node...");
+                            // TODO: send the end of the experiment message to the webConsole with the web socket
+                            // TODO: save the experiment metrics in the database
+                            expNodeInfo.getSecond().close();
+                            expNodeInfo.getFirst().close();
+                            break;
+                        }
+                        default -> {
+                            // TODO: handle log message for type mismatch
+                            System.out.println("Receiver: Unknown message type.");
+                            System.out.println("Message type: " + type.atomValue());
+                        }
                     }
                 } else {
                     System.out.println("Receiver: Invalid message format.");

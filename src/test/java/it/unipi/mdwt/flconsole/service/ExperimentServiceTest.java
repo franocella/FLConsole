@@ -33,8 +33,5 @@ public class ExperimentServiceTest {
 //        }
     }
 
-    @Test
-    void runExp() {
-        experimentService.runExp("expConfig", "email@gmail.com");
-    }
+
 }

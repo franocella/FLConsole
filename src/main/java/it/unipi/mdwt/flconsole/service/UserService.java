@@ -111,4 +111,7 @@ public class UserService {
         mongoTemplate.updateFirst(query, update, User.class);
     }
 
+    public boolean isExperimentAuthor(String email, String experimentId) {
+        return userDAO.existsUserByEmailAndExperimentId(email, experimentId);
+    }
 }
