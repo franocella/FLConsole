@@ -1,8 +1,9 @@
 package it.unipi.mdwt.flconsole.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import it.unipi.mdwt.flconsole.utils.MessageType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -16,13 +17,27 @@ public class ExpMetrics {
 
     @Field("id")
     private String id;
+
     @Field("expId")
     private String expId;
-    @Field("timestamp")
+
+    @Field("type")
+    private MessageType type;
+
+    @Field("hostMetrics")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, Double> hostMetrics;
+
+    @Field("modelMetrics")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, Double> modelMetrics;
+
+    @Field("Timestamp")
     private Date timestamp;
-    @Field("parameters")
-    private Map<String, String> parameters;
-    @Field("status")
-    private String status;
+
+    @Field("expStatus")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private String expStatus;
 
 }
+
