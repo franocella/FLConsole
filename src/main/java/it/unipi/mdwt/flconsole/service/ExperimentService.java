@@ -64,8 +64,23 @@ public class ExperimentService {
         this.objectMapper = new ObjectMapper();
     }
 
+    // View Experiment progress
+    // Check the status of the experiment from the database and retrieve the metrics
+    // if the experiment status is "running" subscribe to the experiment metrics broadcast
 
 
+    /*
+
+        runExp
+        Utente admin manda richiesta di esecuzione di un esperimento
+        Viene chimato il meccanismo di comunicazione con Erlang
+        Viene ricuvuto l'ack
+        Viene inviato in broadcast il messaggio con le metriche
+        Viene salvato il messaggio con le metriche  nel db
+
+        una volta ricevuto il messaggio di stop dal director viene chiuso il broadcast e vengono fatti disconnettere i clients
+
+    */
     /**
      * This method runs an experiment based on the provided configuration and email.
      *
