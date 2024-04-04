@@ -32,12 +32,20 @@ public class ExpMetrics {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Map<String, Double> modelMetrics;
 
-    @Field("Timestamp")
+    @Field("timestamp")
     private Date timestamp;
 
     @Field("expStatus")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String expStatus;
+
+    @Field("round")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private int round;
+
+    @Field("clientId")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private String clientId;
 
 }
 

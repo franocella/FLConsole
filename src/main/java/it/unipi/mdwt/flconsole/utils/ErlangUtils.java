@@ -1,6 +1,11 @@
 package it.unipi.mdwt.flconsole.utils;
 
 import com.ericsson.otp.erlang.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import it.unipi.mdwt.flconsole.model.ExpMetrics;
+import it.unipi.mdwt.flconsole.service.MetricsService;
 import it.unipi.mdwt.flconsole.utils.exceptions.messages.MessageException;
 import it.unipi.mdwt.flconsole.utils.exceptions.messages.MessageTypeErrorsEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +27,12 @@ public class ErlangUtils {
 
     private final SimpMessagingTemplate messagingTemplate;
 
+    private final MetricsService metricsService;
+
     @Autowired
-    public ErlangUtils(SimpMessagingTemplate messagingTemplate) {
+    public ErlangUtils(SimpMessagingTemplate messagingTemplate, MetricsService metricsService) {
         this.messagingTemplate = messagingTemplate;
+        this.metricsService = metricsService;
     }
 
     private OtpNode getWebConsoleNode(String email) throws IOException {
@@ -75,22 +83,31 @@ public class ErlangUtils {
         return new OtpErlangTuple(message);
     }
 
-    public void ackMessage(OtpMbox mboxReceiver) {
+    public void ackMessage(OtpMbox mboxReceiver, String expId) {
         try {
             System.out.println("Receiver: Waiting for ack message...");
             OtpErlangObject message = mboxReceiver.receive(10000);
-            if (message instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
-                    tuple.elementAt(0) instanceof OtpErlangAtom atom && tuple.elementAt(1) instanceof OtpErlangPid pid) {
-                if (atom.atomValue().equals("full")) {
-                    System.out.println("Receiver: No more resources available.");
-                    throw new MessageException(MessageTypeErrorsEnum.FULL_RESOURCES);
 
-                } else if (!(atom.atomValue().equals("ack"))) {
-                    System.out.println("Receiver: Invalid ack message.");
+            if (
+                    message instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
+                    tuple.elementAt(0) instanceof OtpErlangAtom atom && tuple.elementAt(1) instanceof OtpErlangString info &&
+                    atom.atomValue().equals("fl_start_str_run")
+            ) {
+                String jsonMessage = info.stringValue();
+                ObjectMapper objectMapper = new ObjectMapper();
+                ExpMetrics expMetrics = objectMapper.readValue(jsonMessage, ExpMetrics.class);
+
+                if (expMetrics.getType() == MessageType.EXPERIMENT_QUEUED) {
+                    // try to send a message to the WebSocket topic
+                    messagingTemplate.convertAndSend("/experiment/" + expId + "/metrics", jsonMessage);
+
+                    expMetrics.setExpId(expId);
+                    metricsService.saveMetrics(expMetrics);
+                    System.out.println("Receiver: Received ack message.");
+                } else {
+                    System.out.println("Receiver: Invalid ack message type.");
                     throw new MessageException(MessageTypeErrorsEnum.INVALID_MESSAGE);
                 }
-
-                System.out.println("Receiver: Received ack message.");
             } else {
                 System.out.println("Receiver: Invalid ack message format.");
                 throw new MessageException(MessageTypeErrorsEnum.INVALID_MESSAGE);
@@ -101,6 +118,8 @@ public class ErlangUtils {
 
         } catch (OtpErlangDecodeException e) {
             System.out.println("Receiver: Error decoding the message.");
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -109,52 +128,60 @@ public class ErlangUtils {
             try {
                 System.out.println("Receiver: Waiting for message...");
                 OtpErlangObject message = expNodeInfo.getSecond().receive();
-                if (message instanceof OtpErlangMap map &&
-                        map.get(new OtpErlangAtom("type")) != null) {
-                    OtpErlangAtom type = (OtpErlangAtom) map.get(new OtpErlangAtom("type"));
-                    ;
-                    switch (MessageType.valueOf(type.atomValue().toUpperCase())) {
-                        case STRATEGY_SERVER_METRICS -> {
-                            System.out.println("Receiver: Progress message received.");
-                            // TODO: send the strategy server metrics to the webConsole with the web socket
-                            try {
-                                // try to send a message to the WebSocket topic
-                                String jsonMessage = """
-                                    {"timestamp":1711533285,"type":"strategy_server_metrics", "round": 1, "hostMetrics":\s
-                                    {"cpuUsage": 15.5, "memoryUsage": 85}, "modelMetrics": {"FRO": 0.154}
-                                    """;
 
-                                messagingTemplate.convertAndSend("/experiment/" + expId + "/metrics", jsonMessage);
+                if (
+                        message instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
+                                tuple.elementAt(0) instanceof OtpErlangAtom atom
+                                && tuple.elementAt(1) instanceof OtpErlangString info &&
+                                atom.atomValue().equals("fl_message")
+                ) {
+                    String jsonMessage = info.stringValue();
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    ExpMetrics expMetrics = objectMapper.readValue(jsonMessage, ExpMetrics.class);
 
-                                // TODO: save in the database
+                    // try to send a message to the WebSocket topic
+                    messagingTemplate.convertAndSend("/experiment/" + expId + "/metrics", jsonMessage);
 
+                    expMetrics.setExpId(expId);
+                    metricsService.saveMetrics(expMetrics);
 
-                            } catch (MessageDeliveryException e) {
-                                System.out.println("WebSocket connection is closed. Cannot send message.");
-                                break;
-                            }
-                            // TODO: save the strategy server metrics in the database
-                            break;
+                    switch (expMetrics.getType()) {
+                        case STRATEGY_SERVER_READY -> {
+                            System.out.println("Receiver: Strategy server ready message received.");
+                        }
+                        case WORKER_READY -> {
+                            System.out.println("Receiver: Worker ready message received.");
+                        }
+                        case ALL_WORKERS_READY -> {
+                            System.out.println("Receiver: All workers ready message received.");
+                        }
+                        case START_ROUND -> {
+                            System.out.println("Receiver: Start round message received.");
                         }
                         case WORKER_METRICS -> {
-                            // TODO: send the worker metrics to the webConsole with the web socket
-                            // TODO: save the worker metrics in the database
                             System.out.println("Receiver: Progress message received.");
                         }
-                        case END_EXPERIMENT -> {
-                            System.out.println("Receiver: Stopping the experiment node...");
-                            // TODO: send the end of the experiment message to the webConsole with the web socket
-                            // TODO: save the experiment metrics in the database
-                            expNodeInfo.getSecond().close();
-                            expNodeInfo.getFirst().close();
-                            break;
+                        case STRATEGY_SERVER_METRICS -> {
+                            System.out.println("Receiver: Strategy server metrics message received.");
+                        }
+                        case END_ROUND -> {
+                            System.out.println("Receiver: End round message received.");
                         }
                         default -> {
-                            // TODO: handle log message for type mismatch
-                            System.out.println("Receiver: Unknown message type.");
-                            System.out.println("Message type: " + type.atomValue());
+                            System.out.println("Receiver: Invalid message type.");
                         }
                     }
+                } else if (
+                        message instanceof OtpErlangTuple tuple && tuple.arity() == 3 &&
+                                tuple.elementAt(0) instanceof OtpErlangAtom atom
+                                && atom.atomValue().equals("fl_end_str_run")
+                ) {
+                    // TODO: send the end experiment message to the webConsole with the web socket,
+                    //  store the list of bytes in a file in the file system and update the status of the experiment
+                    System.out.println("Receiver: End experiment message received.");
+                    expNodeInfo.getSecond().close();
+                    expNodeInfo.getFirst().close();
+                    break;
                 } else {
                     System.out.println("Receiver: Invalid message format.");
                 }
@@ -164,10 +191,10 @@ public class ErlangUtils {
             } catch (OtpErlangDecodeException e) {
                 System.out.println("Receiver: Error decoding the message.");
                 break;
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
             }
         }
-        expNodeInfo.getSecond().close();
-        expNodeInfo.getFirst().close();
     }
 
 }

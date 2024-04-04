@@ -91,7 +91,7 @@ public class ExperimentService {
             Pair<OtpNode, OtpMbox> expNodeInfo = erlangUtils.sendRequest(config, email);
 
             // Wait for the director to send an acknowledgment message to the experiment node
-            erlangUtils.ackMessage(expNodeInfo.getSecond());
+            erlangUtils.ackMessage(expNodeInfo.getSecond(), expId);
 
             // Start a new thread runnable to receive the messages from the experiment node without blocking the main thread
             experimentExecutor.execute(() -> erlangUtils.receiveMessage(expNodeInfo, expId));

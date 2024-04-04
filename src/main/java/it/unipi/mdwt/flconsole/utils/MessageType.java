@@ -16,19 +16,14 @@ public enum MessageType {
     STRATEGY_SERVER_READY,
 
     /**
+     * Indicates that a worker is ready.
+     */
+    WORKER_READY,
+
+    /**
      * Indicates that all workers are ready.
      */
     ALL_WORKERS_READY,
-
-    /**
-     * Indicates that the message contains metrics from the strategy server.
-     */
-    STRATEGY_SERVER_METRICS,
-
-    /**
-     * Indicates that the message contains metrics from a worker.
-     */
-    WORKER_METRICS,
 
     /**
      * Indicates the start of a round.
@@ -36,12 +31,17 @@ public enum MessageType {
     START_ROUND,
 
     /**
-     * Indicates the end of a round.
+     * Indicates that the message contains metrics from a worker.
      */
-    END_ROUND,
+    WORKER_METRICS,
 
     /**
-     * Indicates the end of an experiment.
+     * Indicates that the message contains metrics from the strategy server.
      */
-    END_EXPERIMENT
+    STRATEGY_SERVER_METRICS,
+
+    /**
+     * Indicates the end of a round.
+     */
+    END_ROUND
 }
