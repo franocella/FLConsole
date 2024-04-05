@@ -1,5 +1,6 @@
 package it.unipi.mdwt.flconsole.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -46,8 +47,6 @@ public class ExpConfig {
     @Field("creationDate")
     @CreatedDate
     private Date creationDate;
-
-
 
     public String toJson() {
         ObjectMapper objectMapper = new ObjectMapper();
