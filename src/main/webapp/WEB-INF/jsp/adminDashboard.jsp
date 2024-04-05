@@ -91,16 +91,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Row 1 -->
-                        <tr>
-                            <td contenteditable="true">Parameter 1</td>
-                            <td contenteditable="true">Value 1</td>
-                        </tr>
-                        <!-- Row 2 -->
-                        <tr>
-                            <td contenteditable="true">Parameter 2</td>
-                            <td contenteditable="true">Value 2</td>
-                        </tr>
                     </tbody>
                 </table>
                 <div class="text-end my-3">
@@ -356,8 +346,9 @@
                     parameters[parameterName] = $(row).find("td:eq(1)").text();
                 });
 
+                console.log("Parameters:", parameters);
                 // Only add parameters field to formData if there are parameters
-                if (Object.keys(parameters).rowCount > 0) {
+                if (parameters !== {}) {
                     formData["parameters"] = parameters;
                 }
 

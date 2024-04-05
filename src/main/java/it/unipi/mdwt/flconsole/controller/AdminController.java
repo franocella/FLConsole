@@ -92,7 +92,7 @@ public class AdminController {
             ExpConfig config = objectMapper.readValue(expConfig, ExpConfig.class);
 
             String email = cookieService.getCookieValue(request.getCookies(),"email");
-
+            applicationLogger.severe("parameters:" + config.getParameters());
             // Perform the configuration save
             expConfigService.saveConfig(config, email);
             
@@ -210,10 +210,6 @@ public class AdminController {
     @PostMapping("/start-exp")
     public ResponseEntity<?> startTask(HttpServletRequest request) {
         try {
-            // Check if there are any query parameters (GET parameters)
-            if (request.getQueryString() == null) {
-                return ResponseEntity.badRequest().body("No query parameters provided");
-            }
 
             // Get the value of the 'config' parameter from the query string
             String config = request.getParameter("config");
@@ -226,12 +222,14 @@ public class AdminController {
                 return ResponseEntity.badRequest().body("Missing or blank required parameters");
             }
 
+
+            System.out.println("Starting task with config: " + config + " and expId: " + expId);
             // Get the email from the cookie
             String email = cookieService.getCookieValue(request.getCookies(), "email");
 
             // Run the experiment task
             experimentService.runExp(config, email, expId);
-
+            System.out.println("Task started successfully");
             // Return success response
             return ResponseEntity.ok("Task started successfully");
         } catch (Exception e) {

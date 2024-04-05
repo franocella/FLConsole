@@ -70,7 +70,7 @@
                                 <span class="input-group-text"
                                       style="font-weight: bold; font-size: large; width: 240px;">Number of Clients:</span>
                                 <input type="text" disabled aria-label="Number of Clients" class="form-control"
-                                       value="${expConfig.numClients}">
+                                       value="${expConfig.minNumClients}">
                             </div>
 
                             <div class="input-group">
@@ -87,15 +87,17 @@
                                        value="${expConfig.threshold}">
                             </div>
 
-                            <c:set var="map" value="${expConfig.parameters}" />
-                            <c:forEach items="${map}" var="entry">
-                                <div class="input-group">
+                            <c:if test="${not empty expConfig.parameters}">
+                                <c:set var="map" value="${expConfig.parameters}" />
+                                <c:forEach items="${map}" var="entry">
+                                    <div class="input-group">
                                     <span class="input-group-text"
                                           style="font-weight: bold; font-size: large; width: 240px;">${entry.key}:</span>
-                                    <input type="text" disabled aria-label="${entry.key}" class="form-control"
-                                           value="${entry.value}">
-                                </div>
-                            </c:forEach>
+                                        <input type="text" disabled aria-label="${entry.key}" class="form-control"
+                                               value="${entry.value}">
+                                    </div>
+                                </c:forEach>
+                            </c:if>
 
                             <div class="input-group">
                                 <span class="input-group-text"
@@ -111,7 +113,7 @@
                                 <input type="text" disabled aria-label="Finished At" class="form-control"
                                     value="${experiment.status}">
                             </div>
-                            <c:if test="${experiment.status == 'pending'}">
+                            <c:if test="${experiment.status.toString() == 'NOT_STARTED'}">
                                 <c:if test="${isAuthor}">
                                     <button id="startTaskBtn" class="btn btn-primary mt-4 float-end" onclick="startTask()">Start
                                         Experiment</button>
@@ -129,11 +131,12 @@
             </div>
 
             <script>
-                let status = "${experiment.status}";
+
+                let status = "${experiment.status.toString()}";
                 const id = "${experiment.id}";
                 const conf = ${expConfig.toJson()};
 
-                <c:if test="${experiment.status == 'running'}">
+                if (status === 'RUNNING') {
                     const socketUrl = 'http://localhost:8080/ws';
                     const socket = new SockJS(socketUrl);
                     const stompClient = Stomp.over(socket);
@@ -148,7 +151,7 @@
                     }, (error) => {
                         console.error("WebSocket connection error:", error);
                     });
-                </c:if>
+                }
 
                 function updateData(data) {
                     const labels = Object.keys(data);
@@ -159,7 +162,7 @@
 
                 function startTask() {
 
-                    if (status === 'running') {
+                    if (status === 'RUNNING') {
                         return;
                     }
 
@@ -182,6 +185,7 @@
                         console.error("WebSocket connection error:", error);
                     });
 
+                    console.log("Starting experiment with configuration:", conf);
                     // Send a request to start the experiment
                     // If the request is successful, update the status and remove the button
                     $.ajax({
@@ -192,7 +196,7 @@
                             expId: id
                         },
                         success: function() {
-                            status = 'running';
+                            status = 'RUNNING';
                             $('#startTaskBtn').remove();
                             openErrorModal("Success", "Experiment started successfully");
                         },

@@ -2,6 +2,7 @@ package it.unipi.mdwt.flconsole.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import it.unipi.mdwt.flconsole.utils.ExperimentStatus;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
@@ -33,7 +34,7 @@ public class Experiment {
     private List<String> metricsList;
 
     @Field("status")
-    private ExperimentStatus status;
+    private ExperimentStatus status = ExperimentStatus.NOT_STARTED;
 
     @Field("modelPath")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

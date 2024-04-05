@@ -7,13 +7,14 @@ import it.unipi.mdwt.flconsole.dao.MetricsDao;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.model.ExpMetrics;
 import it.unipi.mdwt.flconsole.model.Experiment;
-import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.ExperimentStatus;
 import it.unipi.mdwt.flconsole.utils.MessageType;
 import it.unipi.mdwt.flconsole.utils.Validator;
 import it.unipi.mdwt.flconsole.utils.exceptions.messages.MessageException;
 import it.unipi.mdwt.flconsole.utils.exceptions.messages.MessageTypeErrorsEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -22,10 +23,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.logging.Logger;
 
 import static it.unipi.mdwt.flconsole.utils.Constants.*;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -35,14 +34,15 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 public class MessageService {
 
     private OtpNode webConsoleNode;
-
+    private final Logger applicationLogger;
     private final SimpMessagingTemplate messagingTemplate;
 
     private final MetricsDao metricsDao;
     private final MongoTemplate mongoTemplate;
 
     @Autowired
-    public MessageService(SimpMessagingTemplate messagingTemplate, MetricsDao metricsDao, MongoTemplate mongoTemplate) {
+    public MessageService(Logger applicationLogger, SimpMessagingTemplate messagingTemplate, MetricsDao metricsDao, MongoTemplate mongoTemplate) {
+        this.applicationLogger = applicationLogger;
         this.messagingTemplate = messagingTemplate;
         this.metricsDao = metricsDao;
         this.mongoTemplate = mongoTemplate;
@@ -59,23 +59,25 @@ public class MessageService {
 
         // Get the instance of the webConsoleNode
         OtpNode webConsoleNode = getWebConsoleNode(email);
-
+        applicationLogger.severe("Sender: WebConsole node created.");
         // Create a mailbox to send a request to the director
         OtpMbox mboxSender = webConsoleNode.createMbox("mboxSender");
+        applicationLogger.severe("Sender: Mailbox created.");
 
         // Create the experiment node to handle the incoming messages
         OtpNode experimentNode = new OtpNode("experimentNode", COOKIE);
+        applicationLogger.severe("Sender: Experiment node created.");
 
         // Create a mailbox to receive the request from the webConsole
         OtpMbox mboxReceiver = experimentNode.createMbox("mboxReceiver");
+        applicationLogger.severe("Sender: Receiver mailbox created.");
 
         if (webConsoleNode.ping(DIRECTOR_NODE_NAME, 2000)) {
             System.out.println("Sender: Director node is up.");
         } else {
             System.out.println("Sender: Director node is down.");
-            mboxSender.close();
+            webConsoleNode.close();
             experimentNode.close();
-            // TODO: handle the director node down
             throw new IOException("Director node is down.");
         }
 
@@ -84,7 +86,7 @@ public class MessageService {
 
         System.out.println("Sender: Sending message to the director...");
         mboxSender.send(DIRECTOR_MAILBOX, DIRECTOR_NODE_NAME, message);
-        mboxSender.close();
+        webConsoleNode.close();
         System.out.println("Sender: Sender closed.");
         return Pair.of(experimentNode, mboxReceiver);
     }
@@ -105,7 +107,7 @@ public class MessageService {
             startStrRunMessage[6] = new OtpErlangDouble(expConfig.getThreshold());
             startStrRunMessage[7] = new OtpErlangInt(expConfig.getMaxNumRounds());
             startStrRunMessage[8] = new OtpErlangString(objectMapper.writeValueAsString(expConfig.getParameters()));
-            OtpErlangTuple startStrRunTuple = new OtpErlangTuple(startStrRunMessage);
+            message[1] = new OtpErlangTuple(startStrRunMessage);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -219,12 +221,14 @@ public class MessageService {
                     }
                 } else if (
                         message instanceof OtpErlangTuple tuple && tuple.arity() == 3 &&
-                                tuple.elementAt(0) instanceof OtpErlangAtom atom
-                                && atom.atomValue().equals("fl_end_str_run")
+                                tuple.elementAt(0) instanceof OtpErlangAtom atom &&
+                                atom.atomValue().equals("fl_end_str_run") &&
+                                tuple.elementAt(1) instanceof OtpErlangString something &&
+                                tuple.elementAt(2) instanceof OtpErlangBinary binary
                 ) {
 
                     // save the model file in a specific directory
-                    String filePath = saveFile(tuple.elementAt(2).toString(), expId);
+                    String filePath = saveFile(binary.binaryValue(), expId);
 
                     // update the status of the experiment to finished
                     Query query = new Query(where("id").is(expId));
@@ -256,28 +260,23 @@ public class MessageService {
         }
     }
 
-    public String saveFile(String byteString, String expId) {
-        byteString = byteString.replaceAll("[<>]", ""); // Removes << and >>
-        String[] byteValues = byteString.split(",");
-        byte[] bytes = new byte[byteValues.length];
-        for (int i = 0; i < byteValues.length; i++) {
-            bytes[i] = Byte.parseByte(byteValues[i].trim());
-        }
-
+    public String saveFile(byte[] byteArray, String expId) {
         // Generates a unique name for the file
         String fileName = "exp_" + expId + ".bin";
 
         // Full path of the file
         String filePath = MODEL_PATH + File.separator + fileName;
 
-        try (BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(filePath))) {
-            stream.write(bytes);
-            return filePath;
-        } catch (IOException e) {
-            // Exception handling
-            return null;
-        }
-    }
+        // Create a FileSystemResource for the file
+        Resource resource = new FileSystemResource(filePath);
 
+        // Write byte array to file
+        try (FileOutputStream fos = new FileOutputStream(resource.getFile())) {
+            fos.write(byteArray);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save file: " + filePath, e);
+        }
+        return filePath;
+    }
 
 }
