@@ -95,8 +95,7 @@ public class AdminController {
 
             // Perform the configuration save
             expConfigService.saveConfig(config, email);
-
-            System.out.println(config.getId()+" "+config.getCreationDate()+" "+config.getLastUpdate());
+            
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
             // Create the JSON response with the data
@@ -108,10 +107,6 @@ public class AdminController {
                 response.put("creationTime", creationTime);
             }
 
-            if (config.getLastUpdate() != null) {
-                String lastUpdate = dateFormat.format(config.getLastUpdate());
-                response.put("lastUpdate", lastUpdate);
-            }
 
             // Convert the response map to a JSON string
             String jsonResponse = objectMapper.writeValueAsString(response);

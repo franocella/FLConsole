@@ -46,19 +46,25 @@ public class ExpConfig {
     @Field("creationDate")
     @CreatedDate
     private Date creationDate;
-    @Field("lastUpdate")
-    @LastModifiedDate
-    private Date lastUpdate;
+
+
 
     public String toJson() {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             ObjectNode jsonNode = objectMapper.createObjectNode();
+            jsonNode.put("id", this.id);
+            jsonNode.put("name", this.name);
             jsonNode.put("algorithm", this.algorithm);
+            jsonNode.put("codeLanguage", this.codeLanguage);
             jsonNode.put("strategy", this.strategy);
-            jsonNode.put("numClients", this.numClients);
+            jsonNode.put("clientSelectionRatio", this.clientSelectionRatio);
+            jsonNode.put("minNumClients", this.minNumClients);
             jsonNode.put("stopCondition", this.stopCondition);
             jsonNode.put("threshold", this.threshold);
+            jsonNode.put("maxNumRounds", this.maxNumRounds);
+            jsonNode.put("creationDate", this.creationDate.toString());
+
 
             ObjectNode parametersNode = objectMapper.createObjectNode();
             for (Map.Entry<String, String> entry : this.parameters.entrySet()) {
@@ -68,7 +74,9 @@ public class ExpConfig {
 
             return objectMapper.writeValueAsString(jsonNode);
         } catch (JsonProcessingException e) {
+            e.printStackTrace();
             return null;
         }
     }
+
 }

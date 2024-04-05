@@ -45,32 +45,43 @@
                 <input type="text" class="form-control me-2 my-2" name="config-name-modal" id="config-name-modal"
                     required placeholder="Configuration name" />
 
-                <select id="ClientStrategyModal" class="form-select me-2 my-2">
-                    <option selected>Client strategy</option>
-                    <option value="1">One</option>
-                    <option value="2">Two</option>
-                    <option value="3">Three</option>
-                </select>
-
-                <input type="number" class="form-control me-2 my-2" name="NumberOfClients" step="1"
-                    id="NumberOfClients" required placeholder="Number of clients" />
-
                 <select id="AlgorithmModal" class="form-select me-2">
                     <option selected>Algorithm</option>
-                    <option value="1">Algorithm one</option>
-                    <option value="2">Algorithm two</option>
-                    <option value="3">Algorithm three</option>
+                    <option value="fcmeans">Fcmeans</option>
                 </select>
+
+                <select id="codeLanguage" class="form-select me-2 my-2">
+                    <option selected>Code Language</option>
+                    <option value="java">Java</option>
+                    <option value="python">Python</option>
+                </select>
+
+                <select id="ClientStrategyModal" class="form-select me-2 my-2">
+                    <option selected>Client strategy</option>
+                    <option value="probability">Probability</option>
+                    <option value="ranking">Ranking</option>
+                    <option value="threshold">Threshold</option>
+                </select>
+
+                <input type="number" class="form-control me-2 my-2" name="ClientSelectionRatio" min="0" max="1" step="0.00001"
+                       id="ClientSelectionRatio" required placeholder="Client Selection Ratio" />
+
+                <input type="number" class="form-control me-2 my-2" name="NumberOfClients" step="1"
+                    id="NumberOfClients" required placeholder="Minimum Number of clients" />
 
                 <select id="StopConditionModal" class="form-select me-2 my-2">
                     <option selected>Stop condition</option>
-                    <option value="1">One</option>
-                    <option value="2">Two</option>
-                    <option value="3">Three</option>
+                    <option value="custom">Custom</option>
+                    <option value="max_number_rounds">Maximum Number of Rounds</option>
+                    <option value="metric_under_threshold">Metric Under Threshold</option>
+                    <option value="metric_over_threshold">Metric Over Threshold</option>
                 </select>
 
                 <input type="number" class="form-control me-2 my-2" name="StopThreshold" step="0.00001" min="0"
                     max="1" id="StopThreshold" required placeholder="Stop condition threshold" />
+
+                <input type="number" class="form-control me-2 my-2" name="StopThreshold" step="1" min="1"
+                       max="30" id="MaxNumRounds" required placeholder="Maximum Number of Rounds" />
 
                 <table id="parametersTable" class="table mt-3 text-center my-2">
                     <thead>
@@ -148,17 +159,20 @@
 
                     <select class="form-select me-2" id="ClientStrategy">
                         <option value="" selected>Client strategy</option>
-                        <option value="1">One</option>
-                        <option value="2">Two</option>
-                        <option value="3">Three</option>
+                        <option value="probability">Probability</option>
+                        <option value="ranking">Ranking</option>
+                        <option value="threshold">Threshold</option>
                     </select>
 
                     <select class="form-select me-2" id="StopCondition">
                         <option value="" selected>Stop condition</option>
-                        <option value="1">One</option>
-                        <option value="2">Two</option>
-                        <option value="3">Three</option>
+                        <option value="custom">Custom</option>
+                        <option value="max_number_rounds">Maximum Number of Rounds</option>
+                        <option value="metric_under_threshold">Metric Under Threshold</option>
+                        <option value="metric_over_threshold">Metric Over Threshold</option>
                     </select>
+
+
 
                     <a onclick="displayConfigModal()" class="btn btn-primary">New</a>
                 </div>
@@ -175,7 +189,6 @@
                             <th>Num. Clients</th>
                             <th>Stop Condition</th>
                             <th>Created At</th>
-                            <th>Updated At</th>
                             <th>Delete</th>
                         </tr>
                     </thead>
@@ -303,9 +316,12 @@
             const algorithm = $("#AlgorithmModal").val();
             const stopCondition = $("#StopConditionModal").val();
             const threshold = $("#StopThreshold").val().trim();
+            const maxNumRounds = $("#MaxNumRounds").val();
+            const codeLanguage = $("#codeLanguage").val();
+            const clientSelectionRatio = $("#ClientSelectionRatio").val();
 
             // Check if mandatory parameters are provided
-            if (name === "" || strategy === "Client strategy" || numClients === "" || algorithm === "Algorithm" || stopCondition === "Stop condition" || threshold === "") {
+            if (name === "" || strategy === "Client strategy" || numClients === "" || algorithm === "Algorithm" || stopCondition === "Stop condition" || threshold === "" || maxNumRounds === "" || codeLanguage === "Code Language" || clientSelectionRatio === "")  {
                 // Display an error modal with the names of missing mandatory parameters
                 displayErrorModal("Parameters", {
                     "Name": name === "" ? "Missing" : name,
@@ -313,7 +329,10 @@
                     "Number of Clients": numClients === "" ? "Missing" : numClients,
                     "Algorithm": algorithm === "Algorithm" ? "Missing" : algorithm,
                     "Stop Condition": stopCondition === "Stop condition" ? "Missing" : stopCondition,
-                    "Threshold": threshold === "" ? "Missing" : threshold
+                    "Threshold": threshold === "" ? "Missing" : threshold,
+                    "maxNumRounds": maxNumRounds === "" ? "Missing" : maxNumRounds,
+                    "codeLanguage": codeLanguage === "Code Language" ? "Missing" : codeLanguage,
+                    "clientSelectionRatio": clientSelectionRatio === "" ? "Missing" : clientSelectionRatio
                 });
             } else {
                 // If all mandatory parameters are provided, proceed with creating the formData object
@@ -323,7 +342,10 @@
                     "numClients": numClients,
                     "algorithm": algorithm,
                     "stopCondition": stopCondition,
-                    "threshold": threshold
+                    "threshold": threshold,
+                    "maxNumRounds": maxNumRounds,
+                    "codeLanguage": codeLanguage,
+                    "clientSelectionRatio": clientSelectionRatio
                 };
 
                 // Take the parameters from the table and add them to the formData object
@@ -352,7 +374,7 @@
 
                         formData["id"] = jsonData.id;
                         formData["creationDate"] = jsonData.creationTime;
-                        formData["lastUpdate"] = jsonData.lastUpdate;
+
 
                         console.log("New config:", formData);
                         addNewConfigToList(formData);
@@ -380,7 +402,6 @@
                 '<td class="align-middle">' + formData.numClients + '</td>' +
                 '<td class="align-middle">' + formData.stopCondition + '</td>' +
                 '<td class="align-middle">' + formData.creationDate + '</td>' +
-                '<td class="align-middle">' + formData.lastUpdate + '</td>' +
                 '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + id + '\')" height="20px" width="20px"></figure></td>' +
                 '</tr>';
 
