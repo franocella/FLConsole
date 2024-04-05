@@ -21,6 +21,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.util.Pair;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 
 import java.io.*;
@@ -30,7 +31,7 @@ import static it.unipi.mdwt.flconsole.utils.Constants.*;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 
-@Component
+@Service
 public class MessageService {
 
     private OtpNode webConsoleNode;
@@ -52,6 +53,7 @@ public class MessageService {
         if (webConsoleNode == null) {
             webConsoleNode = new OtpNode(Validator.getNameFromEmail(email), COOKIE);
         }
+
         return webConsoleNode;
     }
 
@@ -72,10 +74,10 @@ public class MessageService {
         OtpMbox mboxReceiver = experimentNode.createMbox("mboxReceiver");
         applicationLogger.severe("Sender: Receiver mailbox created.");
 
-        if (webConsoleNode.ping(DIRECTOR_NODE_NAME, 2000)) {
-            System.out.println("Sender: Director node is up.");
+        if (webConsoleNode.ping(DIRECTOR_NODE_NAME, 5000)) {
+            applicationLogger.severe("Sender: Director node is up.");
         } else {
-            System.out.println("Sender: Director node is down.");
+            applicationLogger.severe("Sender: Director node is down.");
             webConsoleNode.close();
             experimentNode.close();
             throw new IOException("Director node is down.");
@@ -84,10 +86,10 @@ public class MessageService {
         // Create the message
         OtpErlangTuple message = createRequestMessage(mboxReceiver.self(), config);
 
-        System.out.println("Sender: Sending message to the director...");
+        applicationLogger.severe("Sender: Sending the message...");
         mboxSender.send(DIRECTOR_MAILBOX, DIRECTOR_NODE_NAME, message);
         webConsoleNode.close();
-        System.out.println("Sender: Sender closed.");
+        applicationLogger.severe("Sender: Message sent.");
         return Pair.of(experimentNode, mboxReceiver);
     }
 
@@ -95,8 +97,10 @@ public class MessageService {
         OtpErlangObject[] message = new OtpErlangObject[3];
         message[0] = new OtpErlangAtom("fl_start_str_run"); // message type
         try {
+            applicationLogger.severe("Sender: Creating the message...");
             ObjectMapper objectMapper = new ObjectMapper();
             ExpConfig expConfig = objectMapper.readValue(jsonConfig, ExpConfig.class);
+            applicationLogger.severe("Sender: Configuration deserialized.");
             OtpErlangObject[] startStrRunMessage = new OtpErlangObject[9];
             startStrRunMessage[0] = new OtpErlangString(expConfig.getAlgorithm());
             startStrRunMessage[1] = new OtpErlangString(expConfig.getCodeLanguage());
@@ -112,6 +116,7 @@ public class MessageService {
             throw new RuntimeException(e);
         }
         message[2] = receiverPid; // receiver pid
+        applicationLogger.severe("Sender: Message created.");
         return new OtpErlangTuple(message);
     }
 
