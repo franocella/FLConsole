@@ -1,38 +1,51 @@
-package it.unipi.mdwt.flconsole.utils;
+package it.unipi.mdwt.flconsole.service;
 
 import com.ericsson.otp.erlang.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.unipi.mdwt.flconsole.dao.MetricsDao;
+import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.model.ExpMetrics;
-import it.unipi.mdwt.flconsole.service.MetricsService;
+import it.unipi.mdwt.flconsole.model.Experiment;
+import it.unipi.mdwt.flconsole.model.User;
+import it.unipi.mdwt.flconsole.utils.ExperimentStatus;
+import it.unipi.mdwt.flconsole.utils.MessageType;
+import it.unipi.mdwt.flconsole.utils.Validator;
 import it.unipi.mdwt.flconsole.utils.exceptions.messages.MessageException;
 import it.unipi.mdwt.flconsole.utils.exceptions.messages.MessageTypeErrorsEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.util.Pair;
-import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-import it.unipi.mdwt.flconsole.utils.MessageType;
 
+
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import static it.unipi.mdwt.flconsole.utils.Constants.*;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 
 @Component
-public class ErlangUtils {
+public class MessageService {
 
     private OtpNode webConsoleNode;
 
     private final SimpMessagingTemplate messagingTemplate;
 
-    private final MetricsService metricsService;
+    private final MetricsDao metricsDao;
+    private final MongoTemplate mongoTemplate;
 
     @Autowired
-    public ErlangUtils(SimpMessagingTemplate messagingTemplate, MetricsService metricsService) {
+    public MessageService(SimpMessagingTemplate messagingTemplate, MetricsDao metricsDao, MongoTemplate mongoTemplate) {
         this.messagingTemplate = messagingTemplate;
-        this.metricsService = metricsService;
+        this.metricsDao = metricsDao;
+        this.mongoTemplate = mongoTemplate;
     }
 
     private OtpNode getWebConsoleNode(String email) throws IOException {
@@ -61,7 +74,7 @@ public class ErlangUtils {
         } else {
             System.out.println("Sender: Director node is down.");
             mboxSender.close();
-            mboxReceiver.close();
+            experimentNode.close();
             // TODO: handle the director node down
             throw new IOException("Director node is down.");
         }
@@ -76,10 +89,27 @@ public class ErlangUtils {
         return Pair.of(experimentNode, mboxReceiver);
     }
 
-    private OtpErlangTuple createRequestMessage(OtpErlangPid receiver, String config) {
-        OtpErlangObject[] message = new OtpErlangObject[2];
-        message[0] = receiver; // PID of the receiver
-        message[1] = new OtpErlangString(config); // Json serialized configuration
+    private OtpErlangTuple createRequestMessage(OtpErlangPid receiverPid, String jsonConfig) {
+        OtpErlangObject[] message = new OtpErlangObject[3];
+        message[0] = new OtpErlangAtom("fl_start_str_run"); // message type
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ExpConfig expConfig = objectMapper.readValue(jsonConfig, ExpConfig.class);
+            OtpErlangObject[] startStrRunMessage = new OtpErlangObject[9];
+            startStrRunMessage[0] = new OtpErlangString(expConfig.getAlgorithm());
+            startStrRunMessage[1] = new OtpErlangString(expConfig.getCodeLanguage());
+            startStrRunMessage[2] = new OtpErlangString(expConfig.getStrategy());
+            startStrRunMessage[3] = new OtpErlangDouble(expConfig.getClientSelectionRatio());
+            startStrRunMessage[4] = new OtpErlangInt(expConfig.getMinNumClients());
+            startStrRunMessage[5] = new OtpErlangString(expConfig.getStopCondition());
+            startStrRunMessage[6] = new OtpErlangDouble(expConfig.getThreshold());
+            startStrRunMessage[7] = new OtpErlangInt(expConfig.getMaxNumRounds());
+            startStrRunMessage[8] = new OtpErlangString(objectMapper.writeValueAsString(expConfig.getParameters()));
+            OtpErlangTuple startStrRunTuple = new OtpErlangTuple(startStrRunMessage);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        message[2] = receiverPid; // receiver pid
         return new OtpErlangTuple(message);
     }
 
@@ -101,8 +131,15 @@ public class ErlangUtils {
                     // try to send a message to the WebSocket topic
                     messagingTemplate.convertAndSend("/experiment/" + expId + "/metrics", jsonMessage);
 
+                    // save the message into the database
                     expMetrics.setExpId(expId);
-                    metricsService.saveMetrics(expMetrics);
+                    metricsDao.save(expMetrics);
+
+                    // update the status of the experiment
+                    Query query = new Query(where("id").is(expMetrics.getExpId()));
+                    Update update = new Update().set("status", ExperimentStatus.QUEUED.toString());
+                    mongoTemplate.updateFirst(query, update, Experiment.class);
+
                     System.out.println("Receiver: Received ack message.");
                 } else {
                     System.out.println("Receiver: Invalid ack message type.");
@@ -135,15 +172,18 @@ public class ErlangUtils {
                                 && tuple.elementAt(1) instanceof OtpErlangString info &&
                                 atom.atomValue().equals("fl_message")
                 ) {
+
+                    // take the json string from OtpErlangString and send it to the webConsole
                     String jsonMessage = info.stringValue();
+                    messagingTemplate.convertAndSend("/experiment/" + expId + "/metrics", jsonMessage);
+
+                    // deserialize and map the json message into ExpMetrics object
                     ObjectMapper objectMapper = new ObjectMapper();
                     ExpMetrics expMetrics = objectMapper.readValue(jsonMessage, ExpMetrics.class);
 
-                    // try to send a message to the WebSocket topic
-                    messagingTemplate.convertAndSend("/experiment/" + expId + "/metrics", jsonMessage);
-
+                    // save the message into the database
                     expMetrics.setExpId(expId);
-                    metricsService.saveMetrics(expMetrics);
+                    metricsDao.save(expMetrics);
 
                     switch (expMetrics.getType()) {
                         case STRATEGY_SERVER_READY -> {
@@ -156,6 +196,12 @@ public class ErlangUtils {
                             System.out.println("Receiver: All workers ready message received.");
                         }
                         case START_ROUND -> {
+                            // update the status of the experiment to running when the first round starts
+                            if (expMetrics.getRound() == 1) {
+                                Query query = new Query(where("id").is(expMetrics.getExpId()));
+                                Update update = new Update().set("status", ExperimentStatus.RUNNING.toString());
+                                mongoTemplate.updateFirst(query, update, Experiment.class);
+                            }
                             System.out.println("Receiver: Start round message received.");
                         }
                         case WORKER_METRICS -> {
@@ -176,10 +222,23 @@ public class ErlangUtils {
                                 tuple.elementAt(0) instanceof OtpErlangAtom atom
                                 && atom.atomValue().equals("fl_end_str_run")
                 ) {
-                    // TODO: send the end experiment message to the webConsole with the web socket,
-                    //  store the list of bytes in a file in the file system and update the status of the experiment
+
+                    // save the model file in a specific directory
+                    String filePath = saveFile(tuple.elementAt(2).toString(), expId);
+
+                    // update the status of the experiment to finished
+                    Query query = new Query(where("id").is(expId));
+                    Update update = new Update().set("status", ExperimentStatus.FINISHED.toString()).set("modelPath", filePath);
+                    mongoTemplate.updateFirst(query, update, Experiment.class);
+
+                    // send the end experiment message to the webConsole
+
+                    String jsonMessage = "{\"type\":\"END_EXPERIMENT\"}";
+                    messagingTemplate.convertAndSend("/experiment/" + expId + "/metrics", jsonMessage);
+
                     System.out.println("Receiver: End experiment message received.");
-                    expNodeInfo.getSecond().close();
+
+                    // close the mailboxes and the nodes
                     expNodeInfo.getFirst().close();
                     break;
                 } else {
@@ -196,5 +255,29 @@ public class ErlangUtils {
             }
         }
     }
+
+    public String saveFile(String byteString, String expId) {
+        byteString = byteString.replaceAll("[<>]", ""); // Removes << and >>
+        String[] byteValues = byteString.split(",");
+        byte[] bytes = new byte[byteValues.length];
+        for (int i = 0; i < byteValues.length; i++) {
+            bytes[i] = Byte.parseByte(byteValues[i].trim());
+        }
+
+        // Generates a unique name for the file
+        String fileName = "exp_" + expId + ".bin";
+
+        // Full path of the file
+        String filePath = MODEL_PATH + File.separator + fileName;
+
+        try (BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(filePath))) {
+            stream.write(bytes);
+            return filePath;
+        } catch (IOException e) {
+            // Exception handling
+            return null;
+        }
+    }
+
 
 }

@@ -1,5 +1,7 @@
 package it.unipi.mdwt.flconsole.utils;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 /**
  * Enumerates different types of messages used within the console application.
  */
@@ -43,5 +45,10 @@ public enum MessageType {
     /**
      * Indicates the end of a round.
      */
-    END_ROUND
+    END_ROUND;
+
+    @JsonCreator
+    public static MessageType fromString(String value) {
+        return MessageType.valueOf(value.toUpperCase());
+    }
 }

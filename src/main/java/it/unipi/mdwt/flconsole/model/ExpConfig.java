@@ -27,21 +27,25 @@ public class ExpConfig {
     private String name;
     @Field("algorithm")
     private String algorithm;
+    @Field("codeLanguage")
+    private String codeLanguage;
     @Field("strategy")
     private String strategy;
-    @Field("numClients")
-    private int numClients;
+    @Field("clientSelectionRatio")
+    private Double clientSelectionRatio;
+    @Field("minNumClients")
+    private int minNumClients;
     @Field("stopCondition")
     private String stopCondition;
     @Field("threshold")
     private Double threshold;
+    @Field("maxNumRounds")
+    private int maxNumRounds;
     @Field("parameters")
     private Map<String,String> parameters;
-
     @Field("creationDate")
     @CreatedDate
     private Date creationDate;
-
     @Field("lastUpdate")
     @LastModifiedDate
     private Date lastUpdate;

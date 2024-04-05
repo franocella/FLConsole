@@ -9,7 +9,6 @@ import it.unipi.mdwt.flconsole.model.ExpMetrics;
 import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.ExperimentSummary;
 import it.unipi.mdwt.flconsole.model.User;
-import it.unipi.mdwt.flconsole.utils.ErlangUtils;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessTypeErrorsEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,18 +41,18 @@ public class ExperimentService {
     private final ExperimentDao experimentDao;
     private final Logger applicationLogger;
     private final UserDao userDAO;
-    private final ErlangUtils erlangUtils;
+    private final MessageService messageService;
     private final MongoTemplate mongoTemplate;
     private final ExecutorService experimentExecutor;
     private final MetricsDao metricsDao;
 
     @Autowired
     public ExperimentService(ExperimentDao experimentDao, Logger applicationLogger,
-                             UserDao userDAO, ErlangUtils erlangUtils, MongoTemplate mongoTemplate, ExecutorService executorService, MetricsDao metricsDao) {
+                             UserDao userDAO, MessageService messageService, MongoTemplate mongoTemplate, ExecutorService executorService, MetricsDao metricsDao) {
         this.experimentDao = experimentDao;
         this.applicationLogger = applicationLogger;
         this.userDAO = userDAO;
-        this.erlangUtils = erlangUtils;
+        this.messageService = messageService;
         this.mongoTemplate = mongoTemplate;
         this.metricsDao = metricsDao;
         this.experimentExecutor = executorService;
@@ -88,30 +87,16 @@ public class ExperimentService {
     public void runExp(String config, String email, String expId) throws BusinessException{
         try {
             // Create a mailbox to send a request to the director and return the mailbox to receive the messages from the experiment node
-            Pair<OtpNode, OtpMbox> expNodeInfo = erlangUtils.sendRequest(config, email);
+            Pair<OtpNode, OtpMbox> expNodeInfo = messageService.sendRequest(config, email);
 
             // Wait for the director to send an acknowledgment message to the experiment node
-            erlangUtils.ackMessage(expNodeInfo.getSecond(), expId);
+            messageService.ackMessage(expNodeInfo.getSecond(), expId);
 
             // Start a new thread runnable to receive the messages from the experiment node without blocking the main thread
-            experimentExecutor.execute(() -> erlangUtils.receiveMessage(expNodeInfo, expId));
+            experimentExecutor.execute(() -> messageService.receiveMessage(expNodeInfo, expId));
 
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    public List<ExpMetrics> subscribeExperiment(String expId, String status) throws BusinessException {
-        try {
-            List<ExpMetrics> expMetricsList = metricsDao.findByExpId(expId);
-            if (status.equals("running")) {
-                // Subscribe to the websocket
-                // TODO: Create a runnable thread to subscribe to the websocket
-            }
-
-            return expMetricsList;
-        } catch (Exception e) {
-            throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
         }
     }
 
