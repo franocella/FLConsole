@@ -36,13 +36,13 @@ public class ExpConfig {
     @Field("clientSelectionRatio")
     private Double clientSelectionRatio;
     @Field("minNumClients")
-    private int minNumClients;
+    private Integer minNumClients;
     @Field("stopCondition")
     private String stopCondition;
     @Field("threshold")
     private Double threshold;
     @Field("maxNumRounds")
-    private int maxNumRounds;
+    private Integer maxNumRounds;
 
     @Field("parameters")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

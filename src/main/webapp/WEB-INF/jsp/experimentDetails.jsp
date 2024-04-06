@@ -5,6 +5,7 @@
 <jsp:useBean id="experiment" scope="request" type="it.unipi.mdwt.flconsole.model.Experiment" />
 <jsp:useBean id="isAuthor" scope="request" type="java.lang.Boolean"/>
 <jsp:useBean id="expConfig" scope="request" type="it.unipi.mdwt.flconsole.model.ExpConfig" />
+
 <!DOCTYPE html>
 <html lang="en">
 

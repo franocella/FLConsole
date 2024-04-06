@@ -56,26 +56,30 @@ public class AdminController {
         try {
             String email = cookieService.getCookieValue(request.getCookies(),"email");
             User user = userService.getUser(email);
-            Page<ExpConfig> userConfigurations = expConfigService.getNconfigsList(user.getConfigurations());
-            int totalConfigPages = userConfigurations.getTotalPages();
-            int totalExpPages = (int) Math.ceil((double) user.getExperiments().size() / PAGE_SIZE);
-            List<String> jsonList = userConfigurations.stream()
-                    .filter(Objects::nonNull) // Filter out null values
-                    .map(expConfig -> {
-                        try {
-                            return objectMapper.writeValueAsString(expConfig);
-                        } catch (JsonProcessingException e) {
-                            // Handle the exception if the conversion fails
-                            applicationLogger.severe("Error converting ExpConfig to JSON: " + e.getMessage());
-                            return null;
-                        }
-                    })
-                    .toList();
+            if (user.getConfigurations()!=null){
+                Page<ExpConfig> userConfigurations = expConfigService.getNconfigsList(user.getConfigurations());
+                int totalConfigPages = userConfigurations.getTotalPages();
+                List<String> jsonList = userConfigurations.stream()
+                        .filter(Objects::nonNull) // Filter out null values
+                        .map(expConfig -> {
+                            try {
+                                return objectMapper.writeValueAsString(expConfig);
+                            } catch (JsonProcessingException e) {
+                                // Handle the exception if the conversion fails
+                                applicationLogger.severe("Error converting ExpConfig to JSON: " + e.getMessage());
+                                return null;
+                            }
+                        })
+                        .toList();
 
-            model.addAttribute("configurations", jsonList);
-            model.addAttribute("experiments", user.getExperiments().subList(0, Math.min(user.getExperiments().size(), PAGE_SIZE)));
-            model.addAttribute("totalConfigPages", totalConfigPages);
-            model.addAttribute("totalExpPages", totalExpPages);
+                model.addAttribute("configurations", jsonList);
+                model.addAttribute("totalConfigPages", totalConfigPages);
+            }
+            if (user.getExperiments()!=null){
+                int totalExpPages = (int) Math.ceil((double) user.getExperiments().size() / PAGE_SIZE);
+                model.addAttribute("experiments", user.getExperiments().subList(0, Math.min(user.getExperiments().size(), PAGE_SIZE)));
+                model.addAttribute("totalExpPages", totalExpPages);
+            }
             return "adminDashboard";
         } catch (BusinessException e) {
             // If an exception occurs during the process, return a server error message
@@ -197,6 +201,7 @@ public class AdminController {
 
             // TODO: Implement getExpConfigById (better)
             expConfig = expConfigService.getNconfigsList(List.of(experiment.getExpConfig().getId())).getContent().get(0);
+            applicationLogger.severe("expConfig: " + expConfig);
             model.addAttribute("expConfig", expConfig);
 
             return "experimentDetails";

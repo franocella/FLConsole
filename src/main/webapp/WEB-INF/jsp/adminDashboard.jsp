@@ -66,8 +66,8 @@
                 <input type="number" class="form-control me-2 my-2" name="ClientSelectionRatio" min="0" max="1" step="0.00001"
                        id="ClientSelectionRatio" required placeholder="Client Selection Ratio" />
 
-                <input type="number" class="form-control me-2 my-2" name="NumberOfClients" step="1"
-                    id="NumberOfClients" required placeholder="Minimum Number of clients" />
+                <input type="number" class="form-control me-2 my-2" name="MinNumberOfClients" step="1"
+                    id="MinNumberOfClients" required placeholder="Minimum Number of clients" />
 
                 <select id="StopConditionModal" class="form-select me-2 my-2">
                     <option selected>Stop condition</option>
@@ -176,7 +176,7 @@
                             <th>Config Name</th>
                             <th>Algorithm</th>
                             <th>Client Selection Strategy</th>
-                            <th>Num. Clients</th>
+                            <th>Min. num. Clients</th>
                             <th>Stop Condition</th>
                             <th>Created At</th>
                             <th>Delete</th>
@@ -267,8 +267,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 
     <script>
-        let configurations = ${configurations};
+        let configurations = null;
+        let currentConfigPage = 0;
+        let totalConfigPages = 1;
+
+        <c:if test="${not empty configurations}">
+        configurations = ${configurations};
         configurations.forEach(addNewConfigToList);
+        // Variables for pagination of configurations
+        totalConfigPages = ${totalConfigPages};
+        </c:if>
+
+
+
+        // Variables for pagination of experiments
+        let currentExpPage = 0;
+        let totalExpPages = 1;
+        <c:if test="${not empty totalExpPages}">
+            totalExpPages = ${totalExpPages};
+        </c:if>
+
 
         $(document).ready(function () {
             // Event listener for tab clicks
@@ -289,11 +307,11 @@
                 $(targetTab).show();
             });
 
-            $('#execution-name, #config-name').on('input', function() {
+            $('#execution-name, #config-name').on('input', function () {
                 searchExp();
             });
 
-            $('#ExpConfigName, #ClientStrategy, #StopCondition').on('input', function() {
+            $('#ExpConfigName, #ClientStrategy, #StopCondition').on('input', function () {
                 searchConfig();
             });
         });
@@ -302,7 +320,7 @@
             // Get values from input fields
             const name = $("#config-name-modal").val().trim();
             const strategy = $("#ClientStrategyModal").val();
-            const numClients = $("#NumberOfClients").val().trim();
+            const numClients = $("#MinNumberOfClients").val();
             const algorithm = $("#AlgorithmModal").val();
             const stopCondition = $("#StopConditionModal").val();
             const threshold = $("#StopThreshold").val().trim();
@@ -311,7 +329,7 @@
             const clientSelectionRatio = $("#ClientSelectionRatio").val();
 
             // Check if mandatory parameters are provided
-            if (name === "" || strategy === "Client strategy" || numClients === "" || algorithm === "Algorithm" || stopCondition === "Stop condition" || threshold === "" || maxNumRounds === "" || codeLanguage === "Code Language" || clientSelectionRatio === "")  {
+            if (name === "" || strategy === "Client strategy" || numClients === "" || algorithm === "Algorithm" || stopCondition === "Stop condition" || threshold === "" || maxNumRounds === "" || codeLanguage === "Code Language" || clientSelectionRatio === "") {
                 // Display an error modal with the names of missing mandatory parameters
                 displayErrorModal("Parameters", {
                     "Name": name === "" ? "Missing" : name,
@@ -329,7 +347,7 @@
                 const formData = {
                     "name": name,
                     "strategy": strategy,
-                    "numClients": numClients,
+                    "minNumberOfClients": numClients,
                     "algorithm": algorithm,
                     "stopCondition": stopCondition,
                     "threshold": threshold,
@@ -390,7 +408,7 @@
                 '<td class="align-middle">' + name + '</td>' +
                 '<td class="align-middle">' + algorithm + '</td>' +
                 '<td class="align-middle">' + formData.strategy + '</td>' +
-                '<td class="align-middle">' + formData.numClients + '</td>' +
+                '<td class="align-middle">' + formData.minNumClients + '</td>' +
                 '<td class="align-middle">' + formData.stopCondition + '</td>' +
                 '<td class="align-middle">' + formData.creationDate + '</td>' +
                 '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + id + '\')" height="20px" width="20px"></figure></td>' +
@@ -401,7 +419,7 @@
             // Add the option to the dropdown menu
             const selectElement = document.getElementById("FL_config_value");
             const option = document.createElement("option");
-            option.value = JSON.stringify({ id, name, algorithm });
+            option.value = JSON.stringify({id, name, algorithm});
             option.text = name;
             selectElement.appendChild(option);
         }
@@ -469,7 +487,7 @@
                 table.tBodies[0].deleteRow(rowCount - 1);
             }
 
-            const newRowCount =  rowCount - 1;
+            const newRowCount = rowCount - 1;
             // Hide the delete button if there is only one row
             if (newRowCount === 1) {
                 const deleteButton = document.getElementById("remove-parameter");
@@ -497,7 +515,7 @@
 
             // Construct the HTML content for Err-Message using the JSON parameters
             let errorMessage = "<ul>";
-            Object.keys(params).forEach(function(param) {
+            Object.keys(params).forEach(function (param) {
                 errorMessage += "<li>" + param + ": " + params[param] + "</li>";
             });
             errorMessage += "</ul>";
@@ -658,10 +676,10 @@
                     executionName: executionName,
                     page: 0
                 },
-                success: function(response) {
+                success: function (response) {
                     updateExpTable(response);
                 },
-                error: function(xhr) {
+                error: function (xhr) {
                     console.error(xhr.responseText);
                 }
             });
@@ -673,14 +691,14 @@
             // Extract the list from the response
             const configurations = response.content;
 
-            $.each(configurations, function(index, item) {
+            $.each(configurations, function (index, item) {
                 const row = $('<tr>').append(
                     "<td class='align-middle'>" + item.id + "</td>" +
                     "<td class='align-middle'>" + item.name + "</td>" +
                     "<td class='align-middle'>" + item.configName + "</td>" +
                     "<td class='align-middle'>" + item.creationDate + "</td>" +
                     '<td class="align-middle"><a href="/experiment-' + item.id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>'
-            );
+                );
                 $('#tab2Content tbody').append(row);
             });
         }
@@ -703,12 +721,12 @@
                     stopCondition: stopCondition,
                     page: 0
                 },
-                success: function(response) {
+                success: function (response) {
                     // Call function to update configuration table
                     console.log(response);
                     updateConfigTable(response);
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     // Handle error
                     console.error(xhr.responseText);
                 }
@@ -724,7 +742,7 @@
             const configurations = response.content;
 
             // Insert rows based on the response
-            $.each(configurations, function(index, item) {
+            $.each(configurations, function (index, item) {
                 const row = '<tr>' +
                     '<td class="align-middle">' + item.id + '</td>' +
                     '<td class="align-middle">' + item.name + '</td>' +
@@ -742,21 +760,15 @@
 
         }
 
-        // Variables for pagination of configurations
-        let currentConfigPage = 0;
-        let totalConfigPages = ${totalConfigPages};
-
-        // Variables for pagination of experiments
-        let currentExpPage = 0;
-        let totalExpPages = ${totalExpPages};
 
         // Function to retrieve the next page of configurations
         function nextConfigPage() {
-            if (currentConfigPage < totalConfigPages-1) {
+            if (currentConfigPage < totalConfigPages - 1) {
                 currentConfigPage++;
                 getConfigurations();
             }
         }
+
         // Function to retrieve the previous page of configurations
         function prevConfigPage() {
             if (currentConfigPage > 0) {
@@ -767,7 +779,7 @@
 
         // Function to retrieve the next page of experiments
         function nextExpPage() {
-            if (currentExpPage < totalExpPages-1) {
+            if (currentExpPage < totalExpPages - 1) {
                 currentExpPage++;
                 getExperiments();
             }
@@ -795,12 +807,12 @@
                     stopCondition: stopCondition,
                     page: currentConfigPage
                 },
-                success: function(response) {
+                success: function (response) {
                     currentConfigPage = response.number;
                     totalConfigPages = response.totalPages;
                     updateConfigTable(response);
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error(xhr.responseText);
                 }
             });
@@ -818,12 +830,12 @@
                     executionName: executionName,
                     page: currentExpPage
                 },
-                success: function(response) {
+                success: function (response) {
                     currentExpPage = response.number;
                     totalExpPages = response.totalPages;
                     updateExpTable(response);
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error(xhr.responseText);
                 }
             });

@@ -115,15 +115,15 @@ public class MessageService {
 
             applicationLogger.severe("Sender: Configuration deserialized.");
             OtpErlangObject[] startStrRunMessage = new OtpErlangObject[9];
-            startStrRunMessage[0] = new OtpErlangString(expConfig.getAlgorithm());
-            startStrRunMessage[1] = new OtpErlangString(expConfig.getCodeLanguage());
-            startStrRunMessage[2] = new OtpErlangString(expConfig.getStrategy());
-            startStrRunMessage[3] = new OtpErlangDouble(expConfig.getClientSelectionRatio());
-            startStrRunMessage[4] = new OtpErlangInt(expConfig.getMinNumClients());
-            startStrRunMessage[5] = new OtpErlangString(expConfig.getStopCondition());
-            startStrRunMessage[6] = new OtpErlangDouble(expConfig.getThreshold());
-            startStrRunMessage[7] = new OtpErlangInt(expConfig.getMaxNumRounds());
-            startStrRunMessage[8] = new OtpErlangString(objectMapper.writeValueAsString(expConfig.getParameters()));
+            startStrRunMessage[0] = expConfig.getAlgorithm() != null ? new OtpErlangString(expConfig.getAlgorithm()) : new OtpErlangString("null");
+            startStrRunMessage[1] = expConfig.getCodeLanguage() != null ? new OtpErlangString(expConfig.getCodeLanguage()) : new OtpErlangString("null");
+            startStrRunMessage[2] = expConfig.getStrategy() != null ? new OtpErlangString(expConfig.getStrategy()) : new OtpErlangString("null");
+            startStrRunMessage[3] = expConfig.getClientSelectionRatio() != null ? new OtpErlangDouble(expConfig.getClientSelectionRatio()) : new OtpErlangString("null");
+            startStrRunMessage[4] = expConfig.getMinNumClients() != null ? new OtpErlangInt(expConfig.getMinNumClients()) : new OtpErlangString("null");
+            startStrRunMessage[5] = expConfig.getStopCondition() != null ? new OtpErlangString(expConfig.getStopCondition()) : new OtpErlangString("null");
+            startStrRunMessage[6] = expConfig.getThreshold() != null ? new OtpErlangDouble(expConfig.getThreshold()) : new OtpErlangString("null");
+            startStrRunMessage[7] = expConfig.getMaxNumRounds() != null ? new OtpErlangInt(expConfig.getMaxNumRounds()) : new OtpErlangString("null");
+            startStrRunMessage[8] = expConfig.getParameters() != null ? new OtpErlangString(objectMapper.writeValueAsString(expConfig.getParameters())) : new OtpErlangString("null");
             message[1] = new OtpErlangTuple(startStrRunMessage);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -135,9 +135,9 @@ public class MessageService {
 
     public void ackMessage(OtpMbox mboxReceiver, String expId) {
         try {
-            System.out.println("Receiver: Waiting for ack message...");
+            applicationLogger.severe("Receiver: Waiting for ack message...");
             OtpErlangObject message = mboxReceiver.receive(10000);
-
+            applicationLogger.severe("Receiver: Message received."+ message.toString());
             if (
                     message instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
                     tuple.elementAt(0) instanceof OtpErlangAtom atom && tuple.elementAt(1) instanceof OtpErlangString info &&
@@ -146,6 +146,7 @@ public class MessageService {
                 String jsonMessage = info.stringValue();
                 ObjectMapper objectMapper = new ObjectMapper();
                 ExpMetrics expMetrics = objectMapper.readValue(jsonMessage, ExpMetrics.class);
+                applicationLogger.severe("expMetrics: " + expMetrics.toString());
 
                 if (expMetrics.getType() == MessageType.EXPERIMENT_QUEUED) {
                     // try to send a message to the WebSocket topic
