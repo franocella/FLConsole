@@ -1,6 +1,7 @@
 package it.unipi.mdwt.flconsole.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -42,8 +43,11 @@ public class ExpConfig {
     private Double threshold;
     @Field("maxNumRounds")
     private int maxNumRounds;
+
     @Field("parameters")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Map<String,String> parameters;
+
     @Field("creationDate")
     @CreatedDate
     private Date creationDate;
@@ -62,15 +66,14 @@ public class ExpConfig {
             jsonNode.put("stopCondition", this.stopCondition);
             jsonNode.put("threshold", this.threshold);
             jsonNode.put("maxNumRounds", this.maxNumRounds);
-            jsonNode.put("creationDate", this.creationDate.toString());
-
 
             ObjectNode parametersNode = objectMapper.createObjectNode();
-            for (Map.Entry<String, String> entry : this.parameters.entrySet()) {
-                parametersNode.put(entry.getKey(), entry.getValue());
+            if (this.parameters != null){
+                for (Map.Entry<String, String> entry : this.parameters.entrySet()) {
+                    parametersNode.put(entry.getKey(), entry.getValue());
+                }
+                jsonNode.set("parameters", parametersNode);
             }
-            jsonNode.set("parameters", parametersNode);
-
             return objectMapper.writeValueAsString(jsonNode);
         } catch (JsonProcessingException e) {
             e.printStackTrace();

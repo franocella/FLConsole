@@ -90,6 +90,7 @@ public class ExperimentService {
             applicationLogger.severe("Sending request to director: " + System.currentTimeMillis() );
             Pair<OtpNode, OtpMbox> expNodeInfo = messageService.sendRequest(config, email, expId);
             applicationLogger.severe("Request sent: " + System.currentTimeMillis());
+
             // Wait for the director to send an acknowledgment message to the experiment node
             messageService.ackMessage(expNodeInfo.getSecond(), expId);
             applicationLogger.severe("Received ack message: " + System.currentTimeMillis() );

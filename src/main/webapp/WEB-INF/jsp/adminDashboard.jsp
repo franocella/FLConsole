@@ -335,7 +335,7 @@
                     "threshold": threshold,
                     "maxNumRounds": maxNumRounds,
                     "codeLanguage": codeLanguage,
-                    "clientSelectionRatio": clientSelectionRatio
+                    "clientSelectionRatio": Number(clientSelectionRatio)
                 };
 
                 // Take the parameters from the table and add them to the formData object

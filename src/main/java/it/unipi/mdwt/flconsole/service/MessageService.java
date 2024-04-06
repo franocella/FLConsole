@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 
 import java.io.*;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import static it.unipi.mdwt.flconsole.utils.Constants.*;
@@ -33,7 +34,6 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 @Service
 public class MessageService {
 
-    private OtpNode webConsoleNode;
     private final Logger applicationLogger;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -48,60 +48,58 @@ public class MessageService {
         this.mongoTemplate = mongoTemplate;
     }
 
-    private OtpNode getWebConsoleNode(String email) {
-        if (webConsoleNode == null) {
+
+    public Pair<OtpNode, OtpMbox> sendRequest(String config, String email, String expId) {
+        OtpNode webConsoleNode = null;
+        try {
+            // Get the instance of the webConsoleNode
+            webConsoleNode = new OtpNode(Validator.getNameFromEmail(email), COOKIE);
+
+            applicationLogger.severe("Sender: WebConsole node created.");
+            // Create a mailbox to send a request to the director
+            OtpMbox mboxSender = webConsoleNode.createMbox("mboxSender");
+            applicationLogger.severe("Sender: Mailbox created.");
+
+            // Create the experiment node to handle the incoming messages
+            OtpNode experimentNode;
             try {
-                webConsoleNode = new OtpNode(Validator.getNameFromEmail(email), COOKIE);
+                experimentNode = new OtpNode(expId, COOKIE);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        }
+            applicationLogger.severe("Sender: Experiment node created.");
 
-        return webConsoleNode;
-    }
+            // Create a mailbox to receive the request from the webConsole
+            OtpMbox mboxReceiver = experimentNode.createMbox("mboxReceiver");
+            applicationLogger.severe("Sender: Receiver mailbox created.");
 
-    public Pair<OtpNode, OtpMbox> sendRequest(String config, String email, String expId) {
+            if (webConsoleNode.ping(DIRECTOR_NODE_NAME, 2000)) {
+                applicationLogger.severe("Sender: Director node is up.");
+            } else {
+                applicationLogger.severe("Sender: Director node is down.");
+                mboxSender.close();
+                mboxReceiver.close();
+                webConsoleNode.close();
+                experimentNode.close();
+                throw new MessageException(MessageTypeErrorsEnum.DIRECTOR_DOWN);
+            }
 
-        // Get the instance of the webConsoleNode
-        OtpNode webConsoleNode = getWebConsoleNode(email);
-        applicationLogger.severe("Sender: WebConsole node created.");
-        // Create a mailbox to send a request to the director
-        OtpMbox mboxSender = webConsoleNode.createMbox("mboxSender");
-        applicationLogger.severe("Sender: Mailbox created.");
+            // Create the message
+            OtpErlangTuple message = createRequestMessage(mboxReceiver.self(), config);
 
-        // Create the experiment node to handle the incoming messages
-        OtpNode experimentNode;
-        try {
-            experimentNode = new OtpNode(expId, COOKIE);
+            applicationLogger.severe("Sender: Sending the message...");
+            mboxSender.send(DIRECTOR_MAILBOX, DIRECTOR_NODE_NAME, message);
+            applicationLogger.severe("Sender: Message sent.");
+
+            return Pair.of(experimentNode, mboxReceiver);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            if(webConsoleNode != null) {
+                webConsoleNode.close();
+                applicationLogger.severe("Sender: WebConsoleNode closed.");
+            }
         }
-        applicationLogger.severe("Sender: Experiment node created.");
-
-        // Create a mailbox to receive the request from the webConsole
-        OtpMbox mboxReceiver = experimentNode.createMbox("mboxReceiver");
-        applicationLogger.severe("Sender: Receiver mailbox created.");
-
-        if (webConsoleNode.ping(DIRECTOR_NODE_NAME, 2000)) {
-            applicationLogger.severe("Sender: Director node is up.");
-        } else {
-            applicationLogger.severe("Sender: Director node is down.");
-            mboxSender.close();
-            mboxReceiver.close();
-            webConsoleNode.close();
-            experimentNode.close();
-            throw new MessageException(MessageTypeErrorsEnum.DIRECTOR_DOWN);
-        }
-
-        // Create the message
-        OtpErlangTuple message = createRequestMessage(mboxReceiver.self(), config);
-
-        applicationLogger.severe("Sender: Sending the message...");
-        mboxSender.send(DIRECTOR_MAILBOX, DIRECTOR_NODE_NAME, message);
-        webConsoleNode.close();
-        webConsoleNode = null;
-        applicationLogger.severe("Sender: Message sent.");
-        return Pair.of(experimentNode, mboxReceiver);
     }
 
     private OtpErlangTuple createRequestMessage(OtpErlangPid receiverPid, String jsonConfig) {
@@ -111,7 +109,10 @@ public class MessageService {
             applicationLogger.severe("Sender: Creating the message...");
             ObjectMapper objectMapper = new ObjectMapper();
             applicationLogger.severe("jsonConfig:" + jsonConfig);
+
+            //ExpConfig expConfig = objectMapper.readValue(jsonConfig, ExpConfig.class);
             ExpConfig expConfig = objectMapper.readValue(jsonConfig, ExpConfig.class);
+
             applicationLogger.severe("Sender: Configuration deserialized.");
             OtpErlangObject[] startStrRunMessage = new OtpErlangObject[9];
             startStrRunMessage[0] = new OtpErlangString(expConfig.getAlgorithm());
