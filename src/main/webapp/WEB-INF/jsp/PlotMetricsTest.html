@@ -25,6 +25,21 @@
       Add New Data(TEST)
     </button>
 
+    <div class="container" style="margin-top: 20px">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Round</th>
+            <th>Host Metrics</th>
+            <th>Model Metrics</th>
+          </tr>
+        </thead>
+        <tbody id="jsonDataBody">
+          <!-- Data will be dynamically added here -->
+        </tbody>
+      </table>
+    </div>
+
     <!-- Tab panes -->
     <div class="tab-content" id="metricsTabContent">
       <div class="tab-pane fade show active" id="modelMetrics" role="tabpanel" aria-labelledby="modelMetrics-tab">
@@ -50,9 +65,6 @@
     </div>
   </div>
 
-  
-
-
   <script>
     let jsonDataArray = [
       '{"timestamp": 1712206275, "type": "strategy_server_metrics", "round": 1, "hostMetrics": {"cpuUsagePercentage": 5.6, "memoryUsagePercentage": 52.67}, "modelMetrics": {"FRO": 0.032961474180370716, "BAR": 0.123456, "FOO": 0.234567}}',
@@ -73,19 +85,7 @@
       });
 
       const metricsTypes = ["modelMetrics", "hostMetrics"];
-      metricsTypes.forEach(metricsType => {
-        const metricsButtonsContainer = metricsType === "modelMetrics" ? document.getElementById("modelMetricsButtons") : document.getElementById("hostMetricsButtons");
-        const metricsChartsContainer = metricsType === "modelMetrics" ? document.getElementById("modelMetricsCharts") : document.getElementById("hostMetricsCharts");
-
-        const allMetrics = {};
-        Object.values(groupedData).forEach(roundData => {
-          roundData.forEach(item => {
-            Object.keys(item[metricsType]).forEach(metric => {
-              allMetrics[metric] = true;
-            });
-          });
-        });
-      });
+      
       
       // Render charts for each metric by default
       Object.keys(groupedData[1][0].modelMetrics).forEach(metric => {
@@ -95,6 +95,9 @@
       Object.keys(groupedData[1][0].hostMetrics).forEach(metric => {
         renderChart(metric, "hostMetrics", groupedData);
       });
+
+      // Update the table with new data
+      updateTable(groupedData);
     }
 
     // Render chart for the selected metric and metricsType
@@ -162,6 +165,39 @@
     document.addEventListener("DOMContentLoaded", () => {
       generateCharts();
     });
+    
+    // Function to update the table with new data
+    function updateTable(groupedData) {
+      const jsonDataBody = document.getElementById("jsonDataBody");
+      jsonDataBody.innerHTML = ""; // Clear existing data
+      
+      Object.values(groupedData).forEach(roundData => {
+        roundData.forEach(data => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${data.round}</td>
+            <td>${createList(data.hostMetrics)}</td>
+            <td>${createList(data.modelMetrics)}</td>
+          `;
+          jsonDataBody.appendChild(row);
+        });
+      });
+    }
+
+    // Function to create an HTML list from a JSON object
+    function createList(obj) {
+      const list = document.createElement("ul");
+      list.classList.add("custom-list-style"); // Add class to remove bullet point
+      for (const key in obj) {
+        if (Object.hasOwnProperty.call(obj, key)) {
+          const listItem = document.createElement("li");
+          listItem.innerHTML = `<b>${key}</b>: ${obj[key]}`;
+          list.appendChild(listItem);
+        }
+      }
+      return list.outerHTML;
+    }
+
   </script>
 
   <!-- Add Bootstrap JS -->
