@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 
 import java.io.*;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
 import static it.unipi.mdwt.flconsole.utils.Constants.*;
@@ -35,14 +36,16 @@ public class MessageService {
 
     private final Logger applicationLogger;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ExecutorService experimentExecutor;
 
     private final MetricsDao metricsDao;
     private final MongoTemplate mongoTemplate;
 
     @Autowired
-    public MessageService(Logger applicationLogger, SimpMessagingTemplate messagingTemplate, MetricsDao metricsDao, MongoTemplate mongoTemplate) {
+    public MessageService(Logger applicationLogger, SimpMessagingTemplate messagingTemplate, ExecutorService experimentExecutor, MetricsDao metricsDao, MongoTemplate mongoTemplate) {
         this.applicationLogger = applicationLogger;
         this.messagingTemplate = messagingTemplate;
+        this.experimentExecutor = experimentExecutor;
         this.metricsDao = metricsDao;
         this.mongoTemplate = mongoTemplate;
     }
@@ -187,6 +190,179 @@ public class MessageService {
         }
     }
 
+
+    public void sendAndMonitor(String config, String expId) {
+        OtpNode webConsoleNode = null;
+        try {
+            // Get the instance of the webConsoleNode
+            webConsoleNode = new OtpNode(expId, COOKIE);
+
+            applicationLogger.severe("Sender: WebConsole node created.");
+            // Create a mailbox to send a request to the director
+            OtpMbox mboxSender = webConsoleNode.createMbox("mboxSender");
+            applicationLogger.severe("Sender: Mailbox created.");
+
+            if (webConsoleNode.ping(DIRECTOR_NODE_NAME, 2000)) {
+                applicationLogger.severe("Sender: Director node is up.");
+            } else {
+                applicationLogger.severe("Sender: Director node is down.");
+                mboxSender.close();
+                webConsoleNode.close();
+                throw new MessageException(MessageTypeErrorsEnum.DIRECTOR_DOWN);
+            }
+
+            // Create the message
+            OtpErlangTuple message = createRequestMessage(mboxSender.self(), config);
+
+            applicationLogger.severe("Sender: Sending the message...");
+            mboxSender.send(DIRECTOR_MAILBOX, DIRECTOR_NODE_NAME, message);
+            applicationLogger.severe("Sender: Message sent.");
+
+            applicationLogger.severe("Receiver: Waiting for ack message...");
+            applicationLogger.severe("Receiver Pid:" + mboxSender.self().toString());
+            OtpErlangObject erlMessage;
+            erlMessage = mboxSender.receive();
+            applicationLogger.severe("Receiver: Message received."+ erlMessage.toString());
+            if (
+                    erlMessage instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
+                            tuple.elementAt(0) instanceof OtpErlangAtom atom && tuple.elementAt(1) instanceof OtpErlangString info &&
+                            atom.atomValue().equals("fl_start_str_run")
+            ) {
+                String jsonMessage = info.stringValue();
+                ObjectMapper objectMapper = new ObjectMapper();
+                ExpMetrics expMetrics = objectMapper.readValue(jsonMessage, ExpMetrics.class);
+                applicationLogger.severe("expMetrics: " + expMetrics.toString());
+
+                if (expMetrics.getType() == MessageType.EXPERIMENT_QUEUED) {
+                    // try to send a message to the WebSocket topic
+                    messagingTemplate.convertAndSend("/experiment/" + expId + "/metrics", jsonMessage);
+
+                    // save the message into the database
+                    expMetrics.setExpId(expId);
+                    metricsDao.save(expMetrics);
+
+                    // update the status of the experiment
+                    Query query = new Query(where("id").is(expMetrics.getExpId()));
+                    Update update = new Update().set("status", ExperimentStatus.QUEUED.toString());
+                    mongoTemplate.updateFirst(query, update, Experiment.class);
+
+                    System.out.println("Receiver: Received ack message.");
+                } else {
+                    System.out.println("Receiver: Invalid ack message type.");
+                    throw new MessageException(MessageTypeErrorsEnum.INVALID_MESSAGE);
+                }
+            } else {
+                System.out.println("Receiver: Invalid ack message format.");
+                throw new MessageException(MessageTypeErrorsEnum.INVALID_MESSAGE);
+            }
+
+
+            while (true) {
+                try {
+                    System.out.println("Receiver: Waiting for message...");
+                    OtpErlangObject received = mboxSender.receive();
+
+                    if (
+                            received instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
+                                    tuple.elementAt(0) instanceof OtpErlangAtom atom
+                                    && tuple.elementAt(1) instanceof OtpErlangString info &&
+                                    atom.atomValue().equals("fl_message")
+                    ) {
+
+                        // take the json string from OtpErlangString and send it to the webConsole
+                        String jsonMessage = info.stringValue();
+                        messagingTemplate.convertAndSend("/experiment/" + expId + "/metrics", jsonMessage);
+
+                        // deserialize and map the json message into ExpMetrics object
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        ExpMetrics expMetrics = objectMapper.readValue(jsonMessage, ExpMetrics.class);
+
+                        // save the message into the database
+                        expMetrics.setExpId(expId);
+                        metricsDao.save(expMetrics);
+
+                        switch (expMetrics.getType()) {
+                            case STRATEGY_SERVER_READY -> {
+                                System.out.println("Receiver: Strategy server ready message received.");
+                            }
+                            case WORKER_READY -> {
+                                System.out.println("Receiver: Worker ready message received.");
+                            }
+                            case ALL_WORKERS_READY -> {
+                                System.out.println("Receiver: All workers ready message received.");
+                            }
+                            case START_ROUND -> {
+                                // update the status of the experiment to running when the first round starts
+                                if (expMetrics.getRound() == 1) {
+                                    Query query = new Query(where("id").is(expMetrics.getExpId()));
+                                    Update update = new Update().set("status", ExperimentStatus.RUNNING.toString());
+                                    mongoTemplate.updateFirst(query, update, Experiment.class);
+                                }
+                                System.out.println("Receiver: Start round message received.");
+                            }
+                            case WORKER_METRICS -> {
+                                System.out.println("Receiver: Progress message received.");
+                            }
+                            case STRATEGY_SERVER_METRICS -> {
+                                System.out.println("Receiver: Strategy server metrics message received.");
+                            }
+                            case END_ROUND -> {
+                                System.out.println("Receiver: End round message received.");
+                            }
+                            default -> {
+                                System.out.println("Receiver: Invalid message type.");
+                            }
+                        }
+                    } else if (
+                            received instanceof OtpErlangTuple tuple && tuple.arity() == 3 &&
+                                    tuple.elementAt(0) instanceof OtpErlangAtom atom &&
+                                    atom.atomValue().equals("fl_end_str_run") &&
+                                    tuple.elementAt(1) instanceof OtpErlangString something &&
+                                    tuple.elementAt(2) instanceof OtpErlangBinary binary
+                    ) {
+
+                        // save the model file in a specific directory
+                        String filePath = saveFile(binary.binaryValue(), expId);
+
+                        // update the status of the experiment to finished
+                        Query query = new Query(where("id").is(expId));
+                        Update update = new Update().set("status", ExperimentStatus.FINISHED.toString()).set("modelPath", filePath);
+                        mongoTemplate.updateFirst(query, update, Experiment.class);
+
+                        // send the end experiment message to the webConsole
+
+                        String jsonMessage = "{\"type\":\"END_EXPERIMENT\"}";
+                        messagingTemplate.convertAndSend("/experiment/" + expId + "/metrics", jsonMessage);
+
+                        System.out.println("Receiver: End experiment message received.");
+
+                        // close the mailboxes and the nodes
+                        webConsoleNode.close();
+                        break;
+                    } else {
+                        System.out.println("Receiver: Invalid message format.");
+                    }
+                } catch (OtpErlangExit e) {
+                    System.out.println("Receiver: The experiment node has been closed.");
+                    break;
+                } catch (OtpErlangDecodeException e) {
+                    System.out.println("Receiver: Error decoding the message.");
+                    break;
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+        } catch (IOException | OtpErlangDecodeException | OtpErlangExit e) {
+            throw new RuntimeException(e);
+        } finally {
+            if(webConsoleNode != null) {
+                webConsoleNode.close();
+                applicationLogger.severe("Sender: WebConsoleNode closed.");
+            }
+        }
+    }
+
     public void receiveMessage(Pair<OtpNode, OtpMbox> expNodeInfo, String expId) {
         while (true) {
             try {
@@ -269,6 +445,106 @@ public class MessageService {
 
                     // close the mailboxes and the nodes
                     expNodeInfo.getFirst().close();
+                    break;
+                } else {
+                    System.out.println("Receiver: Invalid message format.");
+                }
+            } catch (OtpErlangExit e) {
+                System.out.println("Receiver: The experiment node has been closed.");
+                break;
+            } catch (OtpErlangDecodeException e) {
+                System.out.println("Receiver: Error decoding the message.");
+                break;
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+
+
+    public void receiveMessage2(OtpNode node, OtpMbox mbox, String expId) {
+        while (true) {
+            try {
+                System.out.println("Receiver: Waiting for message...");
+                OtpErlangObject message = mbox.receive();
+
+                if (
+                        message instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
+                                tuple.elementAt(0) instanceof OtpErlangAtom atom
+                                && tuple.elementAt(1) instanceof OtpErlangString info &&
+                                atom.atomValue().equals("fl_message")
+                ) {
+
+                    // take the json string from OtpErlangString and send it to the webConsole
+                    String jsonMessage = info.stringValue();
+                    messagingTemplate.convertAndSend("/experiment/" + expId + "/metrics", jsonMessage);
+
+                    // deserialize and map the json message into ExpMetrics object
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    ExpMetrics expMetrics = objectMapper.readValue(jsonMessage, ExpMetrics.class);
+
+                    // save the message into the database
+                    expMetrics.setExpId(expId);
+                    metricsDao.save(expMetrics);
+
+                    switch (expMetrics.getType()) {
+                        case STRATEGY_SERVER_READY -> {
+                            System.out.println("Receiver: Strategy server ready message received.");
+                        }
+                        case WORKER_READY -> {
+                            System.out.println("Receiver: Worker ready message received.");
+                        }
+                        case ALL_WORKERS_READY -> {
+                            System.out.println("Receiver: All workers ready message received.");
+                        }
+                        case START_ROUND -> {
+                            // update the status of the experiment to running when the first round starts
+                            if (expMetrics.getRound() == 1) {
+                                Query query = new Query(where("id").is(expMetrics.getExpId()));
+                                Update update = new Update().set("status", ExperimentStatus.RUNNING.toString());
+                                mongoTemplate.updateFirst(query, update, Experiment.class);
+                            }
+                            System.out.println("Receiver: Start round message received.");
+                        }
+                        case WORKER_METRICS -> {
+                            System.out.println("Receiver: Progress message received.");
+                        }
+                        case STRATEGY_SERVER_METRICS -> {
+                            System.out.println("Receiver: Strategy server metrics message received.");
+                        }
+                        case END_ROUND -> {
+                            System.out.println("Receiver: End round message received.");
+                        }
+                        default -> {
+                            System.out.println("Receiver: Invalid message type.");
+                        }
+                    }
+                } else if (
+                        message instanceof OtpErlangTuple tuple && tuple.arity() == 3 &&
+                                tuple.elementAt(0) instanceof OtpErlangAtom atom &&
+                                atom.atomValue().equals("fl_end_str_run") &&
+                                tuple.elementAt(1) instanceof OtpErlangString something &&
+                                tuple.elementAt(2) instanceof OtpErlangBinary binary
+                ) {
+
+                    // save the model file in a specific directory
+                    String filePath = saveFile(binary.binaryValue(), expId);
+
+                    // update the status of the experiment to finished
+                    Query query = new Query(where("id").is(expId));
+                    Update update = new Update().set("status", ExperimentStatus.FINISHED.toString()).set("modelPath", filePath);
+                    mongoTemplate.updateFirst(query, update, Experiment.class);
+
+                    // send the end experiment message to the webConsole
+
+                    String jsonMessage = "{\"type\":\"END_EXPERIMENT\"}";
+                    messagingTemplate.convertAndSend("/experiment/" + expId + "/metrics", jsonMessage);
+
+                    System.out.println("Receiver: End experiment message received.");
+
+                    // close the mailboxes and the nodes
+                    node.close();
                     break;
                 } else {
                     System.out.println("Receiver: Invalid message format.");

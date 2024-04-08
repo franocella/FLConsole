@@ -86,17 +86,21 @@ public class ExperimentService {
      */
     public void runExp(String config, String email, String expId) throws BusinessException{
 
-            // Create a mailbox to send a request to the director and return the mailbox to receive the messages from the experiment node
+/*            // Create a mailbox to send a request to the director and return the mailbox to receive the messages from the experiment node
             applicationLogger.severe("Sending request to director: " + System.currentTimeMillis() );
             Pair<OtpNode, OtpMbox> expNodeInfo = messageService.sendRequest(config, email, expId);
             applicationLogger.severe("Request sent: " + System.currentTimeMillis());
 
             // Wait for the director to send an acknowledgment message to the experiment node
             messageService.ackMessage(expNodeInfo.getSecond(), expId);
+            messageService.sendAndAck(config, expId);
             applicationLogger.severe("Received ack message: " + System.currentTimeMillis() );
 
-            // Start a new thread runnable to receive the messages from the experiment node without blocking the main thread
-            experimentExecutor.execute(() -> messageService.receiveMessage(expNodeInfo, expId));
+            //Start a new thread runnable to receive the messages from the experiment node without blocking the main thread
+            experimentExecutor.execute(() -> messageService.receiveMessage(expNodeInfo, expId));*/
+
+            experimentExecutor.execute(() ->messageService.sendAndMonitor(config, expId));
+
     }
 
     public Experiment getExpDetails(String id) throws BusinessException {
