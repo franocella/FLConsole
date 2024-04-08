@@ -41,7 +41,7 @@ public class ExpMetrics {
 
     @Field("round")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private int round;
+    private Integer round;
 
     @Field("clientId")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

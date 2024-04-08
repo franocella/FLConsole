@@ -51,7 +51,7 @@ public class MessageService {
     }
 
 
-    public Pair<OtpNode, OtpMbox> sendRequest(String config, String email, String expId) {
+/*    public Pair<OtpNode, OtpMbox> sendRequest(String config, String email, String expId) {
         OtpNode webConsoleNode = null;
         try {
             // Get the instance of the webConsoleNode
@@ -102,20 +102,18 @@ public class MessageService {
                 applicationLogger.severe("Sender: WebConsoleNode closed.");
             }
         }
-    }
+    }*/
 
     private OtpErlangTuple createRequestMessage(OtpErlangPid receiverPid, String jsonConfig) {
         OtpErlangObject[] message = new OtpErlangObject[3];
         message[0] = new OtpErlangAtom("fl_start_str_run"); // message type
         try {
-            applicationLogger.severe("Sender: Creating the message...");
+            applicationLogger.severe("Creating the message...");
             ObjectMapper objectMapper = new ObjectMapper();
-            applicationLogger.severe("jsonConfig:" + jsonConfig);
 
             //ExpConfig expConfig = objectMapper.readValue(jsonConfig, ExpConfig.class);
             ExpConfig expConfig = objectMapper.readValue(jsonConfig, ExpConfig.class);
 
-            applicationLogger.severe("Sender: Configuration deserialized.");
             OtpErlangObject[] startStrRunMessage = new OtpErlangObject[9];
             startStrRunMessage[0] = expConfig.getAlgorithm() != null ? new OtpErlangString(expConfig.getAlgorithm()) : new OtpErlangString("null");
             startStrRunMessage[1] = expConfig.getCodeLanguage() != null ? new OtpErlangString(expConfig.getCodeLanguage()) : new OtpErlangString("null");
@@ -131,11 +129,12 @@ public class MessageService {
             throw new RuntimeException(e);
         }
         message[2] = receiverPid; // receiver pid
-        applicationLogger.severe("Sender: Message created. Receiver pid: " + receiverPid.toString());
+
+        applicationLogger.severe("Message created. Receiver pid: " + receiverPid.toString());
         return new OtpErlangTuple(message);
     }
 
-    public void ackMessage(OtpMbox mboxReceiver, String expId) {
+/*    public void ackMessage(OtpMbox mboxReceiver, String expId) {
         try {
             applicationLogger.severe("Receiver: Waiting for ack message...");
             applicationLogger.severe("Receiver Pid:" + mboxReceiver.self().toString());
@@ -188,7 +187,7 @@ public class MessageService {
             applicationLogger.severe("Receiver: Error receiving the message." + e.getMessage());
             e.printStackTrace();
         }
-    }
+    }*/
 
 
     public void sendAndMonitor(String config, String expId) {
@@ -197,15 +196,15 @@ public class MessageService {
             // Get the instance of the webConsoleNode
             webConsoleNode = new OtpNode(expId, COOKIE);
 
-            applicationLogger.severe("Sender: WebConsole node created.");
+            applicationLogger.severe("WebConsole node created.");
             // Create a mailbox to send a request to the director
             OtpMbox mboxSender = webConsoleNode.createMbox("mboxSender");
-            applicationLogger.severe("Sender: Mailbox created.");
+            applicationLogger.severe("Mailbox created.");
 
             if (webConsoleNode.ping(DIRECTOR_NODE_NAME, 2000)) {
-                applicationLogger.severe("Sender: Director node is up.");
+                applicationLogger.severe("Director node is up.");
             } else {
-                applicationLogger.severe("Sender: Director node is down.");
+                applicationLogger.severe("Director node is down.");
                 mboxSender.close();
                 webConsoleNode.close();
                 throw new MessageException(MessageTypeErrorsEnum.DIRECTOR_DOWN);
@@ -214,15 +213,14 @@ public class MessageService {
             // Create the message
             OtpErlangTuple message = createRequestMessage(mboxSender.self(), config);
 
-            applicationLogger.severe("Sender: Sending the message...");
+            applicationLogger.severe("Sending the experiment request...");
             mboxSender.send(DIRECTOR_MAILBOX, DIRECTOR_NODE_NAME, message);
-            applicationLogger.severe("Sender: Message sent.");
+            applicationLogger.severe("request sent.");
 
-            applicationLogger.severe("Receiver: Waiting for ack message...");
-            applicationLogger.severe("Receiver Pid:" + mboxSender.self().toString());
+            applicationLogger.severe("Waiting for ack message...");
             OtpErlangObject erlMessage;
             erlMessage = mboxSender.receive();
-            applicationLogger.severe("Receiver: Message received."+ erlMessage.toString());
+            applicationLogger.severe("Ack received: " + erlMessage.toString());
             if (
                     erlMessage instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
                             tuple.elementAt(0) instanceof OtpErlangAtom atom && tuple.elementAt(1) instanceof OtpErlangString info &&
@@ -246,32 +244,37 @@ public class MessageService {
                     Update update = new Update().set("status", ExperimentStatus.QUEUED.toString());
                     mongoTemplate.updateFirst(query, update, Experiment.class);
 
-                    System.out.println("Receiver: Received ack message.");
+                    applicationLogger.severe("Received ack message.");
                 } else {
-                    System.out.println("Receiver: Invalid ack message type.");
+                    System.out.println("Invalid ack message type.");
                     throw new MessageException(MessageTypeErrorsEnum.INVALID_MESSAGE);
                 }
             } else {
-                System.out.println("Receiver: Invalid ack message format.");
+                applicationLogger.severe("Invalid ack message format.");
                 throw new MessageException(MessageTypeErrorsEnum.INVALID_MESSAGE);
             }
 
-
             while (true) {
                 try {
-                    System.out.println("Receiver: Waiting for message...");
+                    applicationLogger.severe("Waiting for message...");
                     OtpErlangObject received = mboxSender.receive();
+                    applicationLogger.severe("Receiver: Message received: " + received.toString());
 
+                    if (received instanceof OtpErlangTuple tuple2 && tuple2.elementAt(0) instanceof OtpErlangAtom atom4 &&
+                            atom4.atomValue().equals("fl_end_str_run")){
+                        applicationLogger.severe("Second elem is a string? " + (tuple2.elementAt(1) instanceof OtpErlangString));
+                        applicationLogger.severe("Third elem is a binary? " + (tuple2.elementAt(2) instanceof OtpErlangBinary));
+                    }
                     if (
-                            received instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
-                                    tuple.elementAt(0) instanceof OtpErlangAtom atom
-                                    && tuple.elementAt(1) instanceof OtpErlangString info &&
-                                    atom.atomValue().equals("fl_message")
+                            received instanceof OtpErlangTuple tuple2 && tuple.arity() == 2 &&
+                                    tuple2.elementAt(0) instanceof OtpErlangAtom atom2
+                                    && tuple2.elementAt(1) instanceof OtpErlangString info2 &&
+                                    atom2.atomValue().equals("fl_message")
                     ) {
-
                         // take the json string from OtpErlangString and send it to the webConsole
-                        String jsonMessage = info.stringValue();
+                        String jsonMessage = info2.stringValue();
                         messagingTemplate.convertAndSend("/experiment/" + expId + "/metrics", jsonMessage);
+                        applicationLogger.severe("Message sent to the webConsole.");
 
                         // deserialize and map the json message into ExpMetrics object
                         ObjectMapper objectMapper = new ObjectMapper();
@@ -280,16 +283,17 @@ public class MessageService {
                         // save the message into the database
                         expMetrics.setExpId(expId);
                         metricsDao.save(expMetrics);
+                        applicationLogger.severe("Message saved into the database.");
 
                         switch (expMetrics.getType()) {
                             case STRATEGY_SERVER_READY -> {
-                                System.out.println("Receiver: Strategy server ready message received.");
+                                applicationLogger.severe("Receiver: Strategy server ready message received.");
                             }
                             case WORKER_READY -> {
-                                System.out.println("Receiver: Worker ready message received.");
+                                applicationLogger.severe("Receiver: Worker ready message received.");
                             }
                             case ALL_WORKERS_READY -> {
-                                System.out.println("Receiver: All workers ready message received.");
+                                applicationLogger.severe("Receiver: All workers ready message received.");
                             }
                             case START_ROUND -> {
                                 // update the status of the experiment to running when the first round starts
@@ -298,27 +302,28 @@ public class MessageService {
                                     Update update = new Update().set("status", ExperimentStatus.RUNNING.toString());
                                     mongoTemplate.updateFirst(query, update, Experiment.class);
                                 }
-                                System.out.println("Receiver: Start round message received.");
+                                applicationLogger.severe("Receiver: Start round message received.");
                             }
                             case WORKER_METRICS -> {
-                                System.out.println("Receiver: Progress message received.");
+                                applicationLogger.severe("Receiver: Progress message received.");
                             }
                             case STRATEGY_SERVER_METRICS -> {
-                                System.out.println("Receiver: Strategy server metrics message received.");
+                                applicationLogger.severe("Receiver: Strategy server metrics message received.");
                             }
                             case END_ROUND -> {
-                                System.out.println("Receiver: End round message received.");
+                                applicationLogger.severe("Receiver: End round message received.");
                             }
                             default -> {
-                                System.out.println("Receiver: Invalid message type.");
+                                applicationLogger.severe("Receiver: Invalid message type.");
                             }
                         }
+
                     } else if (
-                            received instanceof OtpErlangTuple tuple && tuple.arity() == 3 &&
-                                    tuple.elementAt(0) instanceof OtpErlangAtom atom &&
-                                    atom.atomValue().equals("fl_end_str_run") &&
-                                    tuple.elementAt(1) instanceof OtpErlangString something &&
-                                    tuple.elementAt(2) instanceof OtpErlangBinary binary
+                            received instanceof OtpErlangTuple tuple2 && tuple2.arity() == 3 &&
+                                    tuple2.elementAt(0) instanceof OtpErlangAtom atom2 &&
+                                    atom2.atomValue().equals("fl_end_str_run") &&
+                                    tuple2.elementAt(1) instanceof OtpErlangString flExpId &&
+                                    tuple2.elementAt(2) instanceof OtpErlangBinary binary
                     ) {
 
                         // save the model file in a specific directory
@@ -328,27 +333,29 @@ public class MessageService {
                         Query query = new Query(where("id").is(expId));
                         Update update = new Update().set("status", ExperimentStatus.FINISHED.toString()).set("modelPath", filePath);
                         mongoTemplate.updateFirst(query, update, Experiment.class);
+                        applicationLogger.severe("Updated experiment doc successfully with status and model path.");
 
                         // send the end experiment message to the webConsole
 
                         String jsonMessage = "{\"type\":\"END_EXPERIMENT\"}";
                         messagingTemplate.convertAndSend("/experiment/" + expId + "/metrics", jsonMessage);
-
-                        System.out.println("Receiver: End experiment message received.");
+                        applicationLogger.severe("End experiment message received.");
 
                         // close the mailboxes and the nodes
                         webConsoleNode.close();
                         break;
                     } else {
-                        System.out.println("Receiver: Invalid message format.");
+
+                        applicationLogger.severe("Invalid message format.");
                     }
                 } catch (OtpErlangExit e) {
-                    System.out.println("Receiver: The experiment node has been closed.");
+                    applicationLogger.severe("The experiment node has been closed.");
                     break;
                 } catch (OtpErlangDecodeException e) {
-                    System.out.println("Receiver: Error decoding the message.");
+                    applicationLogger.severe("Error decoding the message.");
                     break;
                 } catch (JsonProcessingException e) {
+                    applicationLogger.severe("Error decoding the message.");
                     throw new RuntimeException(e);
                 }
             }
@@ -358,12 +365,12 @@ public class MessageService {
         } finally {
             if(webConsoleNode != null) {
                 webConsoleNode.close();
-                applicationLogger.severe("Sender: WebConsoleNode closed.");
+                applicationLogger.severe("WebConsoleNode closed.");
             }
         }
     }
 
-    public void receiveMessage(Pair<OtpNode, OtpMbox> expNodeInfo, String expId) {
+/*    public void receiveMessage(Pair<OtpNode, OtpMbox> expNodeInfo, String expId) {
         while (true) {
             try {
                 System.out.println("Receiver: Waiting for message...");
@@ -459,11 +466,11 @@ public class MessageService {
                 throw new RuntimeException(e);
             }
         }
-    }
+    }*/
 
 
 
-    public void receiveMessage2(OtpNode node, OtpMbox mbox, String expId) {
+    /*public void receiveMessage2(OtpNode node, OtpMbox mbox, String expId) {
         while (true) {
             try {
                 System.out.println("Receiver: Waiting for message...");
@@ -559,14 +566,14 @@ public class MessageService {
                 throw new RuntimeException(e);
             }
         }
-    }
+    }*/
 
     public String saveFile(byte[] byteArray, String expId) {
         // Generates a unique name for the file
         String fileName = "exp_" + expId + ".bin";
 
         // Full path of the file
-        String filePath = MODEL_PATH + File.separator + fileName;
+        String filePath = MODEL_PATH + fileName;
 
         // Create a FileSystemResource for the file
         Resource resource = new FileSystemResource(filePath);
