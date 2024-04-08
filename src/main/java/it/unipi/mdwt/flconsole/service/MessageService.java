@@ -266,7 +266,7 @@ public class MessageService {
                         applicationLogger.severe("Third elem is a binary? " + (tuple2.elementAt(2) instanceof OtpErlangBinary));
                     }
                     if (
-                            received instanceof OtpErlangTuple tuple2 && tuple.arity() == 2 &&
+                            received instanceof OtpErlangTuple tuple2 && tuple2.arity() == 2 &&
                                     tuple2.elementAt(0) instanceof OtpErlangAtom atom2
                                     && tuple2.elementAt(1) instanceof OtpErlangString info2 &&
                                     atom2.atomValue().equals("fl_message")
