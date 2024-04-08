@@ -24,6 +24,9 @@ import org.springframework.stereotype.Service;
 
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
@@ -329,14 +332,16 @@ public class MessageService {
                         // save the model file in a specific directory
                         String filePath = saveFile(binary.binaryValue(), expId);
 
-                        // update the status of the experiment to finished
+                        // Update the experiment document
                         Query query = new Query(where("id").is(expId));
-                        Update update = new Update().set("status", ExperimentStatus.FINISHED.toString()).set("modelPath", filePath);
+                        Update update = new Update()
+                                .set("flExpId", flExpId.toString())
+                                .set("status", ExperimentStatus.FINISHED.toString())
+                                .set("modelPath", filePath);
                         mongoTemplate.updateFirst(query, update, Experiment.class);
-                        applicationLogger.severe("Updated experiment doc successfully with status and model path.");
+                        applicationLogger.severe("Updated experiment doc successfully with status, flExpId, and model path.");
 
                         // send the end experiment message to the webConsole
-
                         String jsonMessage = "{\"type\":\"END_EXPERIMENT\"}";
                         messagingTemplate.convertAndSend("/experiment/" + expId + "/metrics", jsonMessage);
                         applicationLogger.severe("End experiment message received.");
@@ -568,23 +573,28 @@ public class MessageService {
         }
     }*/
 
-    public String saveFile(byte[] byteArray, String expId) {
+
+    public String saveFile(byte[] byteArray, String expId) throws IOException {
         // Generates a unique name for the file
-        String fileName = "exp_" + expId + ".bin";
+        String modelName = "exp_" + expId + ".bin";
 
-        // Full path of the file
-        String filePath = MODEL_PATH + fileName;
+        // Create the full path for saving the file
+        Path filePath = Paths.get(PROJECT_PATH, "FL_models", modelName);
 
-        // Create a FileSystemResource for the file
-        Resource resource = new FileSystemResource(filePath);
+        // Ensure the directory exists, otherwise create the directory
+        Files.createDirectories(filePath.getParent());
 
         // Write byte array to file
-        try (FileOutputStream fos = new FileOutputStream(resource.getFile())) {
+        try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
             fos.write(byteArray);
         } catch (IOException e) {
             throw new RuntimeException("Failed to save file: " + filePath, e);
         }
-        return filePath;
-    }
 
+        // Extract relative path
+        String base = Paths.get(PROJECT_PATH).toString();
+
+        // Return the relative file path as a string
+        return filePath.toString().substring(base.length());
+    }
 }

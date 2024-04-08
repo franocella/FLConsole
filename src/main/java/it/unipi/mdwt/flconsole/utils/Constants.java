@@ -1,9 +1,17 @@
 package it.unipi.mdwt.flconsole.utils;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class Constants {
     public static final int PAGE_SIZE = 10;
     public static final String DIRECTOR_NODE_NAME = "director@10.2.1.125";
     public static final String DIRECTOR_MAILBOX = "mboxDirector";
     public static final String COOKIE = "cookie_123456789";
-    public static final String MODEL_PATH = System.getProperty("user.dir") + "/experimentFiles/";
+    public static final String PROJECT_PATH = System.getProperty("user.dir");
+
+
+
+
 }

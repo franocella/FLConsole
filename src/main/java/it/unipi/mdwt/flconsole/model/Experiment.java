@@ -39,5 +39,9 @@ public class Experiment {
     @Field("modelPath")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String modelPath;
+
+    @Field("flExpId")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private String flExpId;
 }
 
