@@ -136,13 +136,8 @@ public class MessageService {
         try {
             applicationLogger.severe("Receiver: Waiting for ack message...");
             applicationLogger.severe("Receiver Pid:" + mboxReceiver.self().toString());
-            OtpErlangObject message = null;
-            int count = 0;
-            while (message == null) {
-                message = mboxReceiver.receive();
-                count ++;
-                applicationLogger.severe("Messages received: " + count);
-            }
+            OtpErlangObject message;
+            message = mboxReceiver.receive();
             applicationLogger.severe("Receiver: Message received."+ message.toString());
             if (
                     message instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
