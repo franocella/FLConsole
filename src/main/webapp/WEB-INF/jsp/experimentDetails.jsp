@@ -45,7 +45,7 @@
                         <div class="col"
                             style="height: 460px; padding-top: 40px; padding-left: 20px; padding-right: 20px">
 
-                            <div class="input-group">
+                            <%--<div class="input-group">
                                 <span class="input-group-text"
                                     style="font-weight: bold; font-size: large; width: 240px;">Configuration
                                     Name:</span>
@@ -64,14 +64,14 @@
                                 <span class="input-group-text"
                                       style="font-weight: bold; font-size: large; width: 240px;">Strategy:</span>
                                 <input type="text" disabled aria-label="Strategy" class="form-control"
-                                       value="${expConfig.strategy}">
+                                       value="${expConfig.clientSelectionStrategy}">
                             </div>
 
                             <div class="input-group">
                                 <span class="input-group-text"
                                       style="font-weight: bold; font-size: large; width: 240px;">Number of Clients:</span>
                                 <input type="text" disabled aria-label="Number of Clients" class="form-control"
-                                       value="${expConfig.minNumClients}">
+                                       value="${expConfig.minNumberClients}">
                             </div>
 
                             <div class="input-group">
@@ -106,7 +106,7 @@
                                     At:</span>
                                 <input type="text" disabled aria-label="Created At" class="form-control"
                                     value="${experiment.creationDate}">
-                            </div>
+                            </div>--%>
 
                             <div class="input-group">
                                 <span class="input-group-text"

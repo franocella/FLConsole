@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 
 import java.io.*;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import static it.unipi.mdwt.flconsole.utils.Constants.*;
@@ -70,7 +69,7 @@ public class MessageService {
             applicationLogger.severe("Sender: Experiment node created.");
 
             // Create a mailbox to receive the request from the webConsole
-            OtpMbox mboxReceiver = experimentNode.createMbox("mboxReceiver");
+            OtpMbox mboxReceiver = experimentNode.createMbox();
             applicationLogger.severe("Sender: Receiver mailbox created.");
 
             if (webConsoleNode.ping(DIRECTOR_NODE_NAME, 2000)) {
@@ -117,26 +116,33 @@ public class MessageService {
             OtpErlangObject[] startStrRunMessage = new OtpErlangObject[9];
             startStrRunMessage[0] = expConfig.getAlgorithm() != null ? new OtpErlangString(expConfig.getAlgorithm()) : new OtpErlangString("null");
             startStrRunMessage[1] = expConfig.getCodeLanguage() != null ? new OtpErlangString(expConfig.getCodeLanguage()) : new OtpErlangString("null");
-            startStrRunMessage[2] = expConfig.getStrategy() != null ? new OtpErlangString(expConfig.getStrategy()) : new OtpErlangString("null");
+            startStrRunMessage[2] = expConfig.getClientSelectionStrategy() != null ? new OtpErlangString(expConfig.getClientSelectionStrategy()) : new OtpErlangString("null");
             startStrRunMessage[3] = expConfig.getClientSelectionRatio() != null ? new OtpErlangDouble(expConfig.getClientSelectionRatio()) : new OtpErlangString("null");
-            startStrRunMessage[4] = expConfig.getMinNumClients() != null ? new OtpErlangInt(expConfig.getMinNumClients()) : new OtpErlangString("null");
+            startStrRunMessage[4] = expConfig.getMinNumberClients() != null ? new OtpErlangInt(expConfig.getMinNumberClients()) : new OtpErlangString("null");
             startStrRunMessage[5] = expConfig.getStopCondition() != null ? new OtpErlangString(expConfig.getStopCondition()) : new OtpErlangString("null");
-            startStrRunMessage[6] = expConfig.getThreshold() != null ? new OtpErlangDouble(expConfig.getThreshold()) : new OtpErlangString("null");
-            startStrRunMessage[7] = expConfig.getMaxNumRounds() != null ? new OtpErlangInt(expConfig.getMaxNumRounds()) : new OtpErlangString("null");
-            startStrRunMessage[8] = expConfig.getParameters() != null ? new OtpErlangString(objectMapper.writeValueAsString(expConfig.getParameters())) : new OtpErlangString("null");
+            startStrRunMessage[6] = expConfig.getStopConditionThreshold() != null ? new OtpErlangDouble(expConfig.getStopConditionThreshold()) : new OtpErlangString("null");
+            startStrRunMessage[7] = expConfig.getMaxNumberOfRounds() != null ? new OtpErlangInt(expConfig.getMaxNumberOfRounds()) : new OtpErlangString("null");
+            startStrRunMessage[8] = new OtpErlangString(expConfig.toJson());
             message[1] = new OtpErlangTuple(startStrRunMessage);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
         message[2] = receiverPid; // receiver pid
-        applicationLogger.severe("Sender: Message created.");
+        applicationLogger.severe("Sender: Message created. Receiver pid: " + receiverPid.toString());
         return new OtpErlangTuple(message);
     }
 
     public void ackMessage(OtpMbox mboxReceiver, String expId) {
         try {
             applicationLogger.severe("Receiver: Waiting for ack message...");
-            OtpErlangObject message = mboxReceiver.receive(10000);
+            applicationLogger.severe("Receiver Pid:" + mboxReceiver.self().toString());
+            OtpErlangObject message = null;
+            int count = 0;
+            while (message == null) {
+                message = mboxReceiver.receive();
+                count ++;
+                applicationLogger.severe("Messages received: " + count);
+            }
             applicationLogger.severe("Receiver: Message received."+ message.toString());
             if (
                     message instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
@@ -172,12 +178,17 @@ public class MessageService {
             }
 
         } catch (OtpErlangExit e) {
-            System.out.println("Receiver: No message received.");
+            applicationLogger.severe("Receiver: No message received.");
 
         } catch (OtpErlangDecodeException e) {
-            System.out.println("Receiver: Error decoding the message.");
+            applicationLogger.severe("Receiver: Error decoding the message.");
+
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
+
+        } catch (Exception e) {
+            applicationLogger.severe("Receiver: Error receiving the message." + e.getMessage());
+            e.printStackTrace();
         }
     }
 

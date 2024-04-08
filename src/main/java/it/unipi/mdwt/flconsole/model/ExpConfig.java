@@ -1,6 +1,5 @@
 package it.unipi.mdwt.flconsole.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,14 +8,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-import org.springframework.data.mongodb.core.mapping.event.BeforeSaveEvent;
 
-import java.time.LocalDate;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 @Data
@@ -31,18 +26,18 @@ public class ExpConfig {
     private String algorithm;
     @Field("codeLanguage")
     private String codeLanguage;
-    @Field("strategy")
-    private String strategy;
+    @Field("clientSelectionStrategy")
+    private String clientSelectionStrategy;
     @Field("clientSelectionRatio")
     private Double clientSelectionRatio;
-    @Field("minNumClients")
-    private Integer minNumClients;
+    @Field("minNumberClients")
+    private Integer minNumberClients;
     @Field("stopCondition")
     private String stopCondition;
-    @Field("threshold")
-    private Double threshold;
-    @Field("maxNumRounds")
-    private Integer maxNumRounds;
+    @Field("stopConditionThreshold")
+    private Double stopConditionThreshold;
+    @Field("maxNumberOfRounds")
+    private Integer maxNumberOfRounds;
 
     @Field("parameters")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -60,12 +55,12 @@ public class ExpConfig {
             jsonNode.put("name", this.name);
             jsonNode.put("algorithm", this.algorithm);
             jsonNode.put("codeLanguage", this.codeLanguage);
-            jsonNode.put("strategy", this.strategy);
+            jsonNode.put("clientSelectionStrategy", this.clientSelectionStrategy);
             jsonNode.put("clientSelectionRatio", this.clientSelectionRatio);
-            jsonNode.put("minNumClients", this.minNumClients);
+            jsonNode.put("minNumberClients", this.minNumberClients);
             jsonNode.put("stopCondition", this.stopCondition);
-            jsonNode.put("threshold", this.threshold);
-            jsonNode.put("maxNumRounds", this.maxNumRounds);
+            jsonNode.put("stopConditionThreshold", this.stopConditionThreshold);
+            jsonNode.put("maxNumberOfRounds", this.maxNumberOfRounds);
 
             ObjectNode parametersNode = objectMapper.createObjectNode();
             if (this.parameters != null){
