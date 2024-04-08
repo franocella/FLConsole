@@ -1,16 +1,13 @@
 package it.unipi.mdwt.flconsole.controller;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
-import it.unipi.mdwt.flconsole.model.ExpConfig;
-import it.unipi.mdwt.flconsole.model.Experiment;
-import it.unipi.mdwt.flconsole.model.ExperimentSummary;
-import it.unipi.mdwt.flconsole.model.User;
-import it.unipi.mdwt.flconsole.service.CookieService;
-import it.unipi.mdwt.flconsole.service.ExpConfigService;
-import it.unipi.mdwt.flconsole.service.ExperimentService;
-import it.unipi.mdwt.flconsole.service.UserService;
+import it.unipi.mdwt.flconsole.model.*;
+import it.unipi.mdwt.flconsole.service.*;
+import it.unipi.mdwt.flconsole.utils.MessageType;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
 
@@ -35,16 +33,17 @@ public class AdminController {
     private final ExperimentService experimentService;
     private final ExpConfigService expConfigService;
     private final Logger applicationLogger;
-
+    private final MetricsService metricsService;
     private final CookieService cookieService;
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public AdminController(UserService userService, ExperimentService experimentService, ExpConfigService expConfigService, Logger applicationLogger, CookieService cookieService, ObjectMapper objectMapper) {
+    public AdminController(UserService userService, ExperimentService experimentService, ExpConfigService expConfigService, Logger applicationLogger, MetricsService metricsService, CookieService cookieService, ObjectMapper objectMapper) {
         this.userService = userService;
         this.experimentService = experimentService;
         this.expConfigService = expConfigService;
         this.applicationLogger = applicationLogger;
+        this.metricsService = metricsService;
         this.cookieService = cookieService;
         this.objectMapper = objectMapper;
     }
@@ -203,6 +202,35 @@ public class AdminController {
             expConfig = expConfigService.getNconfigsList(List.of(experiment.getExpConfig().getId())).getContent().get(0);
             applicationLogger.severe("expConfig: " + expConfig);
             model.addAttribute("expConfig", expConfig);
+
+            // Retrieve the list of ExpMetrics for the given experiment ID
+            List<ExpMetrics> expMetricsList = metricsService.getMetrics(experiment.getId());
+
+            List<String> jsonList = expMetricsList.stream()
+                    .filter(expMetrics -> expMetrics.getType() != null && expMetrics.getType().equals(MessageType.STRATEGY_SERVER_METRICS))
+                    .map(expMetrics -> {
+                        try {
+                            // Configure ObjectMapper to exclude null fields
+                            ObjectMapper mapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+                            // Create a temporary map to remove the expId field
+                            Map<String, Object> tempMap = mapper.convertValue(expMetrics, new TypeReference<Map<String, Object>>() {});
+                            tempMap.remove("expId");
+                            tempMap.remove("type");
+
+                            // Convert the map to JSON string
+                            return mapper.writeValueAsString(tempMap);
+                        } catch (JsonProcessingException e) {
+                            applicationLogger.severe("Error converting ExpMetrics to JSON: " + e.getMessage());
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            String jsonArray = "[" + String.join(",", jsonList) + "]";
+
+            model.addAttribute("metrics", jsonArray);
 
             return "experimentDetails";
         } catch (Exception e) {

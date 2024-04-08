@@ -33,18 +33,10 @@
         <%@ include file="components/header.txt" %>
 
             <div class="experiment">
-
                 <div class="container-fluid" style="margin: 0;padding: 0">
                     <h1 class="text-center mb-5">${experiment.name}</h1>
-                    <div class="row align-items-center">
-                        <div class="col" style="height: 460px">
-                            <div>
-                                <canvas id="myChart"></canvas>
-                            </div>
-                        </div>
-                        <div class="col"
-                            style="height: auto; padding-top: 40px; padding-left: 20px; padding-right: 20px">
 
+                    <div id="ExpInfoTableDiv" class="container">
                             <div class="input-group">
                                 <span class="input-group-text"
                                     style="font-weight: bold; font-size: large; width: 240px;">Configuration
@@ -120,18 +112,78 @@
                                         Experiment</button>
                                 </c:if>
                             </c:if>
-                        </div>
+                        </div></div>
 
-                    </div>
-
-
-                    <div id="data-container">
-                    </div>
-
+                    <h1 class="text-center my-5">Metrics</h1>
+                    <div id="MetricsTableDiv" class="container">
+                    <table class="table text-center">
+                        <thead>
+                        <tr>
+                            <th>Round</th>
+                            <th>Host Metrics</th>
+                            <th>Model Metrics</th>
+                        </tr>
+                        </thead>
+                        <tbody id="jsonDataBody">
+                        <!-- Data will be dynamically added here -->
+                        </tbody>
+                    </table>
                 </div>
+                    <div id="MetricsTab" class="container">
+                    <!-- Tabs for modelMetrics and hostMetrics -->
+                        <ul class="nav nav-tabs" id="metricsTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="modelMetrics-tab" data-bs-toggle="tab" data-bs-target="#modelMetrics" type="button" role="tab" aria-controls="modelMetrics" aria-selected="true">Model Metrics</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="hostMetrics-tab" data-bs-toggle="tab" data-bs-target="#hostMetrics" type="button" role="tab" aria-controls="hostMetrics" aria-selected="false">Host Metrics</button>
+                            </li>
+                        </ul>
+                    </div>
+
+
+                <div class="tab-content container" id="metricsTabContent">
+                    <div class="tab-pane fade show active" id="modelMetrics" role="tabpanel" aria-labelledby="modelMetrics-tab">
+                        <!-- Buttons for each modelMetric -->
+                        <div id="modelMetricsButtons">
+                            <!-- Buttons will be added dynamically here -->
+                        </div>
+                        <!-- Chart container for modelMetrics -->
+                        <div id="modelMetricsCharts" class="chart-container">
+                            <!-- Charts will be added dynamically here -->
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="hostMetrics" role="tabpanel" aria-labelledby="hostMetrics-tab">
+                        <!-- Buttons for each hostMetric -->
+                        <div id="hostMetricsButtons">
+                            <!-- Buttons will be added dynamically here -->
+                        </div>
+                        <!-- Chart container for hostMetrics -->
+                        <div id="hostMetricsCharts" class="chart-container">
+                            <!-- Charts will be added dynamically here -->
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <script>
+
+
+
+
+
+        <script>
+                let jsonDataArray = null;
+                <c:if test="${metrics != null}">
+                    jsonDataArray = ${metrics};
+                    console.log(jsonDataArray);
+                </c:if>
+
+                // Call generateCharts function once the DOM is loaded
+                document.addEventListener("DOMContentLoaded", () => {
+                    if (jsonDataArray !=null && jsonDataArray.length > 0)
+                        generateCharts();
+                });
 
                 let status = "${experiment.status.toString()}";
                 const id = "${experiment.id}";
@@ -207,49 +259,122 @@
                     });
                 }
 
-                // Initial empty data
-                const emptyData = {
-                    labels: [],
-                    datasets: [],
-                };
+                // Function to generate charts for modelMetrics and hostMetrics
+                function generateCharts() {
+                    const groupedData = {};
+                    jsonDataArray.forEach(function(data) {
+                        const roundNumber = data.round;
+                        if (!groupedData[roundNumber]) {
+                            groupedData[roundNumber] = [];
+                        }
+                        groupedData[roundNumber].push(data);
+                    });
 
-                // Chart.js configuration with empty data
-                const config = {
-                    type: 'bar',
-                    data: emptyData,
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                            },
-                        },
-                    },
-                };
+                    const metricsTypes = ["modelMetrics", "hostMetrics"];
 
-                // Create the chart with empty data
-                const myChart = new Chart(
-                    document.getElementById('myChart'),
-                    config
-                );
+                    // Render charts for each metric by default
+                    Object.keys(groupedData[1][0].modelMetrics).forEach(function(metric) {
+                        renderChart(metric, "modelMetrics", groupedData);
+                    });
 
-                function updateChart(labels, dataValues) {
-                    // Create a new dataset for each parameter
-                    const newDataset = {
-                        label: "Progress:" + (myChart.data.datasets.length + 1),
-                        backgroundColor: 'rgba(52, 107, 171, 100)',
-                        borderColor: 'rgba(52, 107, 171, 100)',
-                        borderWidth: 1,
-                        data: dataValues,
-                    };
+                    Object.keys(groupedData[1][0].hostMetrics).forEach(function(metric) {
+                        renderChart(metric, "hostMetrics", groupedData);
+                    });
 
-                    // Update chart data with the new dataset
-                    myChart.data.labels = labels;
-                    myChart.data.datasets.push(newDataset);
-
-                    myChart.update();
+                    // Update the table with new data
+                    updateTable(groupedData);
                 }
-            </script>
 
+                // Render chart for the selected metric and metricsType
+                function renderChart(metric, metricsType, groupedData) {
+                    const metricsChartsContainer = metricsType === "modelMetrics" ? document.getElementById("modelMetricsCharts") : document.getElementById("hostMetricsCharts");
+                    const data = [];
+                    const labels = [];
+                    Object.values(groupedData).forEach(function(roundData) {
+                        roundData.forEach(function(item) {
+                            data.push(item[metricsType][metric]);
+                            labels.push("Round " + item.round);
+                        });
+                    });
+
+                    // Remove existing chart if any
+                    const existingChart = document.getElementById(metricsType + "-" + metric + "-chart");
+                    if (existingChart) {
+                        existingChart.remove();
+                    }
+
+                    // Create canvas for the chart
+                    const canvas = document.createElement("canvas");
+                    canvas.id = metricsType + "-" + metric + "-chart";
+                    metricsChartsContainer.appendChild(canvas);
+
+                    // Configure the chart
+                    new Chart(canvas, {
+                        type: "line",
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: metric,
+                                data: data,
+                                borderColor: getRandomColor(),
+                                fill: false
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Function to add new data received as a message
+                function addNewData(newData) {
+                    jsonDataArray.push(JSON.stringify(newData));
+                    generateCharts();
+                }
+
+                // Function to generate random colors
+                function getRandomColor() {
+                    const letters = "0123456789ABCDEF";
+                    let color = "#";
+                    for (let i = 0; i < 6; i++) {
+                        color += letters[Math.floor(Math.random() * 16)];
+                    }
+                    return color;
+                }
+
+                // Function to update the table with new data
+                function updateTable(groupedData) {
+                    const jsonDataBody = document.getElementById("jsonDataBody");
+                    jsonDataBody.innerHTML = ""; // Clear existing data
+
+                    Object.values(groupedData).forEach(function(roundData) {
+                        roundData.forEach(function(data) {
+                            const row = document.createElement("tr");
+                            row.innerHTML = "<td>" + data.round + "</td><td>" + createList(data.hostMetrics) + "</td><td>" + createList(data.modelMetrics) + "</td>";
+                            jsonDataBody.appendChild(row);
+                        });
+                    });
+                }
+
+                // Function to create an HTML list from a JSON object
+                function createList(obj) {
+                    const list = document.createElement("ul");
+                    list.classList.add("custom-list-style");
+                    for (const key in obj) {
+                        if (Object.hasOwnProperty.call(obj, key)) {
+                            const listItem = document.createElement("li");
+                            listItem.innerHTML = "<b>" + key + "</b>: " + obj[key];
+                            list.appendChild(listItem);
+                        }
+                    }
+                    return list.outerHTML;
+                }
+
+            </script>
         <!-- Your existing script tags for jQuery and Bootstrap -->
         <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
