@@ -33,10 +33,9 @@
         <%@ include file="components/header.txt" %>
 
             <div class="experiment">
-                <div class="container-fluid" style="margin: 0;padding: 0">
-                    <h1 class="text-center mb-5">${experiment.name}</h1>
-
+                <div class="container-fluid d-flex justify-content-center">
                     <div id="ExpInfoTableDiv" class="container">
+                        <h1 class="text-center mb-5">${experiment.name}</h1>
                             <div class="input-group">
                                 <span class="input-group-text"
                                     style="font-weight: bold; font-size: large; width: 240px;">Configuration
@@ -113,60 +112,55 @@
                                 </c:if>
                             </c:if>
                         </div></div>
+            </div>
+        <h1 class="text-center my-5">Metrics</h1>
+        <div id="MetricsTableDiv" class="container-fluid d-flex justify-content-center ">
+                <table class="table container text-center mb-5">
+                    <thead>
+                    <tr>
+                        <th>Round</th>
+                        <th>Host Metrics</th>
+                        <th>Model Metrics</th>
+                    </tr>
+                    </thead>
+                    <tbody id="jsonDataBody">
+                    <!-- Data will be dynamically added here -->
+                    </tbody>
+                </table>
+        </div>
 
-                    <h1 class="text-center my-5">Metrics</h1>
-                    <div id="MetricsTableDiv" class="container">
-                    <table class="table text-center">
-                        <thead>
-                        <tr>
-                            <th>Round</th>
-                            <th>Host Metrics</th>
-                            <th>Model Metrics</th>
-                        </tr>
-                        </thead>
-                        <tbody id="jsonDataBody">
-                        <!-- Data will be dynamically added here -->
-                        </tbody>
-                    </table>
-                </div>
-                    <div id="MetricsTab" class="container">
-                    <!-- Tabs for modelMetrics and hostMetrics -->
-                        <ul class="nav nav-tabs" id="metricsTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="modelMetrics-tab" data-bs-toggle="tab" data-bs-target="#modelMetrics" type="button" role="tab" aria-controls="modelMetrics" aria-selected="true">Model Metrics</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="hostMetrics-tab" data-bs-toggle="tab" data-bs-target="#hostMetrics" type="button" role="tab" aria-controls="hostMetrics" aria-selected="false">Host Metrics</button>
-                            </li>
-                        </ul>
-                    </div>
+        <div class="container-fluid d-flex justify-content-center">
 
-
-                <div class="tab-content container" id="metricsTabContent">
-                    <div class="tab-pane fade show active" id="modelMetrics" role="tabpanel" aria-labelledby="modelMetrics-tab">
-                        <!-- Buttons for each modelMetric -->
-                        <div id="modelMetricsButtons">
-                            <!-- Buttons will be added dynamically here -->
-                        </div>
-                        <!-- Chart container for modelMetrics -->
-                        <div id="modelMetricsCharts" class="chart-container">
-                            <!-- Charts will be added dynamically here -->
-                        </div>
-                    </div>
-                    <div class="tab-pane fade" id="hostMetrics" role="tabpanel" aria-labelledby="hostMetrics-tab">
-                        <!-- Buttons for each hostMetric -->
-                        <div id="hostMetricsButtons">
-                            <!-- Buttons will be added dynamically here -->
-                        </div>
-                        <!-- Chart container for hostMetrics -->
-                        <div id="hostMetricsCharts" class="chart-container">
-                            <!-- Charts will be added dynamically here -->
-                        </div>
-                    </div>
-                </div>
+            <div id="MetricsTab" class="container">
+                <ul class="nav nav-tabs justify-content-center" id="metricsTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="modelMetrics-tab" data-bs-toggle="tab" data-bs-target="#modelMetrics" type="button" role="tab" aria-controls="modelMetrics" aria-selected="true">Model Metrics</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="hostMetrics-tab" data-bs-toggle="tab" data-bs-target="#hostMetrics" type="button" role="tab" aria-controls="hostMetrics" aria-selected="false">Host Metrics</button>
+                    </li>
+                </ul>
 
             </div>
+        </div>
 
+        <div class="container-fluid d-flex justify-content-center">
+            <div class="tab-content container" id="metricsTabContent">
+                <div class="tab-pane fade show active" id="modelMetrics" role="tabpanel" aria-labelledby="modelMetrics-tab">
+
+                    <!-- Chart container for modelMetrics -->
+                    <div id="modelMetricsCharts" class="chart-container">
+                        <!-- Charts will be added dynamically here -->
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="hostMetrics" role="tabpanel" aria-labelledby="hostMetrics-tab">
+                    <!-- Chart container for hostMetrics -->
+                    <div id="hostMetricsCharts" class="chart-container">
+                        <!-- Charts will be added dynamically here -->
+                    </div>
+                </div>
+            </div>
+        </div>
 
 
 
@@ -228,7 +222,8 @@
 
                         stompClient.subscribe("/experiment/" + id + "/metrics", (message) => {
                             const progressUpdate = JSON.parse(message.body);
-                            updateData(progressUpdate);
+                            jsonDataArray.push(JSON.stringify(progressUpdate));
+                            generateCharts();
                             if (message.type === 'END_EXPERIMENT') {
                                 stompClient.disconnect();
                                 displayErrorModal("Experiment finished", "The experiment has finished running");

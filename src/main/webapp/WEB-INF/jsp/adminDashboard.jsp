@@ -552,7 +552,7 @@
                 "<td class='align-middle'>" + executionName + "</td>" +
                 "<td class='align-middle'>" + configName + "</td>" +
                 "<td class='align-middle'>" + creationDate + "</td>" +
-                '<td class="align-middle"><a href="/experiment-' + id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>' +
+                '<td class="align-middle"><a href="/admin/experiment-' + id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>' +
                 "</tr>";
 
             table.append(newRow);
