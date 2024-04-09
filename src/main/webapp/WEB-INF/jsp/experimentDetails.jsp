@@ -102,7 +102,7 @@
                             <div class="input-group">
                                 <span class="input-group-text"
                                     style="font-weight: bold; font-size: large; width: 240px;">Status:</span>
-                                <input type="text" disabled aria-label="Finished At" class="form-control"
+                                <input type="text" id="statusInput" disabled aria-label="Finished At" class="form-control"
                                     value="${experiment.status}">
                             </div>
                             <c:if test="${experiment.status.toString() == 'NOT_STARTED'}">
@@ -114,20 +114,6 @@
                         </div></div>
             </div>
         <h1 class="text-center my-5">Metrics</h1>
-        <div id="MetricsTableDiv" class="container-fluid d-flex justify-content-center ">
-                <table class="table container text-center mb-5">
-                    <thead>
-                    <tr>
-                        <th>Round</th>
-                        <th>Host Metrics</th>
-                        <th>Model Metrics</th>
-                    </tr>
-                    </thead>
-                    <tbody id="jsonDataBody">
-                    <!-- Data will be dynamically added here -->
-                    </tbody>
-                </table>
-        </div>
 
         <div class="container-fluid d-flex justify-content-center">
 
@@ -162,9 +148,20 @@
             </div>
         </div>
 
-
-
-
+        <div id="MetricsTableDiv" class="container-fluid d-flex justify-content-center ">
+            <table class="table container text-center mt-5">
+                <thead>
+                <tr>
+                    <th>Round</th>
+                    <th>Host Metrics</th>
+                    <th>Model Metrics</th>
+                </tr>
+                </thead>
+                <tbody id="jsonDataBody">
+                <!-- Data will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
 
         <script>
                 let jsonDataArray = null;
@@ -172,47 +169,97 @@
                     jsonDataArray = ${metrics};
                     console.log(jsonDataArray);
                 </c:if>
-
-                // Call generateCharts function once the DOM is loaded
-                document.addEventListener("DOMContentLoaded", () => {
-                    if (jsonDataArray !=null && jsonDataArray.length > 0)
-                        generateCharts();
-                });
-
                 let status = "${experiment.status.toString()}";
                 const id = "${experiment.id}";
                 const conf = ${expConfig.toJson()};
 
-                if (status === 'RUNNING') {
-                    const socketUrl = 'http://localhost:8080/ws';
-                    const socket = new SockJS(socketUrl);
-                    const stompClient = Stomp.over(socket);
+                // Call generateCharts function once the DOM is loaded
+                document.addEventListener("DOMContentLoaded", () => {
+                    if (jsonDataArray != null && jsonDataArray.length > 0)
+                        generateCharts();
+                });
 
-                    stompClient.connect({}, () => {
-                        console.log("Connected to WebSocket");
-
-                        stompClient.subscribe("/experiment/metrics", (message) => {
-                            const progressUpdate = JSON.parse(message.body);
-                            updateData(progressUpdate);
-                        });
-                    }, (error) => {
-                        console.error("WebSocket connection error:", error);
-                    });
+                if (!(status === 'FINISHED')) {
+                    openConnection();
                 }
 
-                function updateData(data) {
-                    const labels = Object.keys(data);
-                    const dataValues = Object.values(data);
-                    updateChart(labels, dataValues);
+                function closeErrorModal() {
+                    // Remove modal, hide overlay
+                    const modal = document.getElementById('error-modal');
+                    document.body.removeChild(modal);
+
+                    const overlay = document.getElementById('overlay');
+                    overlay.style.display = 'none';
                 }
 
+                function openErrorModal(title, message) {
+                    // Check if overlay already exists
+                    let overlay = document.getElementById('overlay');
+
+                    if (!overlay) {
+                        // If overlay does not exist, create HTML element
+                        overlay = document.createElement('div');
+                        overlay.id = 'overlay';
+                        overlay.className = 'overlay';
+
+                        // Add overlay to the page
+                        document.body.appendChild(overlay);
+                    }
+
+                    // Check if modal already exists
+                    let modal = document.getElementById('error-modal');
+
+                    if (!modal) {
+                        // If modal does not exist, create HTML elements
+                        modal = document.createElement('div');
+                        modal.id = 'error-modal';
+                        modal.className = 'myAlert-sm';
+
+                        const modalBody = document.createElement('div');
+                        modalBody.className = 'myAlertBody';
+
+                        const titleElement = document.createElement('h3');
+                        titleElement.id = 'Err-Title';
+
+                        const messageElement = document.createElement('p');
+                        messageElement.className = 'mt-3';
+                        messageElement.id = 'Err-Message';
+
+                        const closeButton = document.createElement('button');
+                        closeButton.className = 'btn btn-primary';
+                        closeButton.innerText = 'Close';
+                        closeButton.onclick = closeErrorModal;
+
+                        // Add elements to the modal
+                        modalBody.appendChild(titleElement);
+                        modalBody.appendChild(messageElement);
+                        modalBody.appendChild(closeButton);
+                        modal.appendChild(modalBody);
+
+                        // Add modal to the page
+                        document.body.appendChild(modal);
+                    }
+
+                    // Set titles and messages dynamically
+                    document.getElementById('Err-Title').innerText = title;
+                    document.getElementById('Err-Message').innerText = message;
+
+                    // Show overlay and modal
+                    overlay.style.display = 'block';
+                    modal.style.display = 'block';
+                }
 
                 function startTask() {
 
-                    if (status === 'RUNNING') {
+                    if (!(status === 'NOT_STARTED')) {
                         return;
                     }
 
+                    // Send a request to start the experiment
+                    sendStartRequest();
+                }
+
+                function openConnection() {
                     const socketUrl = 'http://localhost:8080/ws';
                     const socket = new SockJS(socketUrl);
                     const stompClient = Stomp.over(socket);
@@ -222,17 +269,30 @@
 
                         stompClient.subscribe("/experiment/" + id + "/metrics", (message) => {
                             const progressUpdate = JSON.parse(message.body);
-                            jsonDataArray.push(JSON.stringify(progressUpdate));
-                            generateCharts();
-                            if (message.type === 'END_EXPERIMENT') {
+
+                            if (progressUpdate.type != null && progressUpdate.type === 'experiment_queued') {
+                                $("#statusInput").val("QUEUED");
+                            }
+                            if (progressUpdate.type != null && progressUpdate.type === 'start_round' && progressUpdate.round === 1) {
+                                openErrorModal("Experiment started", "The experiment has started running");
+                                $("#statusInput").val("RUNNING");
+                            }
+                            if (progressUpdate.type != null && progressUpdate.type === 'strategy_server_metrics') {
+                                jsonDataArray.push(progressUpdate);
+                                generateCharts();
+                            }
+                            if (progressUpdate.type === 'END_EXPERIMENT') {
+                                openErrorModal("Experiment finished", "The experiment has finished running");
+                                $("#statusInput").val("FINISHED");
                                 stompClient.disconnect();
-                                displayErrorModal("Experiment finished", "The experiment has finished running");
                             }
                         });
                     }, (error) => {
                         console.error("WebSocket connection error:", error);
                     });
+                }
 
+                function sendStartRequest() {
                     console.log("Starting experiment with configuration:", conf);
                     // Send a request to start the experiment
                     // If the request is successful, update the status and remove the button
@@ -244,9 +304,7 @@
                             expId: id
                         },
                         success: function() {
-                            status = 'RUNNING';
                             $('#startTaskBtn').remove();
-                            openErrorModal("Success", "Experiment started successfully");
                         },
                         error: function(error) {
                             openErrorModal("Error", error.responseText);
@@ -263,6 +321,7 @@
                             groupedData[roundNumber] = [];
                         }
                         groupedData[roundNumber].push(data);
+                        console.log("Data of Round " + roundNumber + ": " + groupedData[roundNumber]);
                     });
 
                     const metricsTypes = ["modelMetrics", "hostMetrics"];
@@ -292,10 +351,14 @@
                         });
                     });
 
-                    // Remove existing chart if any
-                    const existingChart = document.getElementById(metricsType + "-" + metric + "-chart");
-                    if (existingChart) {
-                        existingChart.remove();
+                    // Check if chart already exists
+                    const existingChartCanvas = document.getElementById(metricsType + "-" + metric + "-chart");
+                    if (existingChartCanvas) {
+                        const existingChart = Chart.getChart(existingChartCanvas);
+                        existingChart.data.labels = labels;
+                        existingChart.data.datasets[0].data = data;
+                        existingChart.update();
+                        return; // Exit function after updating existing chart
                     }
 
                     // Create canvas for the chart
@@ -325,11 +388,6 @@
                     });
                 }
 
-                // Function to add new data received as a message
-                function addNewData(newData) {
-                    jsonDataArray.push(JSON.stringify(newData));
-                    generateCharts();
-                }
 
                 // Function to generate random colors
                 function getRandomColor() {
