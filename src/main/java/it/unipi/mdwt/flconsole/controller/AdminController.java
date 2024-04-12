@@ -1,13 +1,10 @@
 package it.unipi.mdwt.flconsole.controller;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
 import it.unipi.mdwt.flconsole.model.*;
 import it.unipi.mdwt.flconsole.service.*;
-import it.unipi.mdwt.flconsole.utils.MessageType;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
 
@@ -215,7 +211,7 @@ public class AdminController {
     @GetMapping("/getExperiments")
     public ResponseEntity<Page<ExperimentSummary>> searchExp(@RequestParam int page, String executionName, String configName, HttpServletRequest request) {
         String email = cookieService.getCookieValue(request.getCookies(),"email");
-        Page<ExperimentSummary> experiments = experimentService.searchMyExperiments(email, executionName, configName, page);
+        Page<ExperimentSummary> experiments = experimentService.getMyExperiments(email, executionName, configName, page);
         return ResponseEntity.ok(experiments);
     }
 

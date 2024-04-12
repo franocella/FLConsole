@@ -114,23 +114,23 @@ public class MainController {
     }
 
     @GetMapping("/")
-    public String home(Model model, HttpServletRequest request) {
-        List<Pair<ExperimentSummary, String>> experiments = experimentService.getExperimentsSummaryList(PAGE_SIZE, null, null);
+    public String home(Model model) {
+        Page<Experiment> experiments = experimentService.getExperiments(null, null, 0);
         model.addAttribute("experiments", experiments);
         return "userDashboard";
     }
 
-    @PostMapping("/searchAllExp")
-    public ResponseEntity<List<Pair<ExperimentSummary, String>>> searchAllExp(
-            @RequestParam(required = false) String expName,
-            @RequestParam(required = false) String configName) {
+    @PostMapping("/getExperiments")
+    public ResponseEntity<Page<Experiment>> searchAllExp (@RequestParam int page, String expName, String configName) {
         try {
-            List<Pair<ExperimentSummary, String>> experiments = experimentService.getExperimentsSummaryList(PAGE_SIZE, expName, configName);
-            return new ResponseEntity<>(experiments, HttpStatus.OK);
+            applicationLogger.severe("Searching experiments with name: " + expName + " and configName: " + configName);
+            Page<Experiment> experiments = experimentService.getExperiments(expName, configName, page);
+            return ResponseEntity.ok(experiments);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     /*@GetMapping("/")
     public String home(Model model, @RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = "10") int pageSize) {

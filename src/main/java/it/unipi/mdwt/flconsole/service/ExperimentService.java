@@ -1,11 +1,8 @@
 package it.unipi.mdwt.flconsole.service;
 
-import com.ericsson.otp.erlang.OtpMbox;
-import com.ericsson.otp.erlang.OtpNode;
 import it.unipi.mdwt.flconsole.dao.MetricsDao;
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
 import it.unipi.mdwt.flconsole.dao.UserDao;
-import it.unipi.mdwt.flconsole.model.ExpMetrics;
 import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.ExperimentSummary;
 import it.unipi.mdwt.flconsole.model.User;
@@ -15,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -24,12 +21,10 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
@@ -48,8 +43,7 @@ public class ExperimentService {
     private final MetricsDao metricsDao;
 
     @Autowired
-    public ExperimentService(ExperimentDao experimentDao, Logger applicationLogger,
-                             UserDao userDAO, MessageService messageService, MongoTemplate mongoTemplate, ExecutorService executorService, MetricsDao metricsDao) {
+    public ExperimentService(ExperimentDao experimentDao, Logger applicationLogger, UserDao userDAO, MessageService messageService, MongoTemplate mongoTemplate, ExecutorService executorService, MetricsDao metricsDao) {
         this.experimentDao = experimentDao;
         this.applicationLogger = applicationLogger;
         this.userDAO = userDAO;
@@ -117,7 +111,7 @@ public class ExperimentService {
         }
     }
 
-    public Page<ExperimentSummary> searchMyExperiments(String email, String expName, String configName, int page) throws BusinessException {
+    public Page<ExperimentSummary> getMyExperiments(String email, String expName, String configName, int page) throws BusinessException {
         try {
             if (page < 0 || PAGE_SIZE <= 0) {
                 throw new IllegalArgumentException("Page and nElem must be non-negative integers.");
@@ -164,27 +158,46 @@ public class ExperimentService {
         mongoTemplate.updateFirst(query, update, User.class);
     }
 
-    public List<Pair<ExperimentSummary, String>> getExperimentsSummaryList(int n, String expName, String configName) {
-        Pageable pageable = PageRequest.of(0, n); // First n experiments
-        List<User> users = userDAO.findAll(pageable).getContent();
+    public Page<Experiment> getExperiments(String expName, String configName, int page) {
+        try {
+            if (page < 0 || PAGE_SIZE <= 0) {
+                throw new IllegalArgumentException("Page and nElem must be non-negative integers.");
+            }
 
-        // Filter experiments if needed
-        Stream<Pair<ExperimentSummary, String>> experimentsStream = users.stream()
-                .flatMap(user -> {
-                    List<ExperimentSummary> filteredExperiments = user.getExperiments().stream()
-                            .filter(experiment ->
-                                    (expName == null || experiment.getName().toLowerCase().contains(expName.toLowerCase())) &&
-                                            (configName == null || experiment.getConfigName().toLowerCase().contains(configName.toLowerCase())))
-                            .toList();
-                    return filteredExperiments.stream()
-                            .map(experiment -> Pair.of(experiment, user.getEmail()));
-                });
+            // Create a list to hold the search criteria pairs
+            List<Pair<String, String>> criteriaList = new ArrayList<>();
 
-        // Collect experiments with their authors
+            // Add criteria pairs to the list if the values are provided and not empty
+            if (expName != null && !expName.isEmpty()) {
+                criteriaList.add(Pair.of("name", expName));
+                applicationLogger.severe("ExpName: " + expName);
+            }
+            if (configName != null && !configName.isEmpty()) {
+                criteriaList.add(Pair.of("expConfig.name", configName));
+                applicationLogger.severe("ConfigName: " + configName);
+            }
 
-        return experimentsStream
-                .limit(n)
-                .collect(Collectors.toList());
+            // Create a query to search for ExpConfig objects based on the provided criteria
+            Query query = new Query();
+            for (Pair<String, String> criterion : criteriaList) {
+                query.addCriteria(Criteria.where(criterion.getFirst()).regex(criterion.getSecond(), "i"));
+            }
+
+            // Set the page number and limit the results to the specified maximum number of elements
+            query.with(PageRequest.of(page, PAGE_SIZE));
+            // Retrieve the matching ExpConfig objects from the database
+            List<Experiment> matchingExperiments = mongoTemplate.find(query, Experiment.class);
+            applicationLogger.severe("Matching experiments: " + matchingExperiments.size());
+
+            // Retrieve the total count of matching ExpConfig objects
+            long totalCount = mongoTemplate.count(query, Experiment.class);
+            applicationLogger.severe("Total count: " + totalCount);
+            // Create a Page object using the retrieved ExpConfig objects, the requested page, and the total count
+            return PageableExecutionUtils.getPage(matchingExperiments, PageRequest.of(page, PAGE_SIZE), () -> totalCount);
+        } catch (Exception e) {
+            applicationLogger.severe("Error searching experiments: " + e.getMessage());
+            throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
+        }
     }
 
 
