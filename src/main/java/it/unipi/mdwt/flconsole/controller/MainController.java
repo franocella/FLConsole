@@ -1,15 +1,14 @@
 package it.unipi.mdwt.flconsole.controller;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unipi.mdwt.flconsole.dto.UserDTO;
-import it.unipi.mdwt.flconsole.model.Experiment;
-import it.unipi.mdwt.flconsole.model.ExperimentSummary;
-import it.unipi.mdwt.flconsole.model.User;
-import it.unipi.mdwt.flconsole.service.CookieService;
-import it.unipi.mdwt.flconsole.service.ExpConfigService;
-import it.unipi.mdwt.flconsole.service.ExperimentService;
-import it.unipi.mdwt.flconsole.service.UserService;
+import it.unipi.mdwt.flconsole.model.*;
+import it.unipi.mdwt.flconsole.service.*;
+import it.unipi.mdwt.flconsole.utils.MessageType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +23,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.naming.AuthenticationException;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Controller
 public class MainController {
@@ -37,15 +39,17 @@ public class MainController {
     private final CookieService cookieService;
     private final ObjectMapper objectMapper;
 
+    private final MetricsService metricsService;
 
     @Autowired
-    public MainController(UserService userService, ExperimentService experimentService, ExpConfigService expConfigService, Logger applicationLogger, CookieService cookieService, ObjectMapper objectMapper) {
+    public MainController(UserService userService, ExperimentService experimentService, ExpConfigService expConfigService, Logger applicationLogger, CookieService cookieService, ObjectMapper objectMapper, MetricsService metricsService) {
         this.userService = userService;
         this.experimentService = experimentService;
         this.expConfigService = expConfigService;
         this.applicationLogger = applicationLogger;
         this.cookieService = cookieService;
         this.objectMapper = objectMapper;
+        this.metricsService = metricsService;
     }
 
     @GetMapping("/login")
@@ -135,24 +139,57 @@ public class MainController {
         }
     }*/
 
-    @GetMapping("/access-denied")
-    public String accessDeniedPage() {
-        return "access-denied";
-    }
-
     @GetMapping("/experiment-{id}")
     public String experimentDetails(@PathVariable String id, Model model, HttpServletRequest request) {
 
         Experiment experiment;
-        String role = cookieService.getCookieValue(request.getCookies(),"role");
-        if (role != null && role.equals("admin")) {
-            model.addAttribute("role", "admin");
-        } else {
-            model.addAttribute("role", "user");
-        }
+        ExpConfig expConfig;
         try {
+            String role = cookieService.getCookieValue(request.getCookies(),"role");
+            if (role != null && role.equals("admin")) {
+                Boolean isAuthor = userService.isExperimentAuthor(cookieService.getCookieValue(request.getCookies(),"email"), id);
+                model.addAttribute("isAuthor", isAuthor);
+            } else {
+                model.addAttribute("isAuthor", false);
+            }
+
             experiment = experimentService.getExpDetails(id);
             model.addAttribute("experiment", experiment);
+
+            // TODO: Implement getExpConfigById (better)
+            expConfig = expConfigService.getNconfigsList(List.of(experiment.getExpConfig().getId())).getContent().get(0);
+            applicationLogger.severe("expConfig: " + expConfig);
+            model.addAttribute("expConfig", expConfig);
+
+            // Retrieve the list of ExpMetrics for the given experiment ID
+            List<ExpMetrics> expMetricsList = metricsService.getMetrics(experiment.getId());
+
+            List<String> jsonList = expMetricsList.stream()
+                    .filter(expMetrics -> expMetrics.getType() != null && expMetrics.getType().equals(MessageType.STRATEGY_SERVER_METRICS))
+                    .map(expMetrics -> {
+                        try {
+                            // Configure ObjectMapper to exclude null fields
+                            ObjectMapper mapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+                            // Create a temporary map to remove the expId field
+                            Map<String, Object> tempMap = mapper.convertValue(expMetrics, new TypeReference<Map<String, Object>>() {});
+                            tempMap.remove("expId");
+                            tempMap.remove("type");
+
+                            // Convert the map to JSON string
+                            return mapper.writeValueAsString(tempMap);
+                        } catch (JsonProcessingException e) {
+                            applicationLogger.severe("Error converting ExpMetrics to JSON: " + e.getMessage());
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            String jsonArray = "[" + String.join(",", jsonList) + "]";
+
+            model.addAttribute("metrics", jsonArray);
+
             return "experimentDetails";
         } catch (Exception e) {
             model.addAttribute("error", "Error fetching experiment details");
@@ -160,6 +197,11 @@ public class MainController {
         }
 
     }
+    @GetMapping("/access-denied")
+    public String accessDeniedPage() {
+        return "access-denied";
+    }
+
     @GetMapping("profile")
     public String profile(Model model, HttpServletRequest request) {
         String email = cookieService.getCookieValue(request.getCookies(),"email");

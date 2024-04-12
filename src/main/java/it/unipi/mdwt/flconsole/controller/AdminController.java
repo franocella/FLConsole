@@ -1,15 +1,13 @@
 package it.unipi.mdwt.flconsole.controller;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.unipi.mdwt.flconsole.model.ExpConfig;
-import it.unipi.mdwt.flconsole.model.Experiment;
-import it.unipi.mdwt.flconsole.model.ExperimentSummary;
-import it.unipi.mdwt.flconsole.model.User;
-import it.unipi.mdwt.flconsole.service.CookieService;
-import it.unipi.mdwt.flconsole.service.ExpConfigService;
-import it.unipi.mdwt.flconsole.service.ExperimentService;
-import it.unipi.mdwt.flconsole.service.UserService;
+import io.micrometer.common.util.StringUtils;
+import it.unipi.mdwt.flconsole.model.*;
+import it.unipi.mdwt.flconsole.service.*;
+import it.unipi.mdwt.flconsole.utils.MessageType;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
 
@@ -34,7 +33,6 @@ public class AdminController {
     private final ExperimentService experimentService;
     private final ExpConfigService expConfigService;
     private final Logger applicationLogger;
-
     private final CookieService cookieService;
     private final ObjectMapper objectMapper;
 
@@ -55,26 +53,30 @@ public class AdminController {
         try {
             String email = cookieService.getCookieValue(request.getCookies(),"email");
             User user = userService.getUser(email);
-            Page<ExpConfig> userConfigurations = expConfigService.getNconfigsList(user.getConfigurations());
-            int totalConfigPages = userConfigurations.getTotalPages();
-            int totalExpPages = (int) Math.ceil((double) user.getExperiments().size() / PAGE_SIZE);
-            List<String> jsonList = userConfigurations.stream()
-                    .filter(Objects::nonNull) // Filter out null values
-                    .map(expConfig -> {
-                        try {
-                            return objectMapper.writeValueAsString(expConfig);
-                        } catch (JsonProcessingException e) {
-                            // Handle the exception if the conversion fails
-                            applicationLogger.severe("Error converting ExpConfig to JSON: " + e.getMessage());
-                            return null;
-                        }
-                    })
-                    .toList();
+            if (user.getConfigurations()!=null){
+                Page<ExpConfig> userConfigurations = expConfigService.getNconfigsList(user.getConfigurations());
+                int totalConfigPages = userConfigurations.getTotalPages();
+                List<String> jsonList = userConfigurations.stream()
+                        .filter(Objects::nonNull) // Filter out null values
+                        .map(expConfig -> {
+                            try {
+                                return objectMapper.writeValueAsString(expConfig);
+                            } catch (JsonProcessingException e) {
+                                // Handle the exception if the conversion fails
+                                applicationLogger.severe("Error converting ExpConfig to JSON: " + e.getMessage());
+                                return null;
+                            }
+                        })
+                        .toList();
 
-            model.addAttribute("configurations", jsonList);
-            model.addAttribute("experiments", user.getExperiments().subList(0, Math.min(user.getExperiments().size(), PAGE_SIZE)));
-            model.addAttribute("totalConfigPages", totalConfigPages);
-            model.addAttribute("totalExpPages", totalExpPages);
+                model.addAttribute("configurations", jsonList);
+                model.addAttribute("totalConfigPages", totalConfigPages);
+            }
+            if (user.getExperiments()!=null){
+                int totalExpPages = (int) Math.ceil((double) user.getExperiments().size() / PAGE_SIZE);
+                model.addAttribute("experiments", user.getExperiments().subList(0, Math.min(user.getExperiments().size(), PAGE_SIZE)));
+                model.addAttribute("totalExpPages", totalExpPages);
+            }
             return "adminDashboard";
         } catch (BusinessException e) {
             // If an exception occurs during the process, return a server error message
@@ -91,11 +93,10 @@ public class AdminController {
             ExpConfig config = objectMapper.readValue(expConfig, ExpConfig.class);
 
             String email = cookieService.getCookieValue(request.getCookies(),"email");
-
+            applicationLogger.severe("parameters:" + config.getParameters());
             // Perform the configuration save
             expConfigService.saveConfig(config, email);
-
-            System.out.println(config.getId()+" "+config.getCreationDate()+" "+config.getLastUpdate());
+            
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
             // Create the JSON response with the data
@@ -107,10 +108,6 @@ public class AdminController {
                 response.put("creationTime", creationTime);
             }
 
-            if (config.getLastUpdate() != null) {
-                String lastUpdate = dateFormat.format(config.getLastUpdate());
-                response.put("lastUpdate", lastUpdate);
-            }
 
             // Convert the response map to a JSON string
             String jsonResponse = objectMapper.writeValueAsString(response);
@@ -184,32 +181,33 @@ public class AdminController {
         return ResponseEntity.ok(message);
     }
 
-    @GetMapping("/experiment-{id}")
-    public String experimentDetails(@PathVariable String id, Model model, HttpServletRequest request) {
-
-        Experiment experiment;
-        String role = cookieService.getCookieValue(request.getCookies(),"role");
-        if (role != null && role.equals("admin")) {
-            model.addAttribute("role", "admin");
-        }
-        try {
-            experiment = experimentService.getExpDetails(id);
-            model.addAttribute("experiment", experiment);
-            return "experimentDetails";
-        } catch (Exception e) {
-            model.addAttribute("error", "Error fetching experiment details");
-            return "error";
-        }
-
-    }
-
     @PostMapping("/start-exp")
-    public ResponseEntity<?> startTask() {
+    public ResponseEntity<?> startTask(HttpServletRequest request) {
         try {
-            // TODO: Implement the task start
-            // experimentService.runExp();
+
+            // Get the value of the 'config' parameter from the query string
+            String config = request.getParameter("config");
+
+            // Get the value of the 'expId' parameter from the query string
+            String expId = request.getParameter("expId");
+
+            // Check if the 'config' and 'expId' parameters are present and not blank
+            if (StringUtils.isBlank(config) || StringUtils.isBlank(expId)) {
+                return ResponseEntity.badRequest().body("Missing or blank required parameters");
+            }
+
+
+            System.out.println("Starting task with config: " + config + " and expId: " + expId);
+            // Get the email from the cookie
+            String email = cookieService.getCookieValue(request.getCookies(), "email");
+
+            // Run the experiment task
+            experimentService.runExp(config, email, expId);
+            System.out.println("Task started successfully");
+            // Return success response
             return ResponseEntity.ok("Task started successfully");
         } catch (Exception e) {
+            // Return internal server error response if an exception occurs
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error starting the task");
         }
     }

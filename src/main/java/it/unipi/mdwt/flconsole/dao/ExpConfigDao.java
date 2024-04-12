@@ -19,7 +19,7 @@ public interface ExpConfigDao extends MongoRepository<ExpConfig, String> {
     ExpConfig findByName(String name);
     void deleteByName(String name);
     boolean existsByName(String name);
-    List<ExpConfig> findByStrategy(String strategy);
+    List<ExpConfig> findByClientSelectionStrategy(String clientSelectionStrategy);
     List<ExpConfig> findByStopCondition(String stopCondition);
 
 

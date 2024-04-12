@@ -1,6 +1,7 @@
 package it.unipi.mdwt.flconsole.service;
 
 import com.ericsson.otp.erlang.*;
+import it.unipi.mdwt.flconsole.utils.Constants;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -8,56 +9,37 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static it.unipi.mdwt.flconsole.utils.Constants.COOKIE;
+import static it.unipi.mdwt.flconsole.utils.Constants.*;
 import static java.lang.Thread.sleep;
 
 //
 public class DirectorSimulatorTest {
-    private static final String COLLECTOR_MAILBOX = "collectorMbox";
-    private static final String DIRECTOR_NODE_NAME = "directorNode";
-    private static final String DIRECTOR_MAILBOX = "expRequestHandler";
-    private static final String COLLECTOR_NAME_NODE = "collectorNode";
 
     @Test
     void directorSimulator() {
         try {
             OtpNode node = new OtpNode(DIRECTOR_NODE_NAME, COOKIE);
             OtpMbox mbox = node.createMbox(DIRECTOR_MAILBOX);
-            while(true) {
+
+            while (true) {
                 System.out.println("Director: Waiting for message...");
                 OtpErlangObject message = mbox.receive();
-                if (message instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
-                        tuple.elementAt(0) instanceof OtpErlangPid pid && tuple.elementAt(1) instanceof OtpErlangString expConfig) {
-                    OtpNode collectorNode = new OtpNode(COLLECTOR_NAME_NODE, COOKIE);
-                    OtpMbox collectorMbox = collectorNode.createMbox(COLLECTOR_MAILBOX);
-                    ExecutorService executor = Executors.newSingleThreadExecutor();
-                    try {
-                        executor.execute(() -> collectorSimulator(collectorMbox));
-                    } finally {
-                        executor.shutdown(); // Shutdown the executor when done
+                System.out.println("Director: Received message: " + message.toString());
+                if (message instanceof OtpErlangTuple tuple && tuple.arity() == 3) {
+                    if (tuple.elementAt(2) instanceof OtpErlangPid pid) {
+                        OtpErlangObject[] ackMessage = new OtpErlangObject[2];
+                        ackMessage[0] = new OtpErlangAtom("fl_start_str_run");
+                        ackMessage[1] = new OtpErlangString("{\\\"timestamp\\\":1712206255,\\\"type\\\":\\\"experiment_queued\\\"}");
+                        mbox.send(pid, new OtpErlangTuple(ackMessage));
                     }
-                    OtpErlangObject[] ackMessage = new OtpErlangObject[2];
-                    ackMessage[0] = new OtpErlangAtom("ack");
-                    ackMessage[1] = collectorMbox.self();
-                    System.out.println("Director: Sending ack message to the receiver...");
-                    mbox.send(pid, new OtpErlangTuple(ackMessage));
-                    System.out.println("Director: Sending to FL partecipants...");
-                    sleep(3000);
-                    System.out.println("Director: Sending to collector node the pid of the receiver...");
-                    mbox.send(collectorMbox.self(), pid);
-                } else if (message instanceof OtpErlangAtom atom && atom.atomValue().equals("stop")) {
-                    System.out.println("Director: Stopping the director...");
-                    break;
-                } else {
-                    System.out.println("Director: Invalid message format.");
                 }
             }
-        } catch (IOException | OtpErlangDecodeException | OtpErlangExit | InterruptedException e) {
+        } catch (OtpErlangDecodeException | OtpErlangExit | IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void collectorSimulator(OtpMbox collectorMbox) {
+        private void collectorSimulator(OtpMbox collectorMbox) {
         try {
             Random random = new Random();
             // In this simulation after the director gives to the collector the pid

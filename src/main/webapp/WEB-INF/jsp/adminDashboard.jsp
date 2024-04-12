@@ -45,32 +45,43 @@
                 <input type="text" class="form-control me-2 my-2" name="config-name-modal" id="config-name-modal"
                     required placeholder="Configuration name" />
 
-                <select id="ClientStrategyModal" class="form-select me-2 my-2">
-                    <option selected>Client strategy</option>
-                    <option value="1">One</option>
-                    <option value="2">Two</option>
-                    <option value="3">Three</option>
-                </select>
-
-                <input type="number" class="form-control me-2 my-2" name="NumberOfClients" step="1"
-                    id="NumberOfClients" required placeholder="Number of clients" />
-
                 <select id="AlgorithmModal" class="form-select me-2">
                     <option selected>Algorithm</option>
-                    <option value="1">Algorithm one</option>
-                    <option value="2">Algorithm two</option>
-                    <option value="3">Algorithm three</option>
+                    <option value="fcmeans">Fcmeans</option>
                 </select>
+
+                <select id="codeLanguage" class="form-select me-2 my-2">
+                    <option selected>Code Language</option>
+                    <option value="java">Java</option>
+                    <option value="python">Python</option>
+                </select>
+
+                <select id="ClientStrategyModal" class="form-select me-2 my-2">
+                    <option selected>Client strategy</option>
+                    <option value="probability">Probability</option>
+                    <option value="ranking">Ranking</option>
+                    <option value="threshold">Threshold</option>
+                </select>
+
+                <input type="number" class="form-control me-2 my-2" name="ClientSelectionRatio" min="0" max="1" step="0.00001"
+                       id="ClientSelectionRatio" required placeholder="Client Selection Ratio" />
+
+                <input type="number" class="form-control me-2 my-2" name="MinNumberOfClients" step="1"
+                    id="MinNumberOfClients" required placeholder="Minimum Number of clients" />
 
                 <select id="StopConditionModal" class="form-select me-2 my-2">
                     <option selected>Stop condition</option>
-                    <option value="1">One</option>
-                    <option value="2">Two</option>
-                    <option value="3">Three</option>
+                    <option value="custom">Custom</option>
+                    <option value="max_number_rounds">Maximum Number of Rounds</option>
+                    <option value="metric_under_threshold">Metric Under Threshold</option>
+                    <option value="metric_over_threshold">Metric Over Threshold</option>
                 </select>
 
                 <input type="number" class="form-control me-2 my-2" name="StopThreshold" step="0.00001" min="0"
                     max="1" id="StopThreshold" required placeholder="Stop condition threshold" />
+
+                <input type="number" class="form-control me-2 my-2" name="StopThreshold" step="1" min="1"
+                       max="30" id="MaxNumRounds" required placeholder="Maximum Number of Rounds" />
 
                 <table id="parametersTable" class="table mt-3 text-center my-2">
                     <thead>
@@ -80,16 +91,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Row 1 -->
-                        <tr>
-                            <td contenteditable="true">Parameter 1</td>
-                            <td contenteditable="true">Value 1</td>
-                        </tr>
-                        <!-- Row 2 -->
-                        <tr>
-                            <td contenteditable="true">Parameter 2</td>
-                            <td contenteditable="true">Value 2</td>
-                        </tr>
                     </tbody>
                 </table>
                 <div class="text-end my-3">
@@ -148,17 +149,20 @@
 
                     <select class="form-select me-2" id="ClientStrategy">
                         <option value="" selected>Client strategy</option>
-                        <option value="1">One</option>
-                        <option value="2">Two</option>
-                        <option value="3">Three</option>
+                        <option value="probability">Probability</option>
+                        <option value="ranking">Ranking</option>
+                        <option value="threshold">Threshold</option>
                     </select>
 
                     <select class="form-select me-2" id="StopCondition">
                         <option value="" selected>Stop condition</option>
-                        <option value="1">One</option>
-                        <option value="2">Two</option>
-                        <option value="3">Three</option>
+                        <option value="custom">Custom</option>
+                        <option value="max_number_rounds">Maximum Number of Rounds</option>
+                        <option value="metric_under_threshold">Metric Under Threshold</option>
+                        <option value="metric_over_threshold">Metric Over Threshold</option>
                     </select>
+
+
 
                     <a onclick="displayConfigModal()" class="btn btn-primary">New</a>
                 </div>
@@ -172,10 +176,9 @@
                             <th>Config Name</th>
                             <th>Algorithm</th>
                             <th>Client Selection Strategy</th>
-                            <th>Num. Clients</th>
+                            <th>Min. num. Clients</th>
                             <th>Stop Condition</th>
                             <th>Created At</th>
-                            <th>Updated At</th>
                             <th>Delete</th>
                         </tr>
                     </thead>
@@ -223,18 +226,15 @@
                         </tr>
                     </thead>
                     <tbody>
-
-
-
                     <c:forEach items="${experiments}" var="exp">
-                            <tr>
-                                <td class='align-middle'>${exp.id}</td>
-                                <td class='align-middle'>${exp.name}</td>
-                                <td class='align-middle'>${exp.configName}</td>
-                                <td class='align-middle'>${exp.creationDate}</td>
-                                <td class='align-middle'><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
-                            </tr>
-                        </c:forEach>
+                        <tr>
+                            <td class='align-middle'>${exp.id}</td>
+                            <td class='align-middle'>${exp.name}</td>
+                            <td class='align-middle'>${exp.configName}</td>
+                            <td class='align-middle'>${exp.creationDate}</td>
+                            <td class='align-middle'><a href="/admin/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
+                        </tr>
+                    </c:forEach>
                     </tbody>
                 </table>
             </div>
@@ -267,8 +267,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 
     <script>
-        let configurations = ${configurations};
+        let configurations = null;
+        let currentConfigPage = 0;
+        let totalConfigPages = 1;
+
+        <c:if test="${not empty configurations}">
+        configurations = ${configurations};
         configurations.forEach(addNewConfigToList);
+        // Variables for pagination of configurations
+        totalConfigPages = ${totalConfigPages};
+        </c:if>
+
+
+
+        // Variables for pagination of experiments
+        let currentExpPage = 0;
+        let totalExpPages = 1;
+        <c:if test="${not empty totalExpPages}">
+            totalExpPages = ${totalExpPages};
+        </c:if>
+
 
         $(document).ready(function () {
             // Event listener for tab clicks
@@ -289,11 +307,11 @@
                 $(targetTab).show();
             });
 
-            $('#execution-name, #config-name').on('input', function() {
+            $('#execution-name, #config-name').on('input', function () {
                 searchExp();
             });
 
-            $('#ExpConfigName, #ClientStrategy, #StopCondition').on('input', function() {
+            $('#ExpConfigName, #ClientStrategy, #StopCondition').on('input', function () {
                 searchConfig();
             });
         });
@@ -302,13 +320,16 @@
             // Get values from input fields
             const name = $("#config-name-modal").val().trim();
             const strategy = $("#ClientStrategyModal").val();
-            const numClients = $("#NumberOfClients").val().trim();
+            const numClients = $("#MinNumberOfClients").val();
             const algorithm = $("#AlgorithmModal").val();
             const stopCondition = $("#StopConditionModal").val();
             const threshold = $("#StopThreshold").val().trim();
+            const maxNumRounds = $("#MaxNumRounds").val();
+            const codeLanguage = $("#codeLanguage").val();
+            const clientSelectionRatio = $("#ClientSelectionRatio").val();
 
             // Check if mandatory parameters are provided
-            if (name === "" || strategy === "Client strategy" || numClients === "" || algorithm === "Algorithm" || stopCondition === "Stop condition" || threshold === "") {
+            if (name === "" || strategy === "Client strategy" || numClients === "" || algorithm === "Algorithm" || stopCondition === "Stop condition" || threshold === "" || maxNumRounds === "" || codeLanguage === "Code Language" || clientSelectionRatio === "") {
                 // Display an error modal with the names of missing mandatory parameters
                 displayErrorModal("Parameters", {
                     "Name": name === "" ? "Missing" : name,
@@ -316,17 +337,23 @@
                     "Number of Clients": numClients === "" ? "Missing" : numClients,
                     "Algorithm": algorithm === "Algorithm" ? "Missing" : algorithm,
                     "Stop Condition": stopCondition === "Stop condition" ? "Missing" : stopCondition,
-                    "Threshold": threshold === "" ? "Missing" : threshold
+                    "Threshold": threshold === "" ? "Missing" : threshold,
+                    "maxNumRounds": maxNumRounds === "" ? "Missing" : maxNumRounds,
+                    "codeLanguage": codeLanguage === "Code Language" ? "Missing" : codeLanguage,
+                    "clientSelectionRatio": clientSelectionRatio === "" ? "Missing" : clientSelectionRatio
                 });
             } else {
                 // If all mandatory parameters are provided, proceed with creating the formData object
                 const formData = {
                     "name": name,
                     "strategy": strategy,
-                    "numClients": numClients,
+                    "minNumberOfClients": numClients,
                     "algorithm": algorithm,
                     "stopCondition": stopCondition,
-                    "threshold": threshold
+                    "threshold": threshold,
+                    "maxNumRounds": maxNumRounds,
+                    "codeLanguage": codeLanguage,
+                    "clientSelectionRatio": Number(clientSelectionRatio)
                 };
 
                 // Take the parameters from the table and add them to the formData object
@@ -337,8 +364,9 @@
                     parameters[parameterName] = $(row).find("td:eq(1)").text();
                 });
 
+                console.log("Parameters:", parameters);
                 // Only add parameters field to formData if there are parameters
-                if (Object.keys(parameters).rowCount > 0) {
+                if (parameters !== {}) {
                     formData["parameters"] = parameters;
                 }
 
@@ -355,7 +383,7 @@
 
                         formData["id"] = jsonData.id;
                         formData["creationDate"] = jsonData.creationTime;
-                        formData["lastUpdate"] = jsonData.lastUpdate;
+
 
                         console.log("New config:", formData);
                         addNewConfigToList(formData);
@@ -380,10 +408,9 @@
                 '<td class="align-middle">' + name + '</td>' +
                 '<td class="align-middle">' + algorithm + '</td>' +
                 '<td class="align-middle">' + formData.strategy + '</td>' +
-                '<td class="align-middle">' + formData.numClients + '</td>' +
+                '<td class="align-middle">' + formData.minNumClients + '</td>' +
                 '<td class="align-middle">' + formData.stopCondition + '</td>' +
                 '<td class="align-middle">' + formData.creationDate + '</td>' +
-                '<td class="align-middle">' + formData.lastUpdate + '</td>' +
                 '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + id + '\')" height="20px" width="20px"></figure></td>' +
                 '</tr>';
 
@@ -392,7 +419,7 @@
             // Add the option to the dropdown menu
             const selectElement = document.getElementById("FL_config_value");
             const option = document.createElement("option");
-            option.value = JSON.stringify({ id, name, algorithm });
+            option.value = JSON.stringify({id, name, algorithm});
             option.text = name;
             selectElement.appendChild(option);
         }
@@ -460,7 +487,7 @@
                 table.tBodies[0].deleteRow(rowCount - 1);
             }
 
-            const newRowCount =  rowCount - 1;
+            const newRowCount = rowCount - 1;
             // Hide the delete button if there is only one row
             if (newRowCount === 1) {
                 const deleteButton = document.getElementById("remove-parameter");
@@ -488,7 +515,7 @@
 
             // Construct the HTML content for Err-Message using the JSON parameters
             let errorMessage = "<ul>";
-            Object.keys(params).forEach(function(param) {
+            Object.keys(params).forEach(function (param) {
                 errorMessage += "<li>" + param + ": " + params[param] + "</li>";
             });
             errorMessage += "</ul>";
@@ -525,7 +552,7 @@
                 "<td class='align-middle'>" + executionName + "</td>" +
                 "<td class='align-middle'>" + configName + "</td>" +
                 "<td class='align-middle'>" + creationDate + "</td>" +
-                '<td class="align-middle"><a href="/experiment-' + id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>' +
+                '<td class="align-middle"><a href="/admin/experiment-' + id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>' +
                 "</tr>";
 
             table.append(newRow);
@@ -649,10 +676,10 @@
                     executionName: executionName,
                     page: 0
                 },
-                success: function(response) {
+                success: function (response) {
                     updateExpTable(response);
                 },
-                error: function(xhr) {
+                error: function (xhr) {
                     console.error(xhr.responseText);
                 }
             });
@@ -664,14 +691,14 @@
             // Extract the list from the response
             const configurations = response.content;
 
-            $.each(configurations, function(index, item) {
+            $.each(configurations, function (index, item) {
                 const row = $('<tr>').append(
                     "<td class='align-middle'>" + item.id + "</td>" +
                     "<td class='align-middle'>" + item.name + "</td>" +
                     "<td class='align-middle'>" + item.configName + "</td>" +
                     "<td class='align-middle'>" + item.creationDate + "</td>" +
                     '<td class="align-middle"><a href="/experiment-' + item.id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>'
-            );
+                );
                 $('#tab2Content tbody').append(row);
             });
         }
@@ -694,12 +721,12 @@
                     stopCondition: stopCondition,
                     page: 0
                 },
-                success: function(response) {
+                success: function (response) {
                     // Call function to update configuration table
                     console.log(response);
                     updateConfigTable(response);
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     // Handle error
                     console.error(xhr.responseText);
                 }
@@ -715,7 +742,7 @@
             const configurations = response.content;
 
             // Insert rows based on the response
-            $.each(configurations, function(index, item) {
+            $.each(configurations, function (index, item) {
                 const row = '<tr>' +
                     '<td class="align-middle">' + item.id + '</td>' +
                     '<td class="align-middle">' + item.name + '</td>' +
@@ -733,21 +760,15 @@
 
         }
 
-        // Variables for pagination of configurations
-        let currentConfigPage = 0;
-        let totalConfigPages = ${totalConfigPages};
-
-        // Variables for pagination of experiments
-        let currentExpPage = 0;
-        let totalExpPages = ${totalExpPages};
 
         // Function to retrieve the next page of configurations
         function nextConfigPage() {
-            if (currentConfigPage < totalConfigPages-1) {
+            if (currentConfigPage < totalConfigPages - 1) {
                 currentConfigPage++;
                 getConfigurations();
             }
         }
+
         // Function to retrieve the previous page of configurations
         function prevConfigPage() {
             if (currentConfigPage > 0) {
@@ -758,7 +779,7 @@
 
         // Function to retrieve the next page of experiments
         function nextExpPage() {
-            if (currentExpPage < totalExpPages-1) {
+            if (currentExpPage < totalExpPages - 1) {
                 currentExpPage++;
                 getExperiments();
             }
@@ -786,12 +807,12 @@
                     stopCondition: stopCondition,
                     page: currentConfigPage
                 },
-                success: function(response) {
+                success: function (response) {
                     currentConfigPage = response.number;
                     totalConfigPages = response.totalPages;
                     updateConfigTable(response);
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error(xhr.responseText);
                 }
             });
@@ -809,12 +830,12 @@
                     executionName: executionName,
                     page: currentExpPage
                 },
-                success: function(response) {
+                success: function (response) {
                     currentExpPage = response.number;
                     totalExpPages = response.totalPages;
                     updateExpTable(response);
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error(xhr.responseText);
                 }
             });
