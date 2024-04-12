@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
 
@@ -222,7 +221,7 @@ public class AdminController {
     @GetMapping("/getExperiments")
     public ResponseEntity<Page<ExperimentSummary>> searchExp(@RequestParam int page, String executionName, String configName, HttpServletRequest request) {
         String email = cookieService.getCookieValue(request.getCookies(),"email");
-        Page<ExperimentSummary> experiments = experimentService.searchMyExperiments(email, executionName, configName, page);
+        Page<ExperimentSummary> experiments = experimentService.getMyExperiments(email, executionName, configName, page);
         return ResponseEntity.ok(experiments);
     }
 

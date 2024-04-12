@@ -148,7 +148,7 @@
             </div>
         </div>
 
-        <div id="MetricsTableDiv" class="container-fluid d-flex justify-content-center ">
+        <div id="MetricsTableDiv" class="container-fluid d-flex justify-content-center mb-5">
             <table class="table container text-center mt-5">
                 <thead>
                 <tr>

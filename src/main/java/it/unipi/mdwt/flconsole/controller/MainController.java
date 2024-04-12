@@ -13,6 +13,7 @@ import it.unipi.mdwt.flconsole.utils.MessageType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.naming.AuthenticationException;
 import java.util.List;
@@ -29,6 +31,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
 
 @Controller
 public class MainController {
@@ -112,10 +116,44 @@ public class MainController {
 
     @GetMapping("/")
     public String home(Model model) {
-        List<Pair<ExperimentSummary, String>> experiments = experimentService.getExperimentsSummaryList(10);
+        Page<Experiment> experiments = experimentService.getExperiments(null, null, 0);
         model.addAttribute("experiments", experiments);
         return "userDashboard";
     }
+
+    @PostMapping("/getExperiments")
+    public ResponseEntity<Page<Experiment>> searchAllExp (@RequestParam int page, String expName, String configName) {
+        try {
+            applicationLogger.severe("Searching experiments with name: " + expName + " and configName: " + configName);
+            Page<Experiment> experiments = experimentService.getExperiments(expName, configName, page);
+            return ResponseEntity.ok(experiments);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /*@GetMapping("/")
+    public String home(Model model, @RequestParam(defaultValue = "0") int page,
+                       @RequestParam(defaultValue = "10") int pageSize) {
+        try {
+            // Retrieve recent experiments from the service using pagination
+            Page<Experiment> recentExperimentsPage = experimentService.getRecentExperiments(page, pageSize);
+
+            // Add the paginated list of recent experiments to the model
+            model.addAttribute("recentExperiments", recentExperimentsPage.getContent());
+
+            // Add pagination information to the model
+            model.addAttribute("currentPage", recentExperimentsPage.getNumber());
+            model.addAttribute("totalPages", recentExperimentsPage.getTotalPages());
+
+            return "home";
+        } catch (BusinessException e) {
+            // Handle business exception and return error view
+            applicationLogger.severe(e.getErrorType() + " occurred: " + e.getMessage());
+            model.addAttribute("error", "Internal server error");
+            return "error";
+        }
+    }*/
 
     @GetMapping("/experiment-{id}")
     public String experimentDetails(@PathVariable String id, Model model, HttpServletRequest request) {

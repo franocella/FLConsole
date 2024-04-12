@@ -42,32 +42,29 @@
         <div class="container py-2 my-2" style="box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);">
             <div class="d-flex align-items-center">
                 <input type="text" class="form-control me-2" id="execution-name" required placeholder="Execution name"/>
-                <input type="text" class="form-control me-2"id="config-name" required placeholder="Configuration name"/>
-
-                <button class="btn btn-primary me-2">Search</button>
+                <input type="text" class="form-control me-2" id="config-name" required placeholder="Configuration name"/>
             </div>
 
 
-            <table class="table mt-3 text-center" style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
+            <table id="table" class="table mt-3 text-center" style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
                 <thead>
                 <tr>
                     <th>Id</th>
                     <th>Execution name</th>
-                    <th>Author</th>
                     <th>Config Name</th>
-                    <th>Open</th>
+                    <th>Creation date</th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
                 <!-- Examples -->
-                <c:forEach items="${experiments}" var="exp">
+                <c:forEach items="${experiments.content}" var="exp">
                     <tr>
-                        <td>${exp.getFirst().id}</td>
-                        <td>${exp.getFirst().name}</td>
-                        <td>${exp.getSecond()}</td>
-                        <td>${exp.getFirst().configName}</td>
-                        <td>${exp.getFirst().creationDate}</td>
-                        <td><a href="/experiment-${exp.getFirst().id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
+                        <td>${exp.id}</td>
+                        <td>${exp.name}</td>
+                        <td>${exp.expConfig.name}</td>
+                        <td>${exp.creationDate}</td>
+                        <td><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
                     </tr>
                 </c:forEach>
                 </tbody>
@@ -92,56 +89,125 @@
 
     <!-- External scripts for jQuery, Bootstrap, and custom JavaScript files -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
     <script>
+        // Variables for pagination of experiments
+        let currentExpPage = 0;
+        let totalExpPages = 1;
+        totalExpPages = ${experiments.totalPages};
 
-    let experiments = ${experiments};
-    configurations.forEach(addExperimentToList);
-
-
-
-    function addExperimentToList(formData) {
-
-    }
-
-    function displayErrorModal(title, params) {
-        const overlayElement = $("#overlay-ov");
-        overlayElement.css("display", "block");
-
-        $("body").css("overflow-y", "hidden");
-
-        const modalElement = $("#error-modal");
-        modalElement.css("display", "block");
-
-        // Set the text of the Err-Title element
-        $("#Err-Title").text(title);
-
-        // Construct the HTML content for Err-Message using the JSON parameters
-        let errorMessage = "<ul>";
-        Object.keys(params).forEach(function(param) {
-            errorMessage += "<li>" + param + ": " + params[param] + "</li>";
+        $(document).ready(function () {
+            // Event listener for the search button
+            $('#execution-name, #config-name').on('input', function () {
+                getExperiments();
+            });
         });
-        errorMessage += "</ul>";
 
-        $("#Err-Message").html(errorMessage);
+        function displayErrorModal(title, params) {
+            const overlayElement = $("#overlay-ov");
+            overlayElement.css("display", "block");
 
-        // Show the close button
-        $("#close-error-modal").css("display", "block");
-    }
+            $("body").css("overflow-y", "hidden");
 
-    function closeErrorModal() {
-        const overlayElement = $("#overlay-ov");
-        overlayElement.css("display", "none");
+            const modalElement = $("#error-modal");
+            modalElement.css("display", "block");
 
-        $("body").css("overflow-y", "auto");
+            // Set the text of the Err-Title element
+            $("#Err-Title").text(title);
 
-        const modalElement = $("#error-modal");
-        modalElement.css("display", "none");
+            // Construct the HTML content for Err-Message using the JSON parameters
+            let errorMessage = "<ul>";
+            Object.keys(params).forEach(function (param) {
+                errorMessage += "<li>" + param + ": " + params[param] + "</li>";
+            });
+            errorMessage += "</ul>";
 
-        // Hide the close button
-        $("#close-error-modal").css("display", "none");
-    }
+            $("#Err-Message").html(errorMessage);
 
+            // Show the close button
+            $("#close-error-modal").css("display", "block");
+        }
+
+        function closeErrorModal() {
+            const overlayElement = $("#overlay-ov");
+            overlayElement.css("display", "none");
+
+            $("body").css("overflow-y", "auto");
+
+            const modalElement = $("#error-modal");
+            modalElement.css("display", "none");
+
+            // Hide the close button
+            $("#close-error-modal").css("display", "none");
+        }
+
+        function formatDateString(dateString) {
+            if (!dateString) return "";
+            return moment(dateString).format('ddd MMM DD HH:mm:ss ZZ YYYY');
+        }
+
+        function updateExpTable(response) {
+            $('#table tbody').empty();
+
+            // Extract the list from the response
+            const configurations = response.content;
+
+            $.each(configurations, function (index, item) {
+                const row = $('<tr>').append(
+                    "<td class='align-middle'>" + item.id + "</td>" +
+                    "<td class='align-middle'>" + item.name + "</td>" +
+                    "<td class='align-middle'>" + item.expConfig.name + "</td>" +
+                    "<td class='align-middle'>" + item.creationDate + "</td>" +
+                    '<td class="align-middle"><a href="/experiment-' + item.id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>'
+                );
+                $('#table tbody').append(row);
+            });
+        }
+
+        // Function to retrieve the next page of experiments
+        function nextExpPage() {
+            if (currentExpPage < totalExpPages - 1) {
+                currentExpPage++;
+                getExperiments(currentExpPage);
+            }
+        }
+
+        // Function to retrieve the previous page of experiments
+        function prevExpPage() {
+            if (currentExpPage > 0) {
+                currentExpPage--;
+                getExperiments(currentExpPage);
+            }
+        }
+
+        // Function to retrieve experiments of the current page via an AJAX call
+        function getExperiments(page = 0) {
+            const executionName = $('#execution-name').val();
+            const configName = $('#config-name').val();
+            console.log(executionName, configName);
+            $.ajax({
+                url: '/getExperiments',
+                method: 'POST',
+                data: {
+                    configName: configName,
+                    expName: executionName,
+                    page: page
+                },
+                success: function (response) {
+                    console.log(response);
+                    currentExpPage = response.number;
+                    totalExpPages = response.totalPages;
+                    updateExpTable(response);
+                },
+                error: function (xhr) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
     </script>
 </body>
 

@@ -1,5 +1,6 @@
 package it.unipi.mdwt.flconsole.service;
 
+import it.unipi.mdwt.flconsole.dao.MetricsDao;
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
 import it.unipi.mdwt.flconsole.dao.UserDao;
 import it.unipi.mdwt.flconsole.model.Experiment;
@@ -11,12 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -64,7 +67,7 @@ public class ExperimentService {
         }
     }
 
-    public Page<ExperimentSummary> searchMyExperiments(String email, String expName, String configName, int page) throws BusinessException {
+    public Page<ExperimentSummary> getMyExperiments(String email, String expName, String configName, int page) throws BusinessException {
         try {
             if (page < 0 || PAGE_SIZE <= 0) {
                 throw new IllegalArgumentException("Page and nElem must be non-negative integers.");
@@ -117,25 +120,45 @@ public class ExperimentService {
         mongoTemplate.updateFirst(query, update, User.class);
     }
 
-    public List<Pair<ExperimentSummary, String>> getExperimentsSummaryList(int n) {
-        Pageable pageable = PageRequest.of(0, n); // First n experiments
-        List<User> users = userDAO.findAll(pageable).getContent();
-        List<Pair<ExperimentSummary, String>> experimentsWithAuthors = new ArrayList<>();
-
-        for (User user : users) {
-            List<ExperimentSummary> userExperiments = user.getExperiments();
-            if (userExperiments != null) { // Check if the collection is not null
-                for (ExperimentSummary experiment : userExperiments) {
-                    String authorEmail = user.getEmail();
-                    Pair<ExperimentSummary, String> experimentWithAuthor = Pair.of(experiment, authorEmail);
-                    experimentsWithAuthors.add(experimentWithAuthor);
-                    if (experimentsWithAuthors.size() >= n) {
-                        break; // Stop iterating if we have collected enough experiments
-                    }
-                }
+    public Page<Experiment> getExperiments(String expName, String configName, int page) {
+        try {
+            if (page < 0 || PAGE_SIZE <= 0) {
+                throw new IllegalArgumentException("Page and nElem must be non-negative integers.");
             }
-        }
 
-        return experimentsWithAuthors;
+            // Create a list to hold the search criteria pairs
+            List<Pair<String, String>> criteriaList = new ArrayList<>();
+
+            // Add criteria pairs to the list if the values are provided and not empty
+            if (expName != null && !expName.isEmpty()) {
+                criteriaList.add(Pair.of("name", expName));
+                applicationLogger.severe("ExpName: " + expName);
+            }
+            if (configName != null && !configName.isEmpty()) {
+                criteriaList.add(Pair.of("expConfig.name", configName));
+                applicationLogger.severe("ConfigName: " + configName);
+            }
+
+            // Create a query to search for ExpConfig objects based on the provided criteria
+            Query query = new Query();
+            for (Pair<String, String> criterion : criteriaList) {
+                query.addCriteria(Criteria.where(criterion.getFirst()).regex(criterion.getSecond(), "i"));
+            }
+
+            // Set the page number and limit the results to the specified maximum number of elements
+            query.with(PageRequest.of(page, PAGE_SIZE));
+            // Retrieve the matching ExpConfig objects from the database
+            List<Experiment> matchingExperiments = mongoTemplate.find(query, Experiment.class);
+            applicationLogger.severe("Matching experiments: " + matchingExperiments.size());
+
+            // Retrieve the total count of matching ExpConfig objects
+            long totalCount = mongoTemplate.count(query, Experiment.class);
+            applicationLogger.severe("Total count: " + totalCount);
+            // Create a Page object using the retrieved ExpConfig objects, the requested page, and the total count
+            return PageableExecutionUtils.getPage(matchingExperiments, PageRequest.of(page, PAGE_SIZE), () -> totalCount);
+        } catch (Exception e) {
+            applicationLogger.severe("Error searching experiments: " + e.getMessage());
+            throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
+        }
     }
 }
