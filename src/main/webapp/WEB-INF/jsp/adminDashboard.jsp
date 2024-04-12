@@ -302,11 +302,11 @@
             <div class="d-flex justify-content-between position-fixed bottom-0 end-0" style="margin-bottom: 120px; margin-right: 80px">
                 <div class="d-flex gap-2">
                     <!-- Left arrow to decrease the page -->
-                    <button class="btn btn-primary" onclick="prevAllExpPage()">
+                    <button class="btn btn-primary" onclick="nextPage(currentAllExpPage, totalAllExpPages)">
                         &lt; Previous
                     </button>
                     <!-- Right arrow to increase the page -->
-                    <button class="btn btn-primary" onclick="nextAllExpPage()">
+                    <button class="btn btn-primary" onclick="prevPage(currentAllExpPage)">
                         Next &gt;
                     </button>
                 </div>
@@ -331,7 +331,6 @@
         let configurations = null;
         let currentConfigPage = 0;
         let totalConfigPages = 1;
-
         <c:if test="${not empty configurations}">
             configurations = ${configurations};
             configurations.forEach(addNewConfigToList);
@@ -349,7 +348,10 @@
         // Variables for pagination of experiments
         let currentAllExpPage = 0;
         let totalAllExpPages = 1;
-        totalAllExpPages = ${allExperiments.totalPages};
+        <c:if test="${not empty allExperiments}">
+            totalAllExpPages = ${allExperiments.getTotalPages()};
+        </c:if>
+
 
         $(document).ready(function () {
             // Event listener for tab clicks
@@ -824,7 +826,7 @@
         function nextExpPage() {
             if (currentExpPage < totalExpPages - 1) {
                 currentExpPage++;
-                getExperiments(currentExpPage);
+                getMyExperiments(currentExpPage);
             }
         }
 
@@ -832,7 +834,7 @@
         function prevExpPage() {
             if (currentExpPage > 0) {
                 currentExpPage--;
-                getExperiments(currentExpPage);
+                getMyExperiments(currentExpPage);
             }
         }
 
@@ -909,10 +911,12 @@
 
         // Function to retrieve the next page of experiments
         function nextAllExpPage() {
-            if (currentAllExpPage < totalAllExpPages - 1) {
+            if (currentAllExpPage < totalAllExpPages -1) {
                 currentAllExpPage++;
                 getExperiments(currentAllExpPage);
             }
+            console.log("currentAllExpPage " + currentAllExpPage);
+
         }
 
         // Function to retrieve the previous page of experiments
@@ -921,10 +925,27 @@
                 currentAllExpPage--;
                 getExperiments(currentAllExpPage);
             }
+            console.log("currentAllExpPage " + currentAllExpPage);
+
         }
+
+        function nextPage(pageNumber, totalPage){
+            if (pageNumber < totalPage -1) {
+                pageNumber++;
+                getExperiments(pageNumber);
+            }
+        }
+        function prevPage(pageNumber){
+            if (pageNumber > 0) {
+                pageNumber--;
+                getExperiments(pageNumber);
+            }
+        }
+
 
         // Function to retrieve experiments of the current page via an AJAX call
         function getExperiments(page = 0) {
+            console.log("page " + page);
             const executionName = $('#all-execution-name').val();
             const configName = $('#all-config-name').val();
             console.log(executionName, configName);

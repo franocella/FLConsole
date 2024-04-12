@@ -79,7 +79,9 @@ public class AdminController {
                 model.addAttribute("totalExpPages", totalExpPages);
             }
 
+
             Page<Experiment> experiments = experimentService.getExperiments(null, null, 0);
+            applicationLogger.severe("Experiments Pages number: " + experiments.getTotalPages());
             model.addAttribute("allExperiments", experiments);
 
             return "adminDashboard";

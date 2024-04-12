@@ -186,6 +186,7 @@
 
         // Function to retrieve experiments of the current page via an AJAX call
         function getExperiments(page = 0) {
+
             const executionName = $('#execution-name').val();
             const configName = $('#config-name').val();
             console.log(executionName, configName);
