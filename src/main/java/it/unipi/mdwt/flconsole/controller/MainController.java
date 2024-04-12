@@ -12,6 +12,7 @@ import it.unipi.mdwt.flconsole.utils.MessageType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.naming.AuthenticationException;
 import java.util.List;
@@ -28,6 +30,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
 
 @Controller
 public class MainController {
@@ -111,11 +115,22 @@ public class MainController {
 
     @GetMapping("/")
     public String home(Model model, HttpServletRequest request) {
-        List<Pair<ExperimentSummary, String>> experiments = experimentService.getExperimentsSummaryList(10);
+        List<Pair<ExperimentSummary, String>> experiments = experimentService.getExperimentsSummaryList(PAGE_SIZE, null, null);
         model.addAttribute("experiments", experiments);
         return "userDashboard";
     }
 
+    @PostMapping("/searchAllExp")
+    public ResponseEntity<List<Pair<ExperimentSummary, String>>> searchAllExp(
+            @RequestParam(required = false) String expName,
+            @RequestParam(required = false) String configName) {
+        try {
+            List<Pair<ExperimentSummary, String>> experiments = experimentService.getExperimentsSummaryList(PAGE_SIZE, expName, configName);
+            return new ResponseEntity<>(experiments, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     /*@GetMapping("/")
     public String home(Model model, @RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = "10") int pageSize) {

@@ -98,12 +98,6 @@
     let experiments = ${experiments};
     configurations.forEach(addExperimentToList);
 
-
-
-    function addExperimentToList(formData) {
-
-    }
-
     function displayErrorModal(title, params) {
         const overlayElement = $("#overlay-ov");
         overlayElement.css("display", "block");

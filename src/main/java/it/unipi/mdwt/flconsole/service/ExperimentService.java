@@ -29,6 +29,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
@@ -163,26 +164,27 @@ public class ExperimentService {
         mongoTemplate.updateFirst(query, update, User.class);
     }
 
-    public List<Pair<ExperimentSummary, String>> getExperimentsSummaryList(int n) {
+    public List<Pair<ExperimentSummary, String>> getExperimentsSummaryList(int n, String expName, String configName) {
         Pageable pageable = PageRequest.of(0, n); // First n experiments
         List<User> users = userDAO.findAll(pageable).getContent();
-        List<Pair<ExperimentSummary, String>> experimentsWithAuthors = new ArrayList<>();
 
-        for (User user : users) {
-            List<ExperimentSummary> userExperiments = user.getExperiments();
-            if (userExperiments != null) { // Check if the collection is not null
-                for (ExperimentSummary experiment : userExperiments) {
-                    String authorEmail = user.getEmail();
-                    Pair<ExperimentSummary, String> experimentWithAuthor = Pair.of(experiment, authorEmail);
-                    experimentsWithAuthors.add(experimentWithAuthor);
-                    if (experimentsWithAuthors.size() >= n) {
-                        break; // Stop iterating if we have collected enough experiments
-                    }
-                }
-            }
-        }
+        // Filter experiments if needed
+        Stream<Pair<ExperimentSummary, String>> experimentsStream = users.stream()
+                .flatMap(user -> {
+                    List<ExperimentSummary> filteredExperiments = user.getExperiments().stream()
+                            .filter(experiment ->
+                                    (expName == null || experiment.getName().toLowerCase().contains(expName.toLowerCase())) &&
+                                            (configName == null || experiment.getConfigName().toLowerCase().contains(configName.toLowerCase())))
+                            .toList();
+                    return filteredExperiments.stream()
+                            .map(experiment -> Pair.of(experiment, user.getEmail()));
+                });
 
-        return experimentsWithAuthors;
+        // Collect experiments with their authors
+
+        return experimentsStream
+                .limit(n)
+                .collect(Collectors.toList());
     }
 
 
