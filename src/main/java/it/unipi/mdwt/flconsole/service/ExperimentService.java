@@ -1,10 +1,9 @@
 package it.unipi.mdwt.flconsole.service;
 
-import it.unipi.mdwt.flconsole.dao.MetricsDao;
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
 import it.unipi.mdwt.flconsole.dao.UserDao;
-import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.dto.ExperimentSummary;
+import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessTypeErrorsEnum;
@@ -12,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -19,9 +19,11 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -34,20 +36,19 @@ public class ExperimentService {
 
     private final ExperimentDao experimentDao;
     private final Logger applicationLogger;
-    private final UserDao userDAO;
     private final MessageService messageService;
     private final MongoTemplate mongoTemplate;
     private final ExecutorService experimentExecutor;
+    private final UserDao userDao;
 
     @Autowired
-    public ExperimentService(ExperimentDao experimentDao, Logger applicationLogger,
-                             UserDao userDAO, MessageService messageService, MongoTemplate mongoTemplate, ExecutorService executorService) {
+    public ExperimentService(ExperimentDao experimentDao, Logger applicationLogger, MessageService messageService, MongoTemplate mongoTemplate, ExecutorService executorService, UserDao userDao) {
         this.experimentDao = experimentDao;
         this.applicationLogger = applicationLogger;
-        this.userDAO = userDAO;
         this.messageService = messageService;
         this.mongoTemplate = mongoTemplate;
         this.experimentExecutor = executorService;
+        this.userDao = userDao;
     }
 
     public void runExp(String config, String expId) throws BusinessException{
@@ -73,7 +74,10 @@ public class ExperimentService {
                 throw new IllegalArgumentException("Page and nElem must be non-negative integers.");
             }
 
-            User user = userDAO.findByEmail(email);
+            User user = userDao.findByEmail(email);
+
+            applicationLogger.severe("ExpName: " + expName);
+            applicationLogger.severe("ConfigName: " + configName);
 
             // Filter the experiments by name and configuration name and sort them by creationDate in descending order
             List<ExperimentSummary> filteredExperiments = user.getExperiments().stream()
@@ -115,9 +119,13 @@ public class ExperimentService {
         experimentDao.deleteById(expId);
 
         // Remove the experiment from the user's list of experiments
-        Query query = new Query(where("email").is(email));
-        Update update = new Update().pull("experiments", new Query(where("id").is(expId)));
-        mongoTemplate.updateFirst(query, update, User.class);
+        Query userQuery = new Query(Criteria.where("email").is(email));
+        Update userUpdate = new Update().pull("experiments", expId);
+        mongoTemplate.updateFirst(userQuery, userUpdate, User.class);
+
+        // Remove the metrics linked to the deleted experiment
+        Query metricsQuery = new Query(Criteria.where("expId").is(expId));
+        mongoTemplate.remove(metricsQuery, "metrics");
     }
 
     public Page<Experiment> getExperiments(String expName, String configName, int page) {
@@ -146,7 +154,8 @@ public class ExperimentService {
             }
 
             // Set the page number and limit the results to the specified maximum number of elements
-            query.with(PageRequest.of(page, PAGE_SIZE));
+            query.with(PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "creationDate")));
+
             // Retrieve the matching ExpConfig objects from the database
             List<Experiment> matchingExperiments = mongoTemplate.find(query, Experiment.class);
             applicationLogger.severe("Matching experiments: " + matchingExperiments.size());

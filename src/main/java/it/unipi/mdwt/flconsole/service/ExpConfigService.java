@@ -29,15 +29,15 @@ import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
 public class ExpConfigService {
 
     private final ExpConfigDao expConfigDao;
-    private final UserDao userDAO;
+    private final UserDao userDao;
     private final MongoTemplate mongoTemplate;
     private final Logger applicationLogger;
 
 
     @Autowired
-    public ExpConfigService(ExpConfigDao experimentDao, UserDao userDAO, MongoTemplate mongoTemplate, Logger applicationLogger) {
+    public ExpConfigService(ExpConfigDao experimentDao, UserDao userDao, MongoTemplate mongoTemplate, Logger applicationLogger) {
         this.expConfigDao = experimentDao;
-        this.userDAO = userDAO;
+        this.userDao = userDao;
         this.mongoTemplate = mongoTemplate;
         this.applicationLogger = applicationLogger;
     }
@@ -78,17 +78,17 @@ public class ExpConfigService {
      * @return              A Page containing the results.
      * @throws BusinessException If an error occurs during the search.
      */
-    public Page<ExpConfig> searchMyExpConfigs(String email, String configName, String clientStrategy, String stopCondition, int page) throws BusinessException {
+    public Page<ExpConfig> searchMyExpConfigs(String email, String configName, String clientStrategy, String stopCondition, String algorithm, int page) throws BusinessException {
         try {
             // Validate page and nElem parameters
             if (page < 0 || PAGE_SIZE <= 0) {
                 throw new IllegalArgumentException("Page and nElem must be non-negative integers.");
             }
 
-            User user = userDAO.findByEmail(email);
+            User user = userDao.findByEmail(email);
             List<String> confList = user.getConfigurations();
 
-            if (!StringUtils.hasText(configName) && !StringUtils.hasText(clientStrategy) && !StringUtils.hasText(stopCondition)) {
+            if (!StringUtils.hasText(configName) && !StringUtils.hasText(clientStrategy) && !StringUtils.hasText(stopCondition) && !StringUtils.hasText(algorithm)){
                 List<ExpConfig> matchingConfigs = expConfigDao.findTopNByIdInOrderByCreationDateDesc(confList, PageRequest.of(page, PAGE_SIZE));
                 return PageableExecutionUtils.getPage(matchingConfigs, PageRequest.of(page, PAGE_SIZE), confList::size);
             }
@@ -101,10 +101,15 @@ public class ExpConfigService {
                 criteriaList.add(Pair.of("name", configName));
             }
             if (clientStrategy != null && !clientStrategy.isEmpty()) {
-                criteriaList.add(Pair.of("strategy", clientStrategy));
+                criteriaList.add(Pair.of("clientSelectionStrategy", clientStrategy));
             }
             if (stopCondition != null && !stopCondition.isEmpty()) {
                 criteriaList.add(Pair.of("stopCondition", stopCondition));
+            }
+            if (algorithm != null && !algorithm.isEmpty()) {
+                criteriaList.add(Pair.of("algorithm", algorithm));
+                applicationLogger.info("Algorithm: " + algorithm);
+
             }
 
             // Create a query to search for ExpConfig objects based on the provided criteria

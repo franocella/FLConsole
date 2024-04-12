@@ -43,4 +43,7 @@ public class Validator {
         return StringUtils.hasText(password) && password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()-=_+\\[\\]{}|;:'\",.<>?/\\\\])(?=\\S+$).{8,}$");
     }
 
+    public static String createCookieName(String value) {
+        return value + "_cookie";
+    }
 }

@@ -132,10 +132,13 @@
     <div class="container" style="margin-top: 50px;">
         <ul class="nav nav-underline">
             <li class="nav-item">
-                <a class="nav-link active" href="#tab1Content">FL configuration</a>
+                <a class="nav-link active" href="#tab1Content">FL Configurations</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#tab2Content">FL execution</a>
+                <a class="nav-link" href="#tab2Content">My FL Experiments</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#tab3Content">All FL Experiments</a>
             </li>
         </ul>
 
@@ -147,6 +150,12 @@
                 <div class="d-flex align-items-center">
                     <input type="text" class="form-control me-2" name="config-name" id="ExpConfigName" required
                         placeholder="Configuration name" />
+
+                    <select class="form-select me-2" id="Algorithm">
+                        <option value="" selected>Algorithm</option>
+                        <option value="fcmeans">Fcmeans</option>
+                        <option value="kmeans">Kmeans</option>
+                    </select>
 
                     <select class="form-select me-2" id="ClientStrategy">
                         <option value="" selected>Client strategy</option>
@@ -202,7 +211,7 @@
             <div class="container py-2 my-2" style="box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);">
                 <div class="d-flex align-items-center">
                     <input type="text" class="form-control me-2" id="execution-name" required
-                        placeholder="Execution name" />
+                        placeholder="Experiment name" />
                     <input type="text" class="form-control me-2" id="config-name" required
                         placeholder="Configuration name" />
 
@@ -215,7 +224,7 @@
                     <thead>
                         <tr>
                             <th>Id</th>
-                            <th>Execution name</th>
+                            <th>Experiment Name</th>
                             <th>Config Name</th>
                             <th>Creation Date</th>
                             <th></th>
@@ -229,7 +238,7 @@
                             <td class='align-middle'>${exp.name}</td>
                             <td class='align-middle'>${exp.configName}</td>
                             <td class='align-middle'>${exp.creationDate}</td>
-                            <td class='align-middle'><a href="/admin/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
+                            <td class='align-middle'><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
                             <td class='align-middle'><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteExp('${exp.id}')" height="20px" width="20px"></figure></td>
                         </tr>
                     </c:forEach>
@@ -252,6 +261,60 @@
             </div>
 
         </div>
+
+        <%--TAB 3--%>
+        <div id="tab3Content" class="container tab-content" style="display: none;">
+            <div class="container py-2 my-2" style="box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);">
+                <div class="d-flex align-items-center">
+                    <input type="text" class="form-control me-2" id="all-execution-name" required
+                           placeholder="Experiment name" />
+                    <input type="text" class="form-control me-2" id="all-config-name" required
+                           placeholder="Configuration name" />
+                </div>
+
+
+                <table id="all-ExpTable" class="table mt-3 text-center"
+                       style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
+                    <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Experiment Name</th>
+                        <th>Config Name</th>
+                        <th>Creation Date</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <c:forEach items="${allExperiments.content}" var="exp">
+                        <tr>
+                            <td>${exp.id}</td>
+                            <td>${exp.name}</td>
+                            <td>${exp.expConfig.name}</td>
+                            <td>${exp.creationDate}</td>
+                            <td><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
+                        </tr>
+                    </c:forEach>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination buttons -->
+            <div class="d-flex justify-content-between position-fixed bottom-0 end-0" style="margin-bottom: 120px; margin-right: 80px">
+                <div class="d-flex gap-2">
+                    <!-- Left arrow to decrease the page -->
+                    <button class="btn btn-primary" onclick="prevAllExpPage()">
+                        &lt; Previous
+                    </button>
+                    <!-- Right arrow to increase the page -->
+                    <button class="btn btn-primary" onclick="nextAllExpPage()">
+                        Next &gt;
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+
     </div>
 
 
@@ -270,13 +333,11 @@
         let totalConfigPages = 1;
 
         <c:if test="${not empty configurations}">
-        configurations = ${configurations};
-        configurations.forEach(addNewConfigToList);
-        // Variables for pagination of configurations
-        totalConfigPages = ${totalConfigPages};
+            configurations = ${configurations};
+            configurations.forEach(addNewConfigToList);
+            // Variables for pagination of configurations
+            totalConfigPages = ${totalConfigPages};
         </c:if>
-
-
 
         // Variables for pagination of experiments
         let currentExpPage = 0;
@@ -285,6 +346,10 @@
             totalExpPages = ${totalExpPages};
         </c:if>
 
+        // Variables for pagination of experiments
+        let currentAllExpPage = 0;
+        let totalAllExpPages = 1;
+        totalAllExpPages = ${allExperiments.totalPages};
 
         $(document).ready(function () {
             // Event listener for tab clicks
@@ -306,11 +371,15 @@
             });
 
             $('#execution-name, #config-name').on('input', function () {
-                searchExp();
+                getMyExperiments();
             });
 
-            $('#ExpConfigName, #ClientStrategy, #StopCondition').on('input', function () {
-                searchConfig();
+            $('#ExpConfigName, #ClientStrategy, #StopCondition, #Algorithm').on('input', function () {
+                getConfigurations();
+            });
+
+            $('#all-execution-name, #all-config-name').on('input', function () {
+                getExperiments();
             });
         });
 
@@ -538,6 +607,7 @@
 
         function addNewExpToList(formData) {
             const table = $("#ExpTable");
+            const table2 = $("#all-ExpTable");
 
             const id = formData.id;
             const executionName = formData.name;
@@ -556,8 +626,20 @@
             if (table.find("tbody tr").length === <c:out value="<%= Constants.PAGE_SIZE %>" />) {
                 table.find("tbody tr:last").remove();
             }
-
             table.prepend(newRow);
+
+            const newRow2 = "<tr>" +
+                "<td class='align-middle'>" + id + "</td>" +
+                "<td class='align-middle'>" + executionName + "</td>" +
+                "<td class='align-middle'>" + configName + "</td>" +
+                "<td class='align-middle'>" + creationDate + "</td>" +
+                "<td class='align-middle'><a href='/experiment-" + id + "'><img src='${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg' alt='Open' width='25px' height='25px'></a></td>" +
+                "</tr>";
+
+            if (table2.find("tbody tr").length === <c:out value="<%= Constants.PAGE_SIZE %>" />) {
+                table2.find("tbody tr:last").remove();
+            }
+            table2.prepend(newRow2);
 
         }
 
@@ -719,7 +801,7 @@
                 }
             });
 
-            getExperiments();
+            getMyExperiments();
         }
 
         // Function to retrieve the next page of configurations
@@ -759,6 +841,8 @@
             const configName = $('#ExpConfigName').val();
             const clientStrategy = $('#ClientStrategy').val();
             const stopCondition = $('#StopCondition').val();
+            const algorithm = $('#Algorithm').val();
+
             $.ajax({
                 url: '/admin/getConfigurations',
                 method: 'GET',
@@ -766,6 +850,7 @@
                     name: configName,
                     clientStrategy: clientStrategy,
                     stopCondition: stopCondition,
+                    algorithm: algorithm,
                     page: page
                 },
                 success: function (response) {
@@ -780,7 +865,7 @@
         }
 
         // Function to retrieve experiments of the current page via an AJAX call
-        function getExperiments(page = 0) {
+        function getMyExperiments(page = 0) {
             const executionName = $('#execution-name').val();
             const configName = $('#config-name').val();
             $.ajax({
@@ -797,6 +882,67 @@
                     updateExpTable(response);
                 },
                 error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+
+
+        function updateAllExpTable(response) {
+            $('#all-ExpTable tbody').empty();
+
+            // Extract the list from the response
+            const configurations = response.content;
+
+            $.each(configurations, function (index, item) {
+                const row = $('<tr>').append(
+                    "<td class='align-middle'>" + item.id + "</td>" +
+                    "<td class='align-middle'>" + item.name + "</td>" +
+                    "<td class='align-middle'>" + item.expConfig.name + "</td>" +
+                    "<td class='align-middle'>" + item.creationDate + "</td>" +
+                    '<td class="align-middle"><a href="/experiment-' + item.id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>'
+                );
+                $('#all-ExpTable tbody').append(row);
+            });
+        }
+
+        // Function to retrieve the next page of experiments
+        function nextAllExpPage() {
+            if (currentAllExpPage < totalAllExpPages - 1) {
+                currentAllExpPage++;
+                getExperiments(currentAllExpPage);
+            }
+        }
+
+        // Function to retrieve the previous page of experiments
+        function prevAllExpPage() {
+            if (currentAllExpPage > 0) {
+                currentAllExpPage--;
+                getExperiments(currentAllExpPage);
+            }
+        }
+
+        // Function to retrieve experiments of the current page via an AJAX call
+        function getExperiments(page = 0) {
+            const executionName = $('#all-execution-name').val();
+            const configName = $('#all-config-name').val();
+            console.log(executionName, configName);
+            $.ajax({
+                url: '/getExperiments',
+                method: 'POST',
+                data: {
+                    configName: configName,
+                    expName: executionName,
+                    page: page
+                },
+                success: function (response) {
+                    console.log(response);
+                    currentAllExpPage = response.number;
+                    totalAllExpPages = response.totalPages;
+                    updateAllExpTable(response);
+                },
+                error: function (xhr) {
                     console.error(xhr.responseText);
                 }
             });

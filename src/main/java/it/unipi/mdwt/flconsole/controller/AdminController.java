@@ -78,6 +78,10 @@ public class AdminController {
                 model.addAttribute("experiments", experimentSummaries);
                 model.addAttribute("totalExpPages", totalExpPages);
             }
+
+            Page<Experiment> experiments = experimentService.getExperiments(null, null, 0);
+            model.addAttribute("allExperiments", experiments);
+
             return "adminDashboard";
 
         } catch (BusinessException e) {
@@ -113,6 +117,8 @@ public class AdminController {
 
             // Convert the response map to a JSON string
             String jsonResponse = objectMapper.writeValueAsString(response);
+
+
 
             // Return the JSON response
             return ResponseEntity.ok(jsonResponse);
@@ -226,9 +232,10 @@ public class AdminController {
     }
 
     @GetMapping("/getConfigurations")
-    public ResponseEntity<Page<ExpConfig>> searchConfig(@RequestParam int page, String name, String clientStrategy, String stopCondition, HttpServletRequest request) {
+    public ResponseEntity<Page<ExpConfig>> searchConfig(@RequestParam int page, String name, String clientStrategy, String stopCondition, String algorithm, HttpServletRequest request) {
         String email = cookieService.getCookieValue(request.getCookies(),"email");
-        Page<ExpConfig> expConfigs = expConfigService.searchMyExpConfigs(email, name, clientStrategy, stopCondition, page);
+        applicationLogger.severe(algorithm);
+        Page<ExpConfig> expConfigs = expConfigService.searchMyExpConfigs(email, name, clientStrategy, stopCondition, algorithm, page);
         return ResponseEntity.ok(expConfigs);
     }
 

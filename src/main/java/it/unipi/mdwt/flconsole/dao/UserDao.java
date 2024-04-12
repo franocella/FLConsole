@@ -3,10 +3,10 @@ package it.unipi.mdwt.flconsole.dao;
 import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoException;
 import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoTypeErrorsEnum;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.Collections;
 import java.util.List;
