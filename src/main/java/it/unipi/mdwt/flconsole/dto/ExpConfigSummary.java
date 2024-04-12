@@ -1,4 +1,4 @@
-package it.unipi.mdwt.flconsole.model;
+package it.unipi.mdwt.flconsole.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

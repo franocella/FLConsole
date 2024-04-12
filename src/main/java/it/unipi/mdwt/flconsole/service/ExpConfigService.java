@@ -9,6 +9,7 @@ import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessTypeErrorsEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -19,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -31,7 +31,6 @@ public class ExpConfigService {
     private final ExpConfigDao expConfigDao;
     private final UserDao userDAO;
     private final MongoTemplate mongoTemplate;
-
     private final Logger applicationLogger;
 
 
@@ -41,24 +40,6 @@ public class ExpConfigService {
         this.userDAO = userDAO;
         this.mongoTemplate = mongoTemplate;
         this.applicationLogger = applicationLogger;
-    }
-
-    public List<ExpConfig> getExpConfigsForUser(String email) {
-        User user = userDAO.findByEmail(email);
-
-        if (user != null) {
-            List<String> configurationIds = user.getConfigurations();
-
-            if (configurationIds != null && !configurationIds.isEmpty()) {
-                List<String> configurationIdStrings = new ArrayList<>(configurationIds);
-
-                return expConfigDao.findByIdIn(configurationIdStrings);
-            } else {
-                return Collections.emptyList();
-            }
-        } else {
-            return Collections.emptyList();
-        }
     }
 
     public void saveConfig(ExpConfig config, String userEmail) {
@@ -82,31 +63,10 @@ public class ExpConfigService {
         mongoTemplate.updateFirst(query, update, User.class);
     }
 
-
-    public List<ExpConfig> getExpConfigsList(List<String> configurations) {
-        return expConfigDao.findByIdIn(configurations);
-    }
-
-    public Page<ExpConfig> getNconfigsList(List<String> configurations) {
-        List<ExpConfig> configs = expConfigDao.findTopNByIdIn(configurations, PageRequest.of(0, PAGE_SIZE));
+    public Page<ExpConfig> getNConfigsList(List<String> configurations) {
+        List<ExpConfig> configs = expConfigDao.findTopNByIdInOrderByCreationDateDesc(configurations, PageRequest.of(0, PAGE_SIZE));
         return PageableExecutionUtils.getPage(configs, PageRequest.of(0, PAGE_SIZE), configurations::size);
     }
-
-
-    public List<ExpConfig> searchExpConfigByConfigName(String name, int nElem) throws BusinessException{
-        try{
-
-            Query query = new Query();
-            query.addCriteria(Criteria.where("name").regex(name,"i"));
-            List<ExpConfig> configsByTemplate = mongoTemplate.find(query, ExpConfig.class);
-
-            return new ArrayList<>(configsByTemplate);
-
-        }catch (Exception e){
-            throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
-        }
-    }
-
 
     /**
      * Searches ExpConfig by multiple criteria and returns a page of results.
@@ -129,7 +89,7 @@ public class ExpConfigService {
             List<String> confList = user.getConfigurations();
 
             if (!StringUtils.hasText(configName) && !StringUtils.hasText(clientStrategy) && !StringUtils.hasText(stopCondition)) {
-                List<ExpConfig> matchingConfigs = expConfigDao.findTopNByIdIn(confList, PageRequest.of(page, PAGE_SIZE));
+                List<ExpConfig> matchingConfigs = expConfigDao.findTopNByIdInOrderByCreationDateDesc(confList, PageRequest.of(page, PAGE_SIZE));
                 return PageableExecutionUtils.getPage(matchingConfigs, PageRequest.of(page, PAGE_SIZE), confList::size);
             }
 
@@ -159,7 +119,8 @@ public class ExpConfigService {
             }
 
             // Set the page number and limit the results to the specified maximum number of elements
-            query.with(PageRequest.of(page, PAGE_SIZE));
+            query.with(PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "creationDate")));
+
             // Retrieve the matching ExpConfig objects from the database
             List<ExpConfig> matchingConfigs = mongoTemplate.find(query, ExpConfig.class);
 

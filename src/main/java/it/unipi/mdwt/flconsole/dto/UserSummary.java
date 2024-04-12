@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document()
-public class UserDTO {
+public class UserSummary {
 
     @Field("email")
     @Indexed(unique = true)

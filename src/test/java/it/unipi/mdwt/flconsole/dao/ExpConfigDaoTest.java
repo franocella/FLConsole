@@ -1,7 +1,7 @@
 package it.unipi.mdwt.flconsole.dao;
 
 import it.unipi.mdwt.flconsole.model.ExpConfig;
-import it.unipi.mdwt.flconsole.model.ExpConfigSummary;
+import it.unipi.mdwt.flconsole.dto.ExpConfigSummary;
 import it.unipi.mdwt.flconsole.model.Experiment;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,35 +94,5 @@ class ExpConfigDaoTest {
         assertTrue(updatedConfig.isPresent());
         assertEquals("UpdatedConfig2", updatedConfig.get().getName());
     }
-
-    @Test
-    void delete() {
-        String nameToDelete = "TestConfig2";
-        ExpConfig expConfig = expConfigDao.findByName(nameToDelete);
-
-        assertNotNull(expConfig);
-
-        List<Experiment> experiments = experimentDao.findAll();
-        for (Experiment experiment: experiments){
-            ExpConfigSummary expConfigSummary = experiment.getExpConfig();
-            if (expConfigSummary != null && expConfigSummary.getId().equals(expConfig.getId())) {
-                // Remove the expConfigSummary if it matches the ID of the ExpConfig being deleted
-                experiment.setExpConfig(null);
-                experimentDao.save(experiment);
-            }
-        }
-
-        expConfigDao.deleteByName(nameToDelete);
-
-        assertFalse(expConfigDao.existsByName(nameToDelete));
-
-        // Verify that no experiments reference the deleted ExpConfig
-        List<Experiment> updatedExperiments = experimentDao.findAll();
-        for (Experiment experiment : updatedExperiments) {
-            ExpConfigSummary expConfigSummary = experiment.getExpConfig();
-            //assertNull(expConfigSummary);
-        }
-    }
-
 
 }

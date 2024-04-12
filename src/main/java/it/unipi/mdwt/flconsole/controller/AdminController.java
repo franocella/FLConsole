@@ -1,13 +1,11 @@
 package it.unipi.mdwt.flconsole.controller;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
+import it.unipi.mdwt.flconsole.dto.ExperimentSummary;
 import it.unipi.mdwt.flconsole.model.*;
 import it.unipi.mdwt.flconsole.service.*;
-import it.unipi.mdwt.flconsole.utils.MessageType;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +52,7 @@ public class AdminController {
             String email = cookieService.getCookieValue(request.getCookies(),"email");
             User user = userService.getUser(email);
             if (user.getConfigurations()!=null){
-                Page<ExpConfig> userConfigurations = expConfigService.getNconfigsList(user.getConfigurations());
+                Page<ExpConfig> userConfigurations = expConfigService.getNConfigsList(user.getConfigurations());
                 int totalConfigPages = userConfigurations.getTotalPages();
                 List<String> jsonList = userConfigurations.stream()
                         .filter(Objects::nonNull) // Filter out null values
@@ -74,10 +72,15 @@ public class AdminController {
             }
             if (user.getExperiments()!=null){
                 int totalExpPages = (int) Math.ceil((double) user.getExperiments().size() / PAGE_SIZE);
-                model.addAttribute("experiments", user.getExperiments().subList(0, Math.min(user.getExperiments().size(), PAGE_SIZE)));
+                List<ExperimentSummary> experimentSummaries = user.getExperiments().stream()
+                        .sorted(Comparator.comparing(ExperimentSummary::getCreationDate).reversed())
+                        .limit(Math.min(user.getExperiments().size(), PAGE_SIZE))
+                        .toList();
+                model.addAttribute("experiments", experimentSummaries);
                 model.addAttribute("totalExpPages", totalExpPages);
             }
             return "adminDashboard";
+
         } catch (BusinessException e) {
             // If an exception occurs during the process, return a server error message
             applicationLogger.severe(e.getErrorType()+" occurred:" + e.getMessage());
@@ -173,11 +176,20 @@ public class AdminController {
     @GetMapping("/deleteConfig-{id}")
     public ResponseEntity<String> deleteConfig(@PathVariable String id, HttpServletRequest request) {
 
-
         String email = cookieService.getCookieValue(request.getCookies(),"email");
         expConfigService.deleteExpConfig(id, email);
 
         String message = "Config with ID " + id + " successfully deleted.";
+        return ResponseEntity.ok(message);
+    }
+
+    @GetMapping("/deleteExp-{id}")
+    public ResponseEntity<String> deleteExperiment(@PathVariable String id, HttpServletRequest request) {
+
+        String email = cookieService.getCookieValue(request.getCookies(),"email");
+        experimentService.deleteExperiment(id, email);
+
+        String message = "Experiment with ID " + id + " successfully deleted.";
         return ResponseEntity.ok(message);
     }
 
@@ -196,14 +208,9 @@ public class AdminController {
                 return ResponseEntity.badRequest().body("Missing or blank required parameters");
             }
 
-
-            System.out.println("Starting task with config: " + config + " and expId: " + expId);
-            // Get the email from the cookie
-            String email = cookieService.getCookieValue(request.getCookies(), "email");
-
             // Run the experiment task
-            experimentService.runExp(config, email, expId);
-            System.out.println("Task started successfully");
+            experimentService.runExp(config, expId);
+
             // Return success response
             return ResponseEntity.ok("Task started successfully");
         } catch (Exception e) {

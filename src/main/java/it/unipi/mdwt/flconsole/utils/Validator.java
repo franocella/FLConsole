@@ -2,8 +2,6 @@ package it.unipi.mdwt.flconsole.utils;
 
 import org.springframework.util.StringUtils;
 
-import javax.naming.AuthenticationException;
-
 public class Validator {
 
     /**
@@ -24,10 +22,6 @@ public class Validator {
      */
     public static boolean validateEmail(String email) {
         return StringUtils.hasText(email) && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$");
-    }
-
-    public static String getNameFromEmail(String email) {
-        return email.split("@")[0];
     }
 
     /**

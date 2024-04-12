@@ -40,6 +40,152 @@
       </table>
     </div>
 
+
+    <button onclick="openConfigModal('6613f8b7aed2e52b006dea10')">Mostra Configurazione</button>
+
+    <div id="config-modal" class="myAlert" style="display: none;">
+      <div class="myAlertBody" style="padding-left:100px; padding-right:100px;">
+        <h3 style="margin-bottom: 25px;">Configurazione</h3>
+        <table class="table" id="config-table">
+          <tbody>
+          <tr>
+            <th>ID:</th>
+            <td id="config-id-modal"></td>
+          </tr>
+          <tr>
+            <th>Conf. Name:</th>
+            <td id="config-name-modal"></td>
+          </tr>
+          <tr>
+            <th>Algorithm:</th>
+            <td id="AlgorithmModal"></td>
+          </tr>
+          <tr>
+            <th>Code Language:</th>
+            <td id="codeLanguage"></td>
+          </tr>
+          <tr>
+            <th>Client selection strategy:</th>
+            <td id="ClientStrategyModal"></td>
+          </tr>
+          <tr>
+            <th>Client selection ratio:</th>
+            <td id="ClientSelectionRatio"></td>
+          </tr>
+          <tr>
+            <th>Min. number of clients:</th>
+            <td id="MinNumberOfClients"></td>
+          </tr>
+          <tr>
+            <th>Stop condition:</th>
+            <td id="StopConditionModal"></td>
+          </tr>
+          <tr>
+            <th>Max. number of rounds:</th>
+            <td id="MaxNumRounds"></td>
+          </tr>
+          <tr>
+            <th>Stop condition threshold:</th>
+            <td id="StopThreshold"></td>
+          </tr>
+          <tr>
+            <th>Target Feature:</th>
+            <td id="targetFeature"></td>
+          </tr>
+          <tr>
+            <th>Lambda Factor:</th>
+            <td id="lambdaFactor"></td>
+          </tr>
+          <tr>
+            <th>Number of Features:</th>
+            <td id="numFeatures"></td>
+          </tr>
+          <tr>
+            <th>Seed:</th>
+            <td id="seed"></td>
+          </tr>
+          <tr>
+            <th>Number of Clusters:</th>
+            <td id="numClusters"></td>
+          </tr>
+          <tr>
+            <th>Creation Date:</th>
+            <td id="creationDate"></td>
+          </tr>
+          </tbody>
+        </table>
+        <div class="text-end mt-5">
+          <a onclick="closeModal()" class="btn btn-danger">Chiudi</a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      var jsonDataList = [
+        {"id":"6613f8b7aed2e52b006dea10","name":"TestConfig2","algorithm":"fcmeans","codeLanguage":"python","clientSelectionStrategy":"probability","clientSelectionRatio":1.0,"minNumberClients":2,"stopCondition":"max_number_rounds","stopConditionThreshold":5.0,"maxNumberOfRounds":5,"parameters":{"targetFeature":"16","lambdaFactor":"2","numFeatures":"16","seed":"10","numClusters":"10"},"creationDate":"2024-04-08T14:01:27.232+00:00"},
+        // Aggiungi gli altri JSON alla lista
+      ];
+
+      function openConfigModal(configId) {
+        // Trova il JSON corrispondente all'ID fornito
+        const jsonData = jsonDataList.find(function (item) {
+          return item.id === configId;
+        });
+        if (jsonData) {
+          // Popola la tabella con i valori dal JSON trovato
+          document.getElementById("config-id-modal").innerText = jsonData.id;
+          document.getElementById("config-name-modal").innerText = jsonData.name;
+          document.getElementById("AlgorithmModal").innerText = jsonData.algorithm;
+          document.getElementById("codeLanguage").innerText = jsonData.codeLanguage;
+          document.getElementById("ClientStrategyModal").innerText = jsonData.clientSelectionStrategy;
+          document.getElementById("ClientSelectionRatio").innerText = jsonData.clientSelectionRatio;
+          document.getElementById("MinNumberOfClients").innerText = jsonData.minNumberClients;
+          document.getElementById("StopConditionModal").innerText = jsonData.stopCondition;
+          document.getElementById("MaxNumRounds").innerText = jsonData.maxNumberOfRounds;
+          document.getElementById("StopThreshold").innerText = jsonData.stopConditionThreshold;
+          document.getElementById("targetFeature").innerText = jsonData.parameters.targetFeature;
+          document.getElementById("lambdaFactor").innerText = jsonData.parameters.lambdaFactor;
+          document.getElementById("numFeatures").innerText = jsonData.parameters.numFeatures;
+          document.getElementById("seed").innerText = jsonData.parameters.seed;
+          document.getElementById("numClusters").innerText = jsonData.parameters.numClusters;
+          document.getElementById("creationDate").innerText = jsonData.creationDate;
+
+          adjustColumnWidths(); // Chiamata alla funzione per regolare le larghezze delle colonne
+          document.getElementById("config-modal").style.display = "block";
+        } else {
+          console.error("ID non trovato nella lista dei JSON.");
+        }
+      }
+
+      function closeModal() {
+        document.getElementById("config-modal").style.display = "none";
+      }
+
+      function adjustColumnWidths() {
+        var table = document.getElementById("config-table");
+        var maxColumnWidth = 0;
+
+        // Trova la larghezza massima tra tutte le celle della tabella
+        for (var i = 0; i < table.rows.length; i++) {
+          for (var j = 0; j < table.rows[i].cells.length; j++) {
+            var cell = table.rows[i].cells[j];
+            var cellWidth = cell.offsetWidth;
+            if (cellWidth > maxColumnWidth) {
+              maxColumnWidth = cellWidth;
+            }
+          }
+        }
+
+        // Imposta la larghezza massima per tutte le colonne
+        for (var i = 0; i < table.rows.length; i++) {
+          for (var j = 0; j < table.rows[i].cells.length; j++) {
+            table.rows[i].cells[j].style.width = maxColumnWidth + "px";
+          }
+        }
+      }
+    </script>
+
+
     <!-- Tab panes -->
     <div class="tab-content" id="metricsTabContent">
       <div class="tab-pane fade show active" id="modelMetrics" role="tabpanel" aria-labelledby="modelMetrics-tab">
@@ -183,6 +329,9 @@
         });
       });
     }
+
+
+
 
     // Function to create an HTML list from a JSON object
     function createList(obj) {

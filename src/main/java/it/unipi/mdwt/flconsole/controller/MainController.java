@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.unipi.mdwt.flconsole.dto.UserDTO;
+import it.unipi.mdwt.flconsole.dto.ExperimentSummary;
+import it.unipi.mdwt.flconsole.dto.UserSummary;
 import it.unipi.mdwt.flconsole.model.*;
 import it.unipi.mdwt.flconsole.service.*;
 import it.unipi.mdwt.flconsole.utils.MessageType;
@@ -110,34 +111,11 @@ public class MainController {
     }
 
     @GetMapping("/")
-    public String home(Model model, HttpServletRequest request) {
+    public String home(Model model) {
         List<Pair<ExperimentSummary, String>> experiments = experimentService.getExperimentsSummaryList(10);
         model.addAttribute("experiments", experiments);
         return "userDashboard";
     }
-
-    /*@GetMapping("/")
-    public String home(Model model, @RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "10") int pageSize) {
-        try {
-            // Retrieve recent experiments from the service using pagination
-            Page<Experiment> recentExperimentsPage = experimentService.getRecentExperiments(page, pageSize);
-
-            // Add the paginated list of recent experiments to the model
-            model.addAttribute("recentExperiments", recentExperimentsPage.getContent());
-
-            // Add pagination information to the model
-            model.addAttribute("currentPage", recentExperimentsPage.getNumber());
-            model.addAttribute("totalPages", recentExperimentsPage.getTotalPages());
-
-            return "home";
-        } catch (BusinessException e) {
-            // Handle business exception and return error view
-            applicationLogger.severe(e.getErrorType() + " occurred: " + e.getMessage());
-            model.addAttribute("error", "Internal server error");
-            return "error";
-        }
-    }*/
 
     @GetMapping("/experiment-{id}")
     public String experimentDetails(@PathVariable String id, Model model, HttpServletRequest request) {
@@ -157,7 +135,7 @@ public class MainController {
             model.addAttribute("experiment", experiment);
 
             // TODO: Implement getExpConfigById (better)
-            expConfig = expConfigService.getNconfigsList(List.of(experiment.getExpConfig().getId())).getContent().get(0);
+            expConfig = expConfigService.getNConfigsList(List.of(experiment.getExpConfig().getId())).getContent().get(0);
             applicationLogger.severe("expConfig: " + expConfig);
             model.addAttribute("expConfig", expConfig);
 
@@ -172,7 +150,7 @@ public class MainController {
                             ObjectMapper mapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
                             // Create a temporary map to remove the expId field
-                            Map<String, Object> tempMap = mapper.convertValue(expMetrics, new TypeReference<Map<String, Object>>() {});
+                            Map<String, Object> tempMap = mapper.convertValue(expMetrics, new TypeReference<>() {});
                             tempMap.remove("expId");
                             tempMap.remove("type");
 
@@ -234,7 +212,7 @@ public class MainController {
             }
 
             // Create a new UserDTO object with the updated fields
-            UserDTO updateUser = new UserDTO(newEmail, newPassword, newDescription);
+            UserSummary updateUser = new UserSummary(newEmail, newPassword, newDescription);
             // Update the user profile
             userService.updateUserProfile(email, updateUser);
 

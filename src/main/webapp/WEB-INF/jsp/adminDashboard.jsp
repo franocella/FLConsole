@@ -1,5 +1,6 @@
+<%@ page import="it.unipi.mdwt.flconsole.utils.Constants" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page session="false" %>
 
 <!DOCTYPE html>
@@ -94,8 +95,8 @@
                     </tbody>
                 </table>
                 <div class="text-end my-3">
-                    <a onclick="addRow()" id="add-parameter" class="btn btn-outline-primary btn-sm me-2">Add Row</a>
-                    <a onclick="deleteRow()" id="remove-parameter" class="btn btn-outline-danger btn-sm">Delete Row</a>
+                    <a onclick="addParameterInputField()" id="add-parameter" class="btn btn-outline-primary btn-sm me-2">Add Row</a>
+                    <a onclick="removeParameterInputField()" id="remove-parameter" class="btn btn-outline-danger btn-sm">Delete Row</a>
                 </div>
                 <div class="text-end mt-5">
                     <a class="btn btn-primary me-2" onclick="submitConfigForm()">Save</a>
@@ -157,12 +158,9 @@
                     <select class="form-select me-2" id="StopCondition">
                         <option value="" selected>Stop condition</option>
                         <option value="custom">Custom</option>
-                        <option value="max_number_rounds">Maximum Number of Rounds</option>
                         <option value="metric_under_threshold">Metric Under Threshold</option>
                         <option value="metric_over_threshold">Metric Over Threshold</option>
                     </select>
-
-
 
                     <a onclick="displayConfigModal()" class="btn btn-primary">New</a>
                 </div>
@@ -175,11 +173,9 @@
                             <th>ID</th>
                             <th>Config Name</th>
                             <th>Algorithm</th>
-                            <th>Client Selection Strategy</th>
-                            <th>Min. num. Clients</th>
-                            <th>Stop Condition</th>
-                            <th>Created At</th>
-                            <th>Delete</th>
+                            <th>Creation Date</th>
+                            <th></th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -222,7 +218,8 @@
                             <th>Execution name</th>
                             <th>Config Name</th>
                             <th>Creation Date</th>
-                            <th>Open</th>
+                            <th></th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -233,6 +230,7 @@
                             <td class='align-middle'>${exp.configName}</td>
                             <td class='align-middle'>${exp.creationDate}</td>
                             <td class='align-middle'><a href="/admin/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
+                            <td class='align-middle'><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteExp('${exp.id}')" height="20px" width="20px"></figure></td>
                         </tr>
                     </c:forEach>
                     </tbody>
@@ -407,14 +405,16 @@
                 '<td class="align-middle">' + id + '</td>' +
                 '<td class="align-middle">' + name + '</td>' +
                 '<td class="align-middle">' + algorithm + '</td>' +
-                '<td class="align-middle">' + formData.strategy + '</td>' +
-                '<td class="align-middle">' + formData.minNumClients + '</td>' +
-                '<td class="align-middle">' + formData.stopCondition + '</td>' +
                 '<td class="align-middle">' + formData.creationDate + '</td>' +
+                '<td class="align-middle"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="openConfigDetails(\'' + id + '\')"></td>' +
                 '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + id + '\')" height="20px" width="20px"></figure></td>' +
                 '</tr>';
 
-            table.append(newRow);
+            if (table.find("tbody tr").length === <c:out value="<%= Constants.PAGE_SIZE %>" />) {
+                table.find("tbody tr:last").remove();
+            }
+
+            table.prepend(newRow);
 
             // Add the option to the dropdown menu
             const selectElement = document.getElementById("FL_config_value");
@@ -424,6 +424,8 @@
             selectElement.appendChild(option);
         }
 
+        function openConfigDetails(id) {
+        }
 
         function deleteConfig(id) {
             console.log("Deleting config with id:", id);
@@ -434,12 +436,13 @@
                 success: function (response) {
                     console.log('Server response:', response);
 
-                    $('#ConfigTable tr:contains(' + id + ')').remove();
                 },
                 error: function (error) {
                     console.error('Error deleting config:', error);
                 }
             });
+
+            getConfigurations();
         }
 
 
@@ -480,7 +483,7 @@
         }
 
 
-        function deleteRow() {
+        function removeParameterInputField() {
             const table = document.getElementById("parametersTable");
             const rowCount = table.tBodies[0].rows.length;
             if (rowCount > 1) {
@@ -489,15 +492,9 @@
 
             const newRowCount = rowCount - 1;
             // Hide the delete button if there is only one row
-            if (newRowCount === 1) {
+            if (newRowCount === 0) {
                 const deleteButton = document.getElementById("remove-parameter");
                 deleteButton.style.display = "none";
-            }
-
-            // Show the add button if there are less than 5 rows
-            if (newRowCount < 5) {
-                const addRowButton = document.getElementById("add-parameter");
-                addRowButton.style.display = "inline-block";
             }
         }
 
@@ -552,10 +549,16 @@
                 "<td class='align-middle'>" + executionName + "</td>" +
                 "<td class='align-middle'>" + configName + "</td>" +
                 "<td class='align-middle'>" + creationDate + "</td>" +
-                '<td class="align-middle"><a href="/admin/experiment-' + id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>' +
+                "<td class='align-middle'><a href='/experiment-" + id + "'><img src='${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg' alt='Open' width='25px' height='25px'></a></td>" +
+                "<td class='align-middle'><figure class='m-0'><img src='${pageContext.request.contextPath}/Images/icon_delete.svg' alt='Delete' onclick='deleteExp(\"" + id + "\")' height='20px' width='20px'></figure></td>" +
                 "</tr>";
 
-            table.append(newRow);
+            if (table.find("tbody tr").length === <c:out value="<%= Constants.PAGE_SIZE %>" />) {
+                table.find("tbody tr:last").remove();
+            }
+
+            table.prepend(newRow);
+
         }
 
         function formatDateString(dateString) {
@@ -632,11 +635,11 @@
                 }
 
                 // Add the second default row
-                addRow();
+                addParameterInputField();
             }
         }
 
-        function addRow() {
+        function addParameterInputField() {
             const table = document.getElementById("parametersTable");
             const rowCount = table.tBodies[0].rows.length;
             let newRowCount;
@@ -651,38 +654,11 @@
                 cell2.textContent = "Value" + newRowCount;
             }
 
-            // Hide the add button if there are 5 rows
-            if (newRowCount === 5) {
-                const addRowButton = document.getElementById("add-parameter");
-                addRowButton.style.display = "none";
-            }
-
             // Show the delete button if there are more than 1 row
-            if (newRowCount > 1) {
+            if (newRowCount > 0) {
                 const deleteButton = document.getElementById("remove-parameter");
                 deleteButton.style.display = "inline-block";
             }
-        }
-
-        // Function to perform search by configuration name
-        function searchExp() {
-            const executionName = $('#execution-name').val();
-            const configName = $('#config-name').val();
-            $.ajax({
-                url: '/admin/getExperiments',
-                method: 'GET',
-                data: {
-                    configName: configName,
-                    executionName: executionName,
-                    page: 0
-                },
-                success: function (response) {
-                    updateExpTable(response);
-                },
-                error: function (xhr) {
-                    console.error(xhr.responseText);
-                }
-            });
         }
 
         function updateExpTable(response) {
@@ -697,39 +673,11 @@
                     "<td class='align-middle'>" + item.name + "</td>" +
                     "<td class='align-middle'>" + item.configName + "</td>" +
                     "<td class='align-middle'>" + item.creationDate + "</td>" +
-                    '<td class="align-middle"><a href="/experiment-' + item.id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>'
-                );
+                    "<td class='align-middle'><a href='/experiment-" + item.id + "'><img src='${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg' alt='Open' width='25px' height='25px'></a></td>" +
+                    "<td class='align-middle'><figure class='m-0'><img src='${pageContext.request.contextPath}/Images/icon_delete.svg' alt='Delete' onclick='deleteExp(\"" + item.id + "\")' height='20px' width='20px'></figure></td>"
+
+            );
                 $('#tab2Content tbody').append(row);
-            });
-        }
-
-
-        // Function to perform configuration search
-        function searchConfig() {
-            // Retrieve values from input fields
-            const configName = $('#ExpConfigName').val();
-            const clientStrategy = $('#ClientStrategy').val();
-            const stopCondition = $('#StopCondition').val();
-
-            // Send asynchronous request
-            $.ajax({
-                url: '/admin/getConfigurations',
-                method: 'GET',
-                data: {
-                    configName: configName,
-                    clientStrategy: clientStrategy,
-                    stopCondition: stopCondition,
-                    page: 0
-                },
-                success: function (response) {
-                    // Call function to update configuration table
-                    console.log(response);
-                    updateConfigTable(response);
-                },
-                error: function (xhr, status, error) {
-                    // Handle error
-                    console.error(xhr.responseText);
-                }
             });
         }
 
@@ -747,25 +695,38 @@
                     '<td class="align-middle">' + item.id + '</td>' +
                     '<td class="align-middle">' + item.name + '</td>' +
                     '<td class="align-middle">' + item.algorithm + '</td>' +
-                    '<td class="align-middle">' + item.strategy + '</td>' +
-                    '<td class="align-middle">' + item.numClients + '</td>' +
-                    '<td class="align-middle">' + item.stopCondition + '</td>' +
                     '<td class="align-middle">' + item.creationDate + '</td>' +
-                    '<td class="align-middle">' + item.lastUpdate + '</td>' +
+                    '<td class="align-middle"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="openConfigDetails(\'' + item.id + '\')"></td>' +
                     '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + item.id + '\')" height="20px" width="20px"></figure></td>' +
                     '</tr>';
 
                 $('#ConfigTable tbody').append(row);
             });
-
         }
 
+        function deleteExp(id) {
+            console.log("Deleting experiment with id:", id);
+
+            $.ajax({
+                url: '/admin/deleteExp-' + id,
+                type: 'GET',
+                success: function (response) {
+                    console.log('Server response:', response);
+
+                },
+                error: function (error) {
+                    console.error('Error deleting experiment:', error);
+                }
+            });
+
+            getExperiments();
+        }
 
         // Function to retrieve the next page of configurations
         function nextConfigPage() {
             if (currentConfigPage < totalConfigPages - 1) {
                 currentConfigPage++;
-                getConfigurations();
+                getConfigurations(currentConfigPage);
             }
         }
 
@@ -773,7 +734,7 @@
         function prevConfigPage() {
             if (currentConfigPage > 0) {
                 currentConfigPage--;
-                getConfigurations();
+                getConfigurations(currentConfigPage);
             }
         }
 
@@ -781,7 +742,7 @@
         function nextExpPage() {
             if (currentExpPage < totalExpPages - 1) {
                 currentExpPage++;
-                getExperiments();
+                getExperiments(currentExpPage);
             }
         }
 
@@ -789,12 +750,12 @@
         function prevExpPage() {
             if (currentExpPage > 0) {
                 currentExpPage--;
-                getExperiments();
+                getExperiments(currentExpPage);
             }
         }
 
         // Function to retrieve configurations of the current page via an AJAX call
-        function getConfigurations() {
+        function getConfigurations(page = 0) {
             const configName = $('#ExpConfigName').val();
             const clientStrategy = $('#ClientStrategy').val();
             const stopCondition = $('#StopCondition').val();
@@ -805,7 +766,7 @@
                     name: configName,
                     clientStrategy: clientStrategy,
                     stopCondition: stopCondition,
-                    page: currentConfigPage
+                    page: page
                 },
                 success: function (response) {
                     currentConfigPage = response.number;
@@ -819,7 +780,7 @@
         }
 
         // Function to retrieve experiments of the current page via an AJAX call
-        function getExperiments() {
+        function getExperiments(page = 0) {
             const executionName = $('#execution-name').val();
             const configName = $('#config-name').val();
             $.ajax({
@@ -828,7 +789,7 @@
                 data: {
                     configName: configName,
                     executionName: executionName,
-                    page: currentExpPage
+                    page: page
                 },
                 success: function (response) {
                     currentExpPage = response.number;

@@ -1,8 +1,7 @@
 package it.unipi.mdwt.flconsole.service;
 
-import it.unipi.mdwt.flconsole.dao.ExperimentDao;
 import it.unipi.mdwt.flconsole.dao.UserDao;
-import it.unipi.mdwt.flconsole.dto.UserDTO;
+import it.unipi.mdwt.flconsole.dto.UserSummary;
 import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.Validator;
 
@@ -26,14 +25,12 @@ import java.util.Optional;
 public class UserService {
 
     private final UserDao userDAO;
-    private final ExperimentDao experimentDao;
     private final MongoTemplate mongoTemplate;
 
 
     @Autowired
-    public UserService(UserDao userDAO, ExperimentDao experimentDao, MongoTemplate mongoTemplate) {
+    public UserService(UserDao userDAO, MongoTemplate mongoTemplate) {
         this.userDAO = userDAO;
-        this.experimentDao = experimentDao;
         this.mongoTemplate = mongoTemplate;
     }
 
@@ -95,7 +92,7 @@ public class UserService {
         return userDAO.findByEmail(email);
     }
 
-    public void updateUserProfile(String email, UserDTO updateRequest) {
+    public void updateUserProfile(String email, UserSummary updateRequest) {
         Query query = new Query(Criteria.where("email").is(email));
         Update update = new Update();
 

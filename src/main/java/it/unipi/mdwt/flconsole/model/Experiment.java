@@ -1,8 +1,8 @@
 package it.unipi.mdwt.flconsole.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import it.unipi.mdwt.flconsole.dto.ExpConfigSummary;
 import it.unipi.mdwt.flconsole.utils.ExperimentStatus;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
