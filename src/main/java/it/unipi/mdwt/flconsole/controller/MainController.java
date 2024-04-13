@@ -285,7 +285,7 @@ public class MainController {
             model.addAttribute("experiment", experiment);
 
             // TODO: Implement getExpConfigById (better)
-            expConfig = expConfigService.getNConfigsList(List.of(experiment.getExpConfig().getId())).getContent().get(0);
+            expConfig = expConfigService.getNConfigsList(List.of(experiment.getExpConfig().getId()), null).getContent().get(0);
             applicationLogger.severe("expConfig: " + expConfig);
             model.addAttribute("expConfig", expConfig);
 

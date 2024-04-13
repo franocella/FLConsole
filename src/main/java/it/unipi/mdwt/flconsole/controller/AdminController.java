@@ -3,6 +3,7 @@ package it.unipi.mdwt.flconsole.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
+import it.unipi.mdwt.flconsole.dto.ExpConfigSummary;
 import it.unipi.mdwt.flconsole.dto.ExperimentSummary;
 import it.unipi.mdwt.flconsole.model.*;
 import it.unipi.mdwt.flconsole.service.*;
@@ -43,13 +44,8 @@ public class AdminController {
         this.objectMapper = objectMapper;
     }
 
-    /**
-     * Controller method to handle requests for the dashboard page.
-     *
-     * @param model   The model to be populated with data for the view.
-     * @param request The HTTP servlet request.
-     * @return The view name for the dashboard page.
-     */
+
+
     @GetMapping("/dashboard")
     public String home(Model model, HttpServletRequest request) {
         try {
@@ -58,30 +54,18 @@ public class AdminController {
             // Retrieve the user object based on the email
             User user = userService.getUser(email);
 
-            // If user configurations exist and are not empty, fetch them and add them to the model
-            if (user.getConfigurations() != null && !user.getConfigurations().isEmpty()) {
-                Page<ExpConfig> userConfigurations = expConfigService.getNConfigsList(user.getConfigurations());
-                int totalConfigPages = userConfigurations.getTotalPages();
+            if (user.getConfigurations() != null){
+                Page<ExpConfig> userConfigurations = expConfigService.getNConfigsList(user.getConfigurations(), null);
+                model.addAttribute("configurations", userConfigurations);
 
-                // Convert ExpConfig objects to JSON strings and add them to the model
-                List<String> jsonList = userConfigurations.stream()
-                        .map(expConfig -> {
-                            try {
-                                return objectMapper.writeValueAsString(expConfig);
-                            } catch (JsonProcessingException e) {
-                                // Handle the exception if the conversion fails
-                                applicationLogger.severe("Error converting ExpConfig to JSON: " + e.getMessage());
-                                return null;
-                            }
-                        })
+                Page<ExpConfig> allConfigurations = expConfigService.getNConfigsList(user.getConfigurations(), user.getConfigurations().size());
+                List<ExpConfigSummary> allConfigurationsSummary = allConfigurations.getContent().stream()
+                        .map(config -> new ExpConfigSummary(config.getId(), config.getName(), config.getAlgorithm()))
                         .toList();
-
-                model.addAttribute("configurations", jsonList);
-                model.addAttribute("totalConfigPages", totalConfigPages);
+                model.addAttribute("allConfigurations", allConfigurationsSummary);
             }
 
-            // If user experiments exist, fetch them and add them to the model in DESC order of creation date
-            if (user.getExperiments() != null && !user.getExperiments().isEmpty()) {
+            if (user.getExperiments()!=null){
                 int totalExpPages = (int) Math.ceil((double) user.getExperiments().size() / PAGE_SIZE);
                 List<ExperimentSummary> experimentSummaries = user.getExperiments().stream()
                         .sorted(Comparator.comparing(ExperimentSummary::getCreationDate).reversed())
@@ -92,6 +76,8 @@ public class AdminController {
             }
 
             // Fetch all experiments and add them to the model
+
+
             Page<Experiment> experiments = experimentService.getExperiments(null, null, 0);
             applicationLogger.severe("Experiments Pages number: " + experiments.getTotalPages());
             model.addAttribute("allExperiments", experiments);
@@ -269,6 +255,7 @@ public class AdminController {
     @PostMapping("/start-exp")
     public ResponseEntity<String> startTask(HttpServletRequest request) {
         try {
+
             // Get the value of the 'config' parameter from the query string
             String config = request.getParameter("config");
 
@@ -348,7 +335,5 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-
 
 }
