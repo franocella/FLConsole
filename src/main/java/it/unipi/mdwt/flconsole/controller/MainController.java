@@ -121,7 +121,7 @@ public class MainController {
     }
 
     @PostMapping("/getExperiments")
-    public ResponseEntity<Page<Experiment>> searchAllExp (@RequestParam int page, String expName, String configName) {
+    public ResponseEntity<Page<Experiment>> getAllExperiments(@RequestParam int page, String expName, String configName) {
         try {
             applicationLogger.severe("Searching experiments with name: " + expName + " and configName: " + configName);
             Page<Experiment> experiments = experimentService.getExperiments(expName, configName, page);
@@ -131,29 +131,6 @@ public class MainController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-    /*@GetMapping("/")
-    public String home(Model model, @RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "10") int pageSize) {
-        try {
-            // Retrieve recent experiments from the service using pagination
-            Page<Experiment> recentExperimentsPage = experimentService.getRecentExperiments(page, pageSize);
-
-            // Add the paginated list of recent experiments to the model
-            model.addAttribute("recentExperiments", recentExperimentsPage.getContent());
-
-            // Add pagination information to the model
-            model.addAttribute("currentPage", recentExperimentsPage.getNumber());
-            model.addAttribute("totalPages", recentExperimentsPage.getTotalPages());
-
-            return "home";
-        } catch (BusinessException e) {
-            // Handle business exception and return error view
-            applicationLogger.severe(e.getErrorType() + " occurred: " + e.getMessage());
-            model.addAttribute("error", "Internal server error");
-            return "error";
-        }
-    }*/
 
     @GetMapping("/experiment-{id}")
     public String experimentDetails(@PathVariable String id, Model model, HttpServletRequest request) {
@@ -173,7 +150,7 @@ public class MainController {
             model.addAttribute("experiment", experiment);
 
             // TODO: Implement getExpConfigById (better)
-            expConfig = expConfigService.getNConfigsList(List.of(experiment.getExpConfig().getId()), null).getContent().get(0);
+            expConfig = expConfigService.getConfigsListFirstPage(List.of(experiment.getExpConfig().getId()), null).getContent().get(0);
             applicationLogger.severe("expConfig: " + expConfig);
             model.addAttribute("expConfig", expConfig);
 

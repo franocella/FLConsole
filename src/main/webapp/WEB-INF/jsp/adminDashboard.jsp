@@ -294,14 +294,15 @@
                 <table id="all-ExpTable" class="table mt-3 text-center"
                        style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
                     <thead>
-                    <tr>
-                        <th>Id</th>
-                        <th>Experiment Name</th>
-                        <th>Config Name</th>
-                        <th>Creation Date</th>
-                        <th></th>
-                    </tr>
+                        <tr>
+                            <th>Id</th>
+                            <th>Experiment Name</th>
+                            <th>Config Name</th>
+                            <th>Creation Date</th>
+                            <th></th>
+                        </tr>
                     </thead>
+
                     <tbody>
                     <c:forEach items="${allExperiments.content}" var="exp">
                         <tr>
@@ -360,7 +361,6 @@
             totalAllExpPages = ${allExperiments.getTotalPages()};
         </c:if>
 
-
         $(document).ready(function () {
             // Event listener for tab clicks
             $('.nav-link').on('click', function (e) {
@@ -374,10 +374,6 @@
 
                 // Hide all tab contents
                 $('.tab-content').hide();
-
-                if ($(this).id === "tab3") {
-                    getExperiments();
-                }
 
                 // Show the corresponding tab content
                 const targetTab = $(this).attr('href');
@@ -423,6 +419,7 @@
                     "codeLanguage": codeLanguage === "Code Language" ? "Missing" : codeLanguage,
                     "clientSelectionRatio": clientSelectionRatio === "" ? "Missing" : clientSelectionRatio
                 });
+
             } else {
                 // If all mandatory parameters are provided, proceed with creating the formData object
                 const formData = {
@@ -451,7 +448,7 @@
                     formData["parameters"] = parameters;
                 }
 
-                console.log("formData object:", formData);
+                console.log("formData object: ", formData);
 
                 $.ajax({
                     type: "POST",
@@ -468,8 +465,8 @@
                         console.log("New config:", formData);
 
                         getConfigurations();
-
                         addNewConfigToDropDown(formData);
+
                         closeModal();
                     },
                     error: function (error) {
@@ -516,7 +513,6 @@
 
         function submitExpForm() {
             const expName = $("#config-name-exp-modal").val().trim();
-            console.log($("#FL_config_value").val())
             const flConfig = JSON.parse($("#FL_config_value").val());
             const formData = {
                 "name": expName,
@@ -882,9 +878,11 @@
         // Function to retrieve the next page of experiments
         function nextAllExpPage() {
             let currentAllExpPage = $('#allExpPage');
+            console.log("Total all exp pages:", totalAllExpPages);
+            console.log("Current all exp page:", currentAllExpPage.val());
             if (currentAllExpPage.val() < totalAllExpPages - 1) {
                 currentAllExpPage.val(parseInt(currentAllExpPage.val()) + 1);
-                console.log("Current all exp page:", currentAllExpPage.val());
+                console.log("Next all exp page:", currentAllExpPage.val());
                 getExperiments(currentAllExpPage.val());
             }
         }
@@ -892,9 +890,10 @@
         // Function to retrieve the previous page of experiments
         function prevAllExpPage() {
             let currentAllExpPage = $('#allExpPage');
+            console.log("Current all exp page:", currentAllExpPage.val());
             if (currentAllExpPage.val() > 0) {
                 currentAllExpPage.val(parseInt(currentAllExpPage.val()) - 1);
-                console.log("Current all exp page:", currentAllExpPage.val());
+                console.log("Previous all exp page:", currentAllExpPage.val());
                 getExperiments(currentAllExpPage.val());
             }
         }
