@@ -1,38 +1,72 @@
 \chapter{Testing}
 
+Testing methodologies are used to ensure about the reliability, correctness, functionality and quality of the Federated Learning Web Console.
+ In this chapter, the testing methodologies used in the project are described. The testing methodologies are divided into two main categories: structural testing and functional testing.
+
 \section{Structural Testing}
 
-The structural testing performed on the project is described in this section.
+%The structural testing performed on the project is described in this section.
+Structural testing, also known as white-box testing is applied to the project to ensure that the implemented code is working as expected and evaluate the internal structure of the system.
+For primary structure testing JUnit testing is applied as a testing methodology.
 
 \subsection{JUnit Testing}
 
-The JUnit testing performed on the project is described in this section.
+The JUnit testing performed on the project of FL Web Console. The JUnit testing is applied to various classes like DAOs and Services to check whether the implemented code is working as expected or not and specified
+requirement are hold by the methods. Some examples of the JUnit testing that performed on the classes:
 
 \subsubsection{UserDAO}
+The UserDAO class is an important component of the project which is responsible for interacting with the database to handle data related with users. With the help of the JUnit tests
+different scenarios are tested to ensure that the implemented code is working as expected and the requirements are fulfilled. This scenarios are including creating new user, deleting existing user, finding user by some criterias.
+These tests show the correctness of the CRUD operations of the UserDAO class. Below it can be seen an example of performing JUnit test for some methods in the UserDAO.
+
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=0.8\textwidth]{images/placeholder.jpg}
-    \caption{User DAO tests}
+    \includegraphics[width=0.8\textwidth]{images/5_testing/userdao-test}
+    \caption{Testing the method of findListOfConfigurationsByEmail() in UserDAO class}
     \label{fig:u_dao_test}
+\end{figure}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/5_testing/userdao-test-result}
+    \caption{Testing result for the method of findListOfConfigurationsByEmail() in UserDAO class}
+    \label{fig:u_dao_test_result}
+\end{figure}
+
+With this JUnit test method, the findListOfConfigurationsByEmail() method of the UserDAO class is tested. The test is performed by finding all the related configuration that are belong to the user with that email.
+The test is successful and the expected result is returned as a list of configurations.
+
+\newpage
+\subsubsection{ExperimentDAO}
+Experiment DAO is another important class of the project which is responsible for interacting with the database to handle data related with experiments. JUnit tests are created to ensure that the experiment related functions are
+working as expected and the requirements are fulfilled. The tests are including creating new experiment, updating existing experiment, deleting existing experiment, finding experiment by some criterias. Below it can be seen an example test method for update an experiment.
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/5_testing/experimentdao-test}
+    \caption{Testing the method of update() in ExperimentDAO class}
+    \label{fig:e_dao_test}
 \end{figure}
 
 \newpage
 \subsubsection{ConfigurationDAO}
+
+%explanation
+
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=0.8\textwidth]{images/placeholder.jpg}
-    \caption{Configuration DAO tests}
+    \includegraphics[width=0.8\textwidth]{images/5_testing/expconfigdao-test}
+    \caption{Testing the method of saveAndRetrieve() in Configuration DAO class}
     \label{fig:c_dao_test}
 \end{figure}
 
-\newpage
-\subsubsection{ExperimentDAO}
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=0.8\textwidth]{images/placeholder.jpg}
-    \caption{Experiment DAO tests}
-    \label{fig:e_dao_test}
+    \includegraphics[width=0.8\textwidth]{images/5_testing/expconfigdao-test-result}
+    \caption{Testing result for the method of saveAndRetrieve() in Configuration DAO class}
+    \label{fig:c_dao_test_result}
 \end{figure}
+
 
 \newpage
 \section{Functional Testing}

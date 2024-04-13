@@ -46,16 +46,12 @@ class ExpConfigDaoTest {
         Map<String, String> parametersList = new HashMap<>(Map.of("numFeatures", "16", "numClusters", "10",
                 "targetFeature", "16", "lambdaFactor", "2", "seed", "10"));
         expConfig.setParameters(parametersList);
-
         // When
         ExpConfig savedExpConfig = expConfigDao.save(expConfig);
-
-        /*// Then
+        // Then
         assertNotNull(savedExpConfig.getId(), "ID should not be null after save");
-
         // Retrieve the saved ExpConfig from the repository
         Optional<ExpConfig> retrievedExpConfigOptional = expConfigDao.findById(savedExpConfig.getId());
-
         // Assert that the retrieved ExpConfig matches the original one
         assertTrue(retrievedExpConfigOptional.isPresent(), "Saved ExpConfig should be present");
         ExpConfig retrievedExpConfig = retrievedExpConfigOptional.get();
@@ -65,7 +61,7 @@ class ExpConfigDaoTest {
         //assertEquals(expConfig.getNumClients(), retrievedExpConfig.getNumClients(), "NumClients should match");
         assertEquals(expConfig.getStopCondition(), retrievedExpConfig.getStopCondition(), "StopCondition should match");
         // assertEquals(expConfig.getThreshold(), retrievedExpConfig.getThreshold(), "Threshold should match");
-        assertEquals(expConfig.getParameters(), retrievedExpConfig.getParameters(), "Parameters should match");*/
+        assertEquals(expConfig.getParameters(), retrievedExpConfig.getParameters(), "Parameters should match");
     }
 
 

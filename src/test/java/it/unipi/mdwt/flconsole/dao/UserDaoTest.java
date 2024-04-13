@@ -221,7 +221,7 @@ class UserDaoTest {
     @Test
     void findListOfConfigurationsByEmail() {
         // Given
-        String userEmail = "firstTest@example.com";
+        String userEmail = "admin@example.com";
 
         // When
         List<String> retrievedConfigurations = userRepository.findListOfConfigurationsByEmail(userEmail);

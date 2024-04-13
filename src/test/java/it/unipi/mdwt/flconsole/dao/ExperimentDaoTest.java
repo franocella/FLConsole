@@ -65,12 +65,48 @@ class ExperimentDaoTest {
     /**
      * Test the update method of the ExperimentDAO.
      */
+//    @Test
+//    void update(){
+//        //create an experiment object
+//        Experiment experiment = new Experiment();
+//        experiment.setName("Save Test Experiment2");
+//
+//        Experiment savedExperiment = experimentDao.save(experiment);
+//
+//        // Fetch all users
+//        List<User> users = userDao.findAll();
+//        for (User user : users) {
+//            // Check if the user has experiments associated with the updated experiment
+//            List<ExperimentSummary> updatedExperiments = user.getExperiments();
+//            if (updatedExperiments != null) {
+//                // Iterate over the user's experiments
+//                for (ExperimentSummary exp : updatedExperiments) {
+//                    // If the experiment ID matches, update the name
+//                    if (exp.getId().equals(savedExperiment.getId())) {
+//                        exp.setName(savedExperiment.getName());
+//                        break; // No need to continue checking once the experiment is found
+//                    }
+//                }
+//                // Save the updated user
+//                userDao.save(user);
+//            }
+//        }
+//        savedExperiment.setName("Changed Name2");
+//        experimentDao.save(savedExperiment);
+//
+//        Optional<Experiment> updatedExperiment = experimentDao.findById(savedExperiment.getId());
+//        assertTrue(updatedExperiment.isPresent());
+//        assertEquals("Changed Name", updatedExperiment.get().getName());
+//    }
+//
+
     @Test
-    void update(){
-        //create an experiment object
+    void update() {
+        // Create an experiment object
         Experiment experiment = new Experiment();
         experiment.setName("Save Test Experiment2");
 
+        // Save the experiment
         Experiment savedExperiment = experimentDao.save(experiment);
 
         // Fetch all users
@@ -84,19 +120,22 @@ class ExperimentDaoTest {
                     // If the experiment ID matches, update the name
                     if (exp.getId().equals(savedExperiment.getId())) {
                         exp.setName(savedExperiment.getName());
-                        break; // No need to continue checking once the experiment is found
+                        // No need to break here, as multiple summaries might match
                     }
                 }
                 // Save the updated user
                 userDao.save(user);
             }
         }
+        // Update the name of the savedExperiment
         savedExperiment.setName("Changed Name2");
         experimentDao.save(savedExperiment);
-
+        // Fetch the updated experiment
         Optional<Experiment> updatedExperiment = experimentDao.findById(savedExperiment.getId());
         assertTrue(updatedExperiment.isPresent());
-        assertEquals("Changed Name", updatedExperiment.get().getName());
+        // Check the updated name
+        assertEquals("Changed Name2", updatedExperiment.get().getName());
     }
+
 
 }
