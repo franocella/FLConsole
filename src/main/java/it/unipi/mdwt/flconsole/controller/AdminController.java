@@ -55,17 +55,17 @@ public class AdminController {
             User user = userService.getUser(email);
 
             if (user.getConfigurations() != null){
-                Page<ExpConfig> userConfigurations = expConfigService.getNConfigsList(user.getConfigurations(), null);
+                Page<ExpConfig> userConfigurations = expConfigService.getConfigsListFirstPage(user.getConfigurations(), null);
                 model.addAttribute("configurations", userConfigurations);
 
-                Page<ExpConfig> allConfigurations = expConfigService.getNConfigsList(user.getConfigurations(), user.getConfigurations().size());
+                Page<ExpConfig> allConfigurations = expConfigService.getConfigsListFirstPage(user.getConfigurations(), user.getConfigurations().size());
                 List<ExpConfigSummary> allConfigurationsSummary = allConfigurations.getContent().stream()
                         .map(config -> new ExpConfigSummary(config.getId(), config.getName(), config.getAlgorithm()))
                         .toList();
                 model.addAttribute("allConfigurations", allConfigurationsSummary);
             }
 
-            if (user.getExperiments()!=null){
+            if (user.getExperiments() != null) {
                 int totalExpPages = (int) Math.ceil((double) user.getExperiments().size() / PAGE_SIZE);
                 List<ExperimentSummary> experimentSummaries = user.getExperiments().stream()
                         .sorted(Comparator.comparing(ExperimentSummary::getCreationDate).reversed())

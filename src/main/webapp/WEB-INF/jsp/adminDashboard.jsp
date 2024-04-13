@@ -294,14 +294,15 @@
                 <table id="all-ExpTable" class="table mt-3 text-center"
                        style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
                     <thead>
-                    <tr>
-                        <th>Id</th>
-                        <th>Experiment Name</th>
-                        <th>Config Name</th>
-                        <th>Creation Date</th>
-                        <th></th>
-                    </tr>
+                        <tr>
+                            <th>Id</th>
+                            <th>Experiment Name</th>
+                            <th>Config Name</th>
+                            <th>Creation Date</th>
+                            <th></th>
+                        </tr>
                     </thead>
+
                     <tbody>
                     <c:forEach items="${allExperiments.content}" var="exp">
                         <tr>
@@ -359,7 +360,6 @@
         <c:if test="${not empty allExperiments}">
             totalAllExpPages = ${allExperiments.getTotalPages()};
         </c:if>
-
 
         $(document).ready(function () {
             // Event listener for tab clicks
@@ -421,6 +421,7 @@
                     "codeLanguage": codeLanguage === "Code Language" ? "Missing" : codeLanguage,
                     "clientSelectionRatio": clientSelectionRatio === "" ? "Missing" : clientSelectionRatio
                 });
+
             } else {
                 // If all mandatory parameters are provided, proceed with creating the formData object
                 const formData = {
@@ -449,8 +450,6 @@
                     formData["parameters"] = parameters;
                 }
 
-                console.log("formData object:", formData);
-
                 $.ajax({
                     type: "POST",
                     url: "/admin/newConfig",
@@ -466,8 +465,8 @@
                         console.log("New config:", formData);
 
                         getConfigurations();
-
                         addNewConfigToDropDown(formData);
+
                         closeModal();
                     },
                     error: function (error) {
@@ -514,7 +513,6 @@
 
         function submitExpForm() {
             const expName = $("#config-name-exp-modal").val().trim();
-            console.log($("#FL_config_value").val())
             const flConfig = JSON.parse($("#FL_config_value").val());
             const formData = {
                 "name": expName,
@@ -882,7 +880,6 @@
             let currentAllExpPage = $('#allExpPage');
             if (currentAllExpPage.val() < totalAllExpPages - 1) {
                 currentAllExpPage.val(parseInt(currentAllExpPage.val()) + 1);
-                console.log("Current all exp page:", currentAllExpPage.val());
                 getExperiments(currentAllExpPage.val());
             }
         }
@@ -892,7 +889,6 @@
             let currentAllExpPage = $('#allExpPage');
             if (currentAllExpPage.val() > 0) {
                 currentAllExpPage.val(parseInt(currentAllExpPage.val()) - 1);
-                console.log("Current all exp page:", currentAllExpPage.val());
                 getExperiments(currentAllExpPage.val());
             }
         }

@@ -15,7 +15,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -64,12 +63,13 @@ public class ExpConfigService {
         mongoTemplate.updateFirst(query, update, User.class);
     }
 
-    public Page<ExpConfig> getNConfigsList(List<String> configurations, Integer pageSize) {
+    public Page<ExpConfig> getConfigsListFirstPage(List<String> configurations, Integer pageSize) {
         if (pageSize == null || pageSize <= 0) {
             pageSize = PAGE_SIZE;
         }
+
         List<ExpConfig> configs = expConfigDao.findTopNByIdInOrderByCreationDateDesc(configurations, PageRequest.of(0, pageSize));
-        return PageableExecutionUtils.getPage(configs, PageRequest.of(0, pageSize), configurations::size);
+        return new PageImpl<>(configs, PageRequest.of(0, pageSize), configurations.size());
     }
 
     /**

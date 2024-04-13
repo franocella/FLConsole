@@ -153,6 +153,10 @@ public class ExperimentService {
                 query.addCriteria(Criteria.where(criterion.getFirst()).regex(criterion.getSecond(), "i"));
             }
 
+            // Retrieve the total count of matching ExpConfig objects
+            long totalCount = mongoTemplate.count(query, Experiment.class);
+            applicationLogger.severe("Total count all exp: " + totalCount);
+
             // Set the page number and limit the results to the specified maximum number of elements
             query.with(PageRequest.of(page, PAGE_SIZE, Sort.by(Sort.Direction.DESC, "creationDate")));
 
@@ -160,9 +164,6 @@ public class ExperimentService {
             List<Experiment> matchingExperiments = mongoTemplate.find(query, Experiment.class);
             applicationLogger.severe("Matching experiments: " + matchingExperiments.size());
 
-            // Retrieve the total count of matching ExpConfig objects
-            long totalCount = mongoTemplate.count(query, Experiment.class);
-            applicationLogger.severe("Total count: " + totalCount);
 
             // Create a Page object using the retrieved ExpConfig objects, the requested page, and the total count
             return new PageImpl<>(matchingExperiments, PageRequest.of(page, PAGE_SIZE), totalCount);
