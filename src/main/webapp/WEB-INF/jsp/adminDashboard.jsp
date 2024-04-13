@@ -1,4 +1,3 @@
-<%@ page import="it.unipi.mdwt.flconsole.utils.Constants" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page session="false" %>
@@ -141,7 +140,7 @@
                 <a class="nav-link" href="#tab2Content">My FL Experiments</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" onclick="getExperiments()" href="#tab3Content">All FL Experiments</a>
+                <a class="nav-link" onclick="getAllExperiments()" href="#tab3Content">All FL Experiments</a>
             </li>
         </ul>
 
@@ -206,19 +205,6 @@
                     </tbody>
                 </table>
             </div>
-            <!-- Pagination buttons -->
-            <div class="d-flex justify-content-between position-fixed bottom-0 end-0" style="margin-bottom: 120px; margin-right: 80px">
-                <div class="d-flex gap-2">
-                    <!-- Left arrow to decrease the page -->
-                    <button class="btn btn-primary" onclick="prevConfigPage()">
-                        &lt; Previous
-                    </button>
-                    <!-- Right arrow to increase the page -->
-                    <button class="btn btn-primary" onclick="nextConfigPage()">
-                        Next &gt;
-                    </button>
-                </div>
-            </div>
         </div>
 
         <!-- TAB 2 -->
@@ -261,21 +247,6 @@
                     </tbody>
                 </table>
             </div>
-
-            <!-- Pagination buttons -->
-            <div class="d-flex justify-content-between position-fixed bottom-0 end-0" style="margin-bottom: 120px; margin-right: 80px">
-                <div class="d-flex gap-2">
-                    <!-- Left arrow to decrease the page -->
-                    <button class="btn btn-primary" onclick="prevExpPage()">
-                        &lt; Previous
-                    </button>
-                    <!-- Right arrow to increase the page -->
-                    <button class="btn btn-primary" onclick="nextExpPage()">
-                        Next &gt;
-                    </button>
-                </div>
-            </div>
-
         </div>
 
         <%--TAB 3--%>
@@ -316,23 +287,21 @@
                     </tbody>
                 </table>
             </div>
-
-            <!-- Pagination buttons -->
-            <div class="d-flex justify-content-between position-fixed bottom-0 end-0" style="margin-bottom: 120px; margin-right: 80px">
-                <div class="d-flex gap-2">
-                    <!-- Left arrow to decrease the page -->
-                    <button class="btn btn-primary" onclick="prevAllExpPage()">
-                        &lt; Previous
-                    </button>
-                    <!-- Right arrow to increase the page -->
-                    <button class="btn btn-primary" onclick="nextAllExpPage()">
-                        Next &gt;
-                    </button>
-                </div>
-            </div>
-
         </div>
 
+        <!-- Pagination buttons -->
+        <div class="d-flex justify-content-between position-fixed bottom-0 end-0" style="margin-bottom: 120px; margin-right: 80px">
+            <div class="d-flex gap-2">
+                <!-- Left arrow to decrease the page -->
+                <button id="prevPageButton" class="btn btn-primary" onclick="handlePage('prev')">
+                    &lt; Previous
+                </button>
+                <!-- Right arrow to increase the page -->
+                <button id="nextPageButton" class="btn btn-primary" onclick="handlePage('next')">
+                    Next &gt;
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- External scripts for jQuery, Bootstrap, and custom JavaScript files -->
@@ -360,40 +329,6 @@
         <c:if test="${not empty allExperiments}">
             totalAllExpPages = ${allExperiments.getTotalPages()};
         </c:if>
-
-        $(document).ready(function () {
-            // Event listener for tab clicks
-            $('.nav-link').on('click', function (e) {
-                e.preventDefault();
-
-                // Remove the "active" class from all links
-                $('.nav-link').removeClass('active');
-
-                // Add the "active" class to the clicked link
-                $(this).addClass('active');
-
-                // Hide all tab contents
-                $('.tab-content').hide();
-
-
-
-                // Show the corresponding tab content
-                const targetTab = $(this).attr('href');
-                $(targetTab).show();
-            });
-
-            $('#execution-name, #config-name').on('input', function () {
-                getMyExperiments();
-            });
-
-            $('#ExpConfigName, #ClientStrategy, #StopCondition, #Algorithm').on('input', function () {
-                getConfigurations();
-            });
-
-            $('#all-execution-name, #all-config-name').on('input', function () {
-                getExperiments();
-            });
-        });
 
         function submitConfigForm() {
             // Get values from input fields
@@ -464,7 +399,7 @@
 
                         console.log("New config:", formData);
 
-                        getConfigurations();
+                        getMyConfigurations();
                         addNewConfigToDropDown(formData);
 
                         closeModal();
@@ -489,6 +424,41 @@
             selectElement.appendChild(option);
         }
 
+        function addParameterInputField() {
+            const table = document.getElementById("parametersTable");
+            const rowCount = table.tBodies[0].rows.length;
+            let newRowCount;
+            const newRow = table.tBodies[0].insertRow(rowCount);
+            newRowCount = rowCount + 1;
+            const cell1 = newRow.insertCell(0);
+            const cell2 = newRow.insertCell(1);
+            cell1.contentEditable = true;
+            cell2.contentEditable = true;
+            cell1.textContent = "Parameter" + newRowCount;
+            cell2.textContent = "Value" + newRowCount;
+
+            // Show the delete button if there is at least 1 row
+            if (newRowCount > 0) {
+                const deleteButton = document.getElementById("remove-parameter");
+                deleteButton.style.display = "inline-block";
+            }
+        }
+
+        function removeParameterInputField() {
+            const table = document.getElementById("parametersTable");
+            const rowCount = table.tBodies[0].rows.length;
+            if (rowCount > 0) {
+                table.tBodies[0].deleteRow(rowCount - 1);
+            }
+
+            const newRowCount = rowCount - 1;
+            // Hide the delete button if there is only one row
+            if (newRowCount === 0) {
+                const deleteButton = document.getElementById("remove-parameter");
+                deleteButton.style.display = "none";
+            }
+        }
+
         function openConfigDetails(id) {
         }
 
@@ -507,59 +477,7 @@
                 }
             });
 
-            getConfigurations();
-        }
-
-
-        function submitExpForm() {
-            const expName = $("#config-name-exp-modal").val().trim();
-            const flConfig = JSON.parse($("#FL_config_value").val());
-            const formData = {
-                "name": expName,
-                "expConfig": {
-                    "id": flConfig.id,
-                    "name": flConfig.name,
-                    "algorithm": flConfig.algorithm
-                }
-            };
-
-            $.ajax({
-                type: "POST",
-                url: "/admin/newExp",
-                contentType: "application/json",
-                data: JSON.stringify(formData),
-                success: function (response) {
-
-                    const jsonData = JSON.parse(response);
-                    console.log("Server response:", jsonData);
-
-                    formData["id"] = jsonData.id;
-                    formData["creationDate"] = jsonData.creationTime;
-
-                    console.log("New config:", formData);
-                    getMyExperiments();
-
-                    closeModal();
-                },
-                error: function (error) {
-                    console.error("Error:", error);
-                }
-            });
-        }
-
-        function removeParameterInputField() {
-            const table = document.getElementById("parametersTable");
-            const rowCount = table.tBodies[0].rows.length;
-            if (rowCount > 0) {
-                table.tBodies[0].deleteRow(rowCount - 1);
-            }
-
-            const newRowCount = rowCount - 1;
-            // Hide the delete button if there is only one row
-            if (newRowCount === 0) {
-                const deleteButton = document.getElementById("remove-parameter");
-                deleteButton.style.display = "none";
-            }
+            getMyConfigurations();
         }
 
         function displayErrorModal(title, params) {
@@ -659,85 +577,42 @@
             }
 
             // Reset values in the parameters table
-            const table = modal.find("#parametersTable")[0];
-            if (table && table.tBodies[0]) {
-                const rowCount = table.tBodies[0].rows.rowCount;
+            modal.find("#parametersTable tbody").empty();
+        }
 
-                // Update the first row values
-                const firstRow = table.tBodies[0].rows[0];
-                firstRow.cells[0].textContent = "Parameter 1";
-                firstRow.cells[1].textContent = "Value 1";
-
-                // Remove all rows except the first one
-                for (let i = rowCount - 1; i >= 1; i--) {
-                    table.tBodies[0].deleteRow(i);
+        function submitExpForm() {
+            const expName = $("#config-name-exp-modal").val().trim();
+            const flConfig = JSON.parse($("#FL_config_value").val());
+            const formData = {
+                "name": expName,
+                "expConfig": {
+                    "id": flConfig.id,
+                    "name": flConfig.name,
+                    "algorithm": flConfig.algorithm
                 }
+            };
 
-                // Add the second default row
-                addParameterInputField();
-            }
-        }
+            $.ajax({
+                type: "POST",
+                url: "/admin/newExp",
+                contentType: "application/json",
+                data: JSON.stringify(formData),
+                success: function (response) {
 
-        function addParameterInputField() {
-            const table = document.getElementById("parametersTable");
-            const rowCount = table.tBodies[0].rows.length;
-            let newRowCount;
-            const newRow = table.tBodies[0].insertRow(rowCount);
-            newRowCount = rowCount + 1;
-            const cell1 = newRow.insertCell(0);
-            const cell2 = newRow.insertCell(1);
-            cell1.contentEditable = true;
-            cell2.contentEditable = true;
-            cell1.textContent = "Parameter" + newRowCount;
-            cell2.textContent = "Value" + newRowCount;
+                    const jsonData = JSON.parse(response);
+                    console.log("Server response:", jsonData);
 
-            // Show the delete button if there is at least 1 row
-            if (newRowCount > 0) {
-                const deleteButton = document.getElementById("remove-parameter");
-                deleteButton.style.display = "inline-block";
-            }
-        }
+                    formData["id"] = jsonData.id;
+                    formData["creationDate"] = jsonData.creationTime;
 
-        function updateExpTable(response) {
-            $('#tab2Content tbody').empty();
+                    console.log("New config:", formData);
+                    getMyExperiments();
 
-            // Extract the list from the response
-            const configurations = response.content;
-
-            $.each(configurations, function (index, item) {
-                const row = $('<tr>').append(
-                    "<td class='align-middle'>" + item.id + "</td>" +
-                    "<td class='align-middle'>" + item.name + "</td>" +
-                    "<td class='align-middle'>" + item.configName + "</td>" +
-                    "<td class='align-middle'>" + item.creationDate + "</td>" +
-                    "<td class='align-middle'><a href='/experiment-" + item.id + "'><img src='${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg' alt='Open' width='25px' height='25px'></a></td>" +
-                    "<td class='align-middle'><figure class='m-0'><img src='${pageContext.request.contextPath}/Images/icon_delete.svg' alt='Delete' onclick='deleteExp(\"" + item.id + "\")' height='20px' width='20px'></figure></td>"
-
-            );
-                $('#tab2Content tbody').append(row);
-            });
-        }
-
-        // Function to update configuration table
-        function updateConfigTable(response) {
-            // Clear previous search results
-            $('#ConfigTable tbody').empty();
-
-            // Extract the list from the response
-            const configurations = response.content;
-
-            // Insert rows based on the response
-            $.each(configurations, function (index, item) {
-                const row = '<tr>' +
-                    '<td class="align-middle">' + item.id + '</td>' +
-                    '<td class="align-middle">' + item.name + '</td>' +
-                    '<td class="align-middle">' + item.algorithm + '</td>' +
-                    '<td class="align-middle">' + item.creationDate + '</td>' +
-                    '<td class="align-middle"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="openConfigDetails(\'' + item.id + '\')"></td>' +
-                    '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + item.id + '\')" height="20px" width="20px"></figure></td>' +
-                    '</tr>';
-
-                $('#ConfigTable tbody').append(row);
+                    closeModal();
+                },
+                error: function (error) {
+                    console.error("Error:", error);
+                }
             });
         }
 
@@ -759,166 +634,179 @@
             getMyExperiments();
         }
 
-        // Function to retrieve the next page of configurations
-        function nextConfigPage() {
-            let currentConfigPage = $('#configPage');
-            if (currentConfigPage.val() < totalConfigPages - 1) {
-                currentConfigPage.val(parseInt(currentConfigPage.val()) + 1);
-                console.log("Current config page:", currentConfigPage.val());
-                getConfigurations(currentConfigPage.val());
+        // Function to handle pagination
+        function handlePage(direction) {
+            let currentPage, totalPages, getPageFunction;
+            const activeTabText = $('.nav-link.active').text().trim();
+            switch (activeTabText) {
+                case "FL Configurations":
+                    currentPage = $("#configPage");
+                    totalPages = totalConfigPages;
+                    getPageFunction = getMyConfigurations;
+                    break;
+                case "My FL Experiments":
+                    currentPage = $("#expPage");
+                    totalPages = totalExpPages;
+                    getPageFunction = getMyExperiments;
+                    break;
+                case "All FL Experiments":
+                    currentPage = $("#allExpPage");
+                    totalPages = totalAllExpPages;
+                    getPageFunction = getAllExperiments;
+                    break;
             }
+
+            if (direction === 'next' && currentPage.val() < totalPages - 1) {
+                currentPage.val(parseInt(currentPage.val()) + 1);
+            } else if (direction === 'prev' && currentPage.val() > 0) {
+                currentPage.val(parseInt(currentPage.val()) - 1);
+            }
+
+            getPageFunction(currentPage.val());
         }
 
-        // Function to retrieve the previous page of configurations
-        function prevConfigPage() {
-            let currentConfigPage = $('#configPage');
-            if (currentConfigPage.val() > 0) {
-                currentConfigPage.val(parseInt(currentConfigPage.val()) - 1);
-                console.log("Current config page:", currentConfigPage.val());
-                getConfigurations(currentConfigPage.val());
-            }
-        }
-
-        // Function to retrieve the next page of experiments
-        function nextExpPage() {
-            let currentExpPage = $('#expPage');
-            if (currentExpPage.val() < totalExpPages - 1) {
-                currentExpPage.val(parseInt(currentExpPage.val()) + 1);
-                console.log("Current exp page:", currentExpPage.val());
-                getMyExperiments(currentExpPage.val());
-            }
-        }
-
-        // Function to retrieve the previous page of experiments
-        function prevExpPage() {
-            let currentExpPage = $('#expPage');
-            if (currentExpPage.val() > 0) {
-                currentExpPage.val(parseInt(currentExpPage.val()) - 1);
-                console.log("Current exp page:", currentExpPage.val());
-                getMyExperiments(currentExpPage.val());
-            }
-        }
-
-        // Function to retrieve configurations of the current page via an AJAX call
-        function getConfigurations(page = 0) {
+        // Function to retrieve configurations of the current page
+        function getMyConfigurations(page = 0) {
             const configName = $('#ExpConfigName').val();
             const clientStrategy = $('#ClientStrategy').val();
             const stopCondition = $('#StopCondition').val();
             const algorithm = $('#Algorithm').val();
-            if (page === 0) {
-                $('#configPage').val(0);
-            }
 
-            $.ajax({
-                url: '/admin/getConfigurations',
-                method: 'GET',
-                data: {
-                    name: configName,
-                    clientStrategy: clientStrategy,
-                    stopCondition: stopCondition,
-                    algorithm: algorithm,
-                    page: page
-                },
-                success: function (response) {
-                    $('#configPage').val(response.number);
-                    totalConfigPages = response.totalPages;
-                    updateConfigTable(response);
-                },
-                error: function (xhr, status, error) {
-                    console.error(xhr.responseText);
-                }
-            });
+            getData('/admin/getConfigurations', 'GET', {
+                name: configName,
+                clientStrategy: clientStrategy,
+                stopCondition: stopCondition,
+                algorithm: algorithm,
+                page: page
+            }, $('#configPage'), totalConfigPages, getMyConfigurations, updateConfigTable);
         }
 
-        // Function to retrieve experiments of the current page via an AJAX call
+        // Function to retrieve experiments of the current page
         function getMyExperiments(page = 0) {
             const executionName = $('#execution-name').val();
             const configName = $('#config-name').val();
-            if (page === 0) {
-                $('#expPage').val(0);
-            }
 
+            getData('/admin/getExperiments', 'GET', {
+                configName: configName,
+                executionName: executionName,
+                page: page
+            }, $('#expPage'), totalExpPages, getMyExperiments, updateExpTable, 'tab2Content');
+        }
+
+        // Function to retrieve all experiments of the current page
+        function getAllExperiments(page = 0) {
+            const executionName = $('#all-execution-name').val();
+            const configName = $('#all-config-name').val();
+
+            getData('/getExperiments', 'POST', {
+                configName: configName,
+                expName: executionName,
+                page: page
+            }, $('#allExpPage'), totalAllExpPages, getAllExperiments, updateExpTable, 'tab3Content');
+        }
+
+        // Function to retrieve configurations or experiments of the current page via an AJAX call
+        function getData(url, method, data, pageElement, totalPagesElement, getPageFunction, updateTableFunction, tableId = null) {
+            if (pageElement.val() === 0) {
+                pageElement.val(0);
+            }
             $.ajax({
-                url: '/admin/getExperiments',
-                method: 'GET',
-                data: {
-                    configName: configName,
-                    executionName: executionName,
-                    page: page
+                url: url,
+                method: method,
+                data: data,
+                success: function(response) {
+                    pageElement.val(response.number);
+                    totalPagesElement = response.totalPages;
+                    if (tableId) {
+                        updateTableFunction(response, tableId);
+                    } else {
+                        updateTableFunction(response);
+                    }
                 },
-                success: function (response) {
-                    $('#expPage').val(response.number);
-                    totalExpPages = response.totalPages;
-                    updateExpTable(response);
-                },
-                error: function (xhr, status, error) {
+                error: function(xhr) {
                     console.error(xhr.responseText);
                 }
             });
         }
 
-        function updateAllExpTable(response) {
-            $('#all-ExpTable tbody').empty();
+        function updateExpTable(response, tableId) {
+            const tbody = $('#' + tableId + ' tbody');
+            tbody.empty();
+            const configurations = response.content;
+            $.each(configurations, function (_, item) {
+                const row = $('<tr>').append(
+                    '<td class="align-middle">' + item.id + '</td>' +
+                    '<td class="align-middle">' + item.name + '</td>' +
+                    '<td class="align-middle">' + (tableId === 'tab2Content' ? item.configName : item.expConfig.name) + '</td>' +
+                    '<td class="align-middle">' + item.creationDate + '</td>' +
+                    '<td class="align-middle"><a href="/experiment-' + item.id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>' +
+                    (tableId === 'tab2Content' ?
+                        '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteExp(\'' + item.id + '\')" height="20px" width="20px"></figure></td>' :
+                        '')
+                );
+                tbody.append(row);
+            });
+        }
+
+        // Function to update configuration table
+        function updateConfigTable(response) {
+            // Clear previous search results
+            const tbody = $('#ConfigTable tbody');
+            tbody.empty();
 
             // Extract the list from the response
             const configurations = response.content;
 
+            // Insert rows based on the response
             $.each(configurations, function (index, item) {
                 const row = $('<tr>').append(
-                    "<td class='align-middle'>" + item.id + "</td>" +
-                    "<td class='align-middle'>" + item.name + "</td>" +
-                    "<td class='align-middle'>" + item.expConfig.name + "</td>" +
-                    "<td class='align-middle'>" + item.creationDate + "</td>" +
-                    '<td class="align-middle"><a href="/experiment-' + item.id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>'
+                    '<td class="align-middle">' + item.id + '</td>' +
+                    '<td class="align-middle">' + item.name + '</td>' +
+                    '<td class="align-middle">' + item.algorithm + '</td>' +
+                    '<td class="align-middle">' + item.creationDate + '</td>' +
+                    '<td class="align-middle"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="openConfigDetails(\'' + item.id + '\')"></td>' +
+                    '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + item.id + '\')" height="20px" width="20px"></figure></td>'
                 );
-                $('#all-ExpTable tbody').append(row);
+
+                tbody.append(row);
             });
         }
 
-        // Function to retrieve the next page of experiments
-        function nextAllExpPage() {
-            let currentAllExpPage = $('#allExpPage');
-            if (currentAllExpPage.val() < totalAllExpPages - 1) {
-                currentAllExpPage.val(parseInt(currentAllExpPage.val()) + 1);
-                getExperiments(currentAllExpPage.val());
-            }
-        }
+        $(document).ready(function () {
+            // Event listener for tab clicks
+            $('.nav-link').on('click', function (e) {
+                e.preventDefault();
 
-        // Function to retrieve the previous page of experiments
-        function prevAllExpPage() {
-            let currentAllExpPage = $('#allExpPage');
-            if (currentAllExpPage.val() > 0) {
-                currentAllExpPage.val(parseInt(currentAllExpPage.val()) - 1);
-                getExperiments(currentAllExpPage.val());
-            }
-        }
+                // Remove the "active" class from all links
+                $('.nav-link').removeClass('active');
 
-        // Function to retrieve experiments of the current page via an AJAX call
-        function getExperiments(page = 0) {
-            const executionName = $('#all-execution-name').val();
-            const configName = $('#all-config-name').val();
-            if (page === 0) {
+                // Add the "active" class to the clicked link
+                $(this).addClass('active');
+
+                // Hide all tab contents
+                $('.tab-content').hide();
+
+                $('#configPage').val(0);
+                $('#expPage').val(0);
                 $('#allExpPage').val(0);
-            }
-            $.ajax({
-                url: '/getExperiments',
-                method: 'POST',
-                data: {
-                    configName: configName,
-                    expName: executionName,
-                    page: page
-                },
-                success: function (response) {
-                    console.log(response);
-                    $('#allExpPage').val(response.number);
-                    totalAllExpPages = response.totalPages;
-                    updateAllExpTable(response);
-                },
-                error: function (xhr) {
-                    console.error(xhr.responseText);
-                }
+
+                // Show the corresponding tab content
+                const targetTab = $(this).attr('href');
+                $(targetTab).show();
             });
-        }
+
+            $('#execution-name, #config-name').on('input', function () {
+                getMyExperiments();
+            });
+
+            $('#ExpConfigName, #ClientStrategy, #StopCondition, #Algorithm').on('input', function () {
+                getMyConfigurations();
+            });
+
+            $('#all-execution-name, #all-config-name').on('input', function () {
+                getExperiments();
+            });
+        });
     </script>
 </body>
 

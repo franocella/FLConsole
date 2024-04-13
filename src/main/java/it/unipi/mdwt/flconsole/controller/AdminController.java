@@ -11,6 +11,8 @@ import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -55,14 +57,18 @@ public class AdminController {
             User user = userService.getUser(email);
 
             if (user.getConfigurations() != null){
-                Page<ExpConfig> userConfigurations = expConfigService.getConfigsListFirstPage(user.getConfigurations(), null);
-                model.addAttribute("configurations", userConfigurations);
-
                 Page<ExpConfig> allConfigurations = expConfigService.getConfigsListFirstPage(user.getConfigurations(), user.getConfigurations().size());
                 List<ExpConfigSummary> allConfigurationsSummary = allConfigurations.getContent().stream()
                         .map(config -> new ExpConfigSummary(config.getId(), config.getName(), config.getAlgorithm()))
                         .toList();
                 model.addAttribute("allConfigurations", allConfigurationsSummary);
+
+                // Create a Page object with the first PAGE_SIZE configurations
+                Page<ExpConfig> userConfigurations = new PageImpl<>(
+                        allConfigurations.getContent().subList(0, Math.min(PAGE_SIZE, allConfigurations.getContent().size())),
+                        PageRequest.of(0, PAGE_SIZE),
+                        allConfigurations.getTotalElements());
+                model.addAttribute("configurations", userConfigurations);
             }
 
             if (user.getExperiments() != null) {
