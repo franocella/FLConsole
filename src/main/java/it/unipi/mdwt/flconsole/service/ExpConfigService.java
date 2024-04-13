@@ -138,5 +138,9 @@ public class ExpConfigService {
             throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
         }
     }
+
+    public ExpConfig getExpConfigById(String configId) {
+        return expConfigDao.findById(configId).orElse(null);
+    }
 }
 
