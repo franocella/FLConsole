@@ -3,6 +3,7 @@ package it.unipi.mdwt.flconsole.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
+import it.unipi.mdwt.flconsole.dto.ExpConfigSummary;
 import it.unipi.mdwt.flconsole.dto.ExperimentSummary;
 import it.unipi.mdwt.flconsole.model.*;
 import it.unipi.mdwt.flconsole.service.*;
@@ -50,25 +51,18 @@ public class AdminController {
         try {
             String email = cookieService.getCookieValue(request.getCookies(),"email");
             User user = userService.getUser(email);
-            if (user.getConfigurations()!=null){
-                Page<ExpConfig> userConfigurations = expConfigService.getNConfigsList(user.getConfigurations());
-                int totalConfigPages = userConfigurations.getTotalPages();
-                List<String> jsonList = userConfigurations.stream()
-                        .filter(Objects::nonNull) // Filter out null values
-                        .map(expConfig -> {
-                            try {
-                                return objectMapper.writeValueAsString(expConfig);
-                            } catch (JsonProcessingException e) {
-                                // Handle the exception if the conversion fails
-                                applicationLogger.severe("Error converting ExpConfig to JSON: " + e.getMessage());
-                                return null;
-                            }
-                        })
-                        .toList();
 
-                model.addAttribute("configurations", jsonList);
-                model.addAttribute("totalConfigPages", totalConfigPages);
+            if (user.getConfigurations() != null){
+                Page<ExpConfig> userConfigurations = expConfigService.getNConfigsList(user.getConfigurations(), null);
+                model.addAttribute("configurations", userConfigurations);
+
+                Page<ExpConfig> allConfigurations = expConfigService.getNConfigsList(user.getConfigurations(), user.getConfigurations().size());
+                List<ExpConfigSummary> allConfigurationsSummary = allConfigurations.getContent().stream()
+                        .map(config -> new ExpConfigSummary(config.getId(), config.getName(), config.getAlgorithm()))
+                        .toList();
+                model.addAttribute("allConfigurations", allConfigurationsSummary);
             }
+
             if (user.getExperiments()!=null){
                 int totalExpPages = (int) Math.ceil((double) user.getExperiments().size() / PAGE_SIZE);
                 List<ExperimentSummary> experimentSummaries = user.getExperiments().stream()
@@ -78,6 +72,7 @@ public class AdminController {
                 model.addAttribute("experiments", experimentSummaries);
                 model.addAttribute("totalExpPages", totalExpPages);
             }
+
 
 
             Page<Experiment> experiments = experimentService.getExperiments(null, null, 0);
@@ -139,16 +134,16 @@ public class AdminController {
     @PostMapping("/newExp")
     public ResponseEntity<String> newExp(@RequestBody String exp, HttpServletRequest request) {
         try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-            // Convert the JSON string to an ExpConfig object
+            // Convert the JSON string to an Experiment object
             Experiment experiment = objectMapper.readValue(exp, Experiment.class);
 
+            // Log the received experiment
             System.out.println(experiment);
 
+            // Retrieve the email from the cookie
             String email = cookieService.getCookieValue(request.getCookies(),"email");
 
-            // Perform the configuration save
+            // Perform the experiment save
             experimentService.saveExperiment(experiment, email);
 
             // Create the JSON response with the data
@@ -157,6 +152,9 @@ public class AdminController {
             response.put("name", experiment.getName());
             response.put("configName", experiment.getExpConfig().getName());
             response.put("algorithm", experiment.getExpConfig().getAlgorithm());
+
+            // Format for creation date
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             if (experiment.getCreationDate() != null) {
                 String creationTime = dateFormat.format(experiment.getCreationDate());
                 response.put("creationTime", creationTime);
@@ -165,6 +163,7 @@ public class AdminController {
             // Convert the response map to a JSON string
             String jsonResponse = objectMapper.writeValueAsString(response);
             System.out.println(jsonResponse);
+
             // Return the JSON response
             return ResponseEntity.ok(jsonResponse);
 
@@ -230,6 +229,7 @@ public class AdminController {
     public ResponseEntity<Page<ExperimentSummary>> searchExp(@RequestParam int page, String executionName, String configName, HttpServletRequest request) {
         String email = cookieService.getCookieValue(request.getCookies(),"email");
         Page<ExperimentSummary> experiments = experimentService.getMyExperiments(email, executionName, configName, page);
+        applicationLogger.severe("Experiments Pages number: " + experiments.getTotalPages());
         return ResponseEntity.ok(experiments);
     }
 
@@ -240,7 +240,5 @@ public class AdminController {
         Page<ExpConfig> expConfigs = expConfigService.searchMyExpConfigs(email, name, clientStrategy, stopCondition, algorithm, page);
         return ResponseEntity.ok(expConfigs);
     }
-
-
 
 }

@@ -125,6 +125,7 @@ public class MainController {
         try {
             applicationLogger.severe("Searching experiments with name: " + expName + " and configName: " + configName);
             Page<Experiment> experiments = experimentService.getExperiments(expName, configName, page);
+            applicationLogger.severe("Experiment number pages: " + experiments.getTotalPages());
             return ResponseEntity.ok(experiments);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -172,7 +173,7 @@ public class MainController {
             model.addAttribute("experiment", experiment);
 
             // TODO: Implement getExpConfigById (better)
-            expConfig = expConfigService.getNConfigsList(List.of(experiment.getExpConfig().getId())).getContent().get(0);
+            expConfig = expConfigService.getNConfigsList(List.of(experiment.getExpConfig().getId()), null).getContent().get(0);
             applicationLogger.severe("expConfig: " + expConfig);
             model.addAttribute("expConfig", expConfig);
 

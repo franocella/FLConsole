@@ -120,7 +120,7 @@ public class ExperimentService {
 
         // Remove the experiment from the user's list of experiments
         Query userQuery = new Query(Criteria.where("email").is(email));
-        Update userUpdate = new Update().pull("experiments", expId);
+        Update userUpdate = new Update().pull("experiments", Query.query(Criteria.where("id").is(expId)));
         mongoTemplate.updateFirst(userQuery, userUpdate, User.class);
 
         // Remove the metrics linked to the deleted experiment
@@ -163,8 +163,9 @@ public class ExperimentService {
             // Retrieve the total count of matching ExpConfig objects
             long totalCount = mongoTemplate.count(query, Experiment.class);
             applicationLogger.severe("Total count: " + totalCount);
+
             // Create a Page object using the retrieved ExpConfig objects, the requested page, and the total count
-            return PageableExecutionUtils.getPage(matchingExperiments, PageRequest.of(page, PAGE_SIZE), () -> totalCount);
+            return new PageImpl<>(matchingExperiments, PageRequest.of(page, PAGE_SIZE), totalCount);
         } catch (Exception e) {
             applicationLogger.severe("Error searching experiments: " + e.getMessage());
             throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
