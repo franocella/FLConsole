@@ -266,66 +266,6 @@ public class MainController {
         }
     }
 
-/*
-    @GetMapping("/experiment-{id}")
-    public String experimentDetails(@PathVariable String id, Model model, HttpServletRequest request) {
-
-        Experiment experiment;
-        ExpConfig expConfig;
-        try {
-            String role = cookieService.getCookieValue(request.getCookies(),"role");
-            if (role != null && role.equals("admin")) {
-                Boolean isAuthor = userService.isExperimentAuthor(cookieService.getCookieValue(request.getCookies(),"email"), id);
-                model.addAttribute("isAuthor", isAuthor);
-            } else {
-                model.addAttribute("isAuthor", false);
-            }
-
-            experiment = experimentService.getExpDetails(id);
-            model.addAttribute("experiment", experiment);
-
-            // TODO: Implement getExpConfigById (better)
-            expConfig = expConfigService.getConfigsListFirstPage(List.of(experiment.getExpConfig().getId()), null).getContent().get(0);
-            applicationLogger.severe("expConfig: " + expConfig);
-            model.addAttribute("expConfig", expConfig);
-
-            // Retrieve the list of ExpMetrics for the given experiment ID
-            List<ExpMetrics> expMetricsList = metricsService.getMetrics(experiment.getId());
-
-            List<String> jsonList = expMetricsList.stream()
-                    .filter(expMetrics -> expMetrics.getType() != null && expMetrics.getType().equals(MessageType.STRATEGY_SERVER_METRICS))
-                    .map(expMetrics -> {
-                        try {
-                            // Configure ObjectMapper to exclude null fields
-                            ObjectMapper mapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
-
-                            // Create a temporary map to remove the expId field
-                            Map<String, Object> tempMap = mapper.convertValue(expMetrics, new TypeReference<>() {});
-                            tempMap.remove("expId");
-                            tempMap.remove("type");
-
-                            // Convert the map to JSON string
-                            return mapper.writeValueAsString(tempMap);
-                        } catch (JsonProcessingException e) {
-                            applicationLogger.severe("Error converting ExpMetrics to JSON: " + e.getMessage());
-                            return null;
-                        }
-                    })
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-
-            String jsonArray = "[" + String.join(",", jsonList) + "]";
-
-            model.addAttribute("metrics", jsonArray);
-
-            return "experimentDetails";
-        } catch (Exception e) {
-            model.addAttribute("error", "Error fetching experiment details");
-            return "error";
-        }
-
-    }*/
-
     /**
      * Handles the GET request for the access denied page.
      *

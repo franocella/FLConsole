@@ -120,6 +120,101 @@
       </div>
     </div>
 
+
+    <script>
+      function createConfigModal() {
+        // Check if the modal already exists in the DOM
+        let modalExists = document.getElementById("config-details-modal");
+        if (!modalExists) {
+          // Create the modal
+          const modal = document.createElement("div");
+          modal.id = "config-details-modal";
+          modal.className = "myAlert";
+          modal.style.display = "none";
+
+          const modalBody = document.createElement("div");
+          modalBody.className = "myAlertBody";
+          modalBody.style.paddingLeft = "100px";
+          modalBody.style.paddingRight = "100px";
+
+          const modalTitle = document.createElement("h3");
+          modalTitle.textContent = "Configuration";
+          modalBody.appendChild(modalTitle);
+
+          const table = document.createElement("table");
+          table.className = "table";
+          table.id = "config-table-details";
+
+          const tbody = document.createElement("tbody");
+
+          // Define table rows
+
+          // Add the table to the modal body
+          table.appendChild(tbody);
+          modalBody.appendChild(table);
+
+          const closeButton = document.createElement("a");
+          closeButton.textContent = "Close";
+          closeButton.className = "btn btn-danger";
+          closeButton.addEventListener("click", closeConfigDetailModal);
+
+          const closeDiv = document.createElement("div");
+          closeDiv.className = "text-end mt-5";
+          closeDiv.appendChild(closeButton);
+
+          modalBody.appendChild(closeDiv);
+          modal.appendChild(modalBody);
+
+          // Append the modal to the body of the document
+          document.body.appendChild(modal);
+        }
+      }
+
+      // Function to close the modal
+      function closeConfigDetailModal() {
+        document.getElementById("config-details-modal").style.display = "none";
+      }
+
+      function updateConfigModal(jsonDataString) {
+        try {
+          // Parse the JSON string
+          const jsonData = JSON.parse(jsonDataString);
+
+          createConfigModal();
+
+          // Update the values in the table with the parsed JSON data
+          document.getElementById("config-id-modal").innerText = jsonData.id || "";
+          document.getElementById("config-name-modal").innerText = jsonData.name || "";
+          document.getElementById("AlgorithmModal").innerText = jsonData.algorithm || "";
+          document.getElementById("codeLanguage").innerText = jsonData.codeLanguage || "";
+          document.getElementById("ClientStrategyModal").innerText = jsonData.clientSelectionStrategy || "";
+          document.getElementById("ClientSelectionRatio").innerText = jsonData.clientSelectionRatio || "";
+          document.getElementById("MinNumberOfClients").innerText = jsonData.minNumberClients || "";
+          document.getElementById("StopConditionModal").innerText = jsonData.stopCondition || "";
+          document.getElementById("MaxNumRounds").innerText = jsonData.maxNumberOfRounds || "";
+          document.getElementById("StopThreshold").innerText = jsonData.stopConditionThreshold || "";
+          document.getElementById("targetFeature").innerText = jsonData.parameters?.targetFeature || "";
+          document.getElementById("lambdaFactor").innerText = jsonData.parameters?.lambdaFactor || "";
+          document.getElementById("numFeatures").innerText = jsonData.parameters?.numFeatures || "";
+          document.getElementById("seed").innerText = jsonData.parameters?.seed || "";
+          document.getElementById("numClusters").innerText = jsonData.parameters?.numClusters || "";
+          document.getElementById("creationDate").innerText = jsonData.creationDate || "";
+
+          // Show the modal
+          document.getElementById("config-details-modal").style.display = "block";
+        } catch (error) {
+          console.error("Error parsing or updating modal with JSON data:", error);
+        }
+      }
+
+    </script>
+
+
+
+
+
+
+
     <script>
       var jsonDataList = [
         {"id":"6613f8b7aed2e52b006dea10","name":"TestConfig2","algorithm":"fcmeans","codeLanguage":"python","clientSelectionStrategy":"probability","clientSelectionRatio":1.0,"minNumberClients":2,"stopCondition":"max_number_rounds","stopConditionThreshold":5.0,"maxNumberOfRounds":5,"parameters":{"targetFeature":"16","lambdaFactor":"2","numFeatures":"16","seed":"10","numClusters":"10"},"creationDate":"2024-04-08T14:01:27.232+00:00"},
@@ -149,8 +244,6 @@
           document.getElementById("seed").innerText = jsonData.parameters.seed;
           document.getElementById("numClusters").innerText = jsonData.parameters.numClusters;
           document.getElementById("creationDate").innerText = jsonData.creationDate;
-
-          adjustColumnWidths(); // Chiamata alla funzione per regolare le larghezze delle colonne
           document.getElementById("config-modal").style.display = "block";
         } else {
           console.error("ID non trovato nella lista dei JSON.");
@@ -353,3 +446,6 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+
+

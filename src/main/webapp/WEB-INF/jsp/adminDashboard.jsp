@@ -38,6 +38,10 @@
         </div>
     </div>
 
+    <div id="config-details-div">
+
+    </div>
+
     <!-- New config modal  -->
     <div id="config-modal" class="myAlert">
         <div class="myAlertBody" style="padding-left:100px; padding-right:100px;">
@@ -199,7 +203,7 @@
                             <td class='align-middle'>${config.name}</td>
                             <td class='align-middle'>${config.algorithm}</td>
                             <td class='align-middle'>${config.creationDate}</td>
-                            <td class='align-middle'><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="openConfigDetails('${config.id}')"></td>
+                            <td class='align-middle'><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick='updateConfigModal(${config.toJson()})'></td>
                             <td class='align-middle'><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig('${config.id}')" height="20px" width="20px"></figure></td>
                         </tr>
                     </c:forEach>
@@ -733,7 +737,7 @@
                     '<td class="align-middle">' + item.name + '</td>' +
                     '<td class="align-middle">' + item.algorithm + '</td>' +
                     '<td class="align-middle">' + item.creationDate + '</td>' +
-                    '<td class="align-middle"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="openConfigDetails(\'' + item.id + '\')"></td>' +
+                    '<td class="align-middle"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="updateConfigModal(\'' + item.id + '\')"></td>' +
                     '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + item.id + '\')" height="20px" width="20px"></figure></td>' +
                     '</tr>';
 
@@ -919,6 +923,121 @@
                 }
             });
         }
+
+        function createConfigModal() {
+            // Check if the modal already exists in the DOM
+            let modal = document.getElementById("config-details-modal");
+            if (!modal) {
+                // Create the modal
+                modal = document.createElement("div");
+                modal.id = "config-details-modal";
+                modal.className = "myAlert";
+                modal.style.display = "none";
+
+                const modalBody = document.createElement("div");
+                modalBody.className = "myAlertBody";
+                modalBody.style.paddingLeft = "100px";
+                modalBody.style.paddingRight = "100px";
+
+                const modalTitle = document.createElement("h3");
+                modalTitle.textContent = "Configuration";
+                modalBody.appendChild(modalTitle);
+
+                const table = document.createElement("table");
+                table.className = "table";
+                table.id = "config-table-details";
+
+                const tbody = document.createElement("tbody");
+
+                // Define table rows
+
+                // Add the table to the modal body
+                table.appendChild(tbody);
+                modalBody.appendChild(table);
+
+                const closeButton = document.createElement("a");
+                closeButton.textContent = "Close";
+                closeButton.className = "btn btn-danger";
+                closeButton.addEventListener("click", closeConfigDetailModal);
+
+                const closeDiv = document.createElement("div");
+                closeDiv.className = "text-end mt-5";
+                closeDiv.appendChild(closeButton);
+
+                modalBody.appendChild(closeDiv);
+                modal.appendChild(modalBody);
+
+                // Append the modal to the body of the document
+                document.getElementById("config-details-div").appendChild(modal);
+            }
+            return modal;
+        }
+
+
+        // Function to close the modal
+        function closeConfigDetailModal() {
+            document.getElementById("config-details-modal").style.display = "none";
+            $('#config-table-details tbody').empty();
+        }
+
+        function updateConfigModal(jsonData) {
+            try {
+                // Create or retrieve the modal element
+                const modal = createConfigModal();
+
+                // Get the tbody element of the table
+                const tbody = modal.querySelector("#config-table-details tbody");
+
+                // Loop through all parameters in the JSON
+                for (let parameter in jsonData) {
+                    // Create a new row
+                    const row = document.createElement("tr");
+
+                    // Get the parameter name
+                    const paramName = parameter;
+
+                    // Initialize paramValue
+                    let paramValueText = "";
+
+                    // Check if the parameter is "parameters"
+                    if (parameter === "parameters" && typeof jsonData[parameter] === "object") {
+                        // Iterate over the parameters inside "parameters"
+                        for (let subParameter in jsonData[parameter]) {
+                            // Create a new row for each parameter inside "parameters"
+                            const subRow = document.createElement("tr");
+                            // Set the parameter name and value
+                            subRow.innerHTML = "<td>" + subParameter + "</td><td>" + jsonData[parameter][subParameter] + "</td>";
+                            // Append the row to the tbody
+                            tbody.appendChild(subRow);
+                        }
+                    } else {
+                        // Set the parameter value
+                        paramValueText = jsonData[parameter];
+
+                        // Set the innerHTML of the row with the parameter name and value
+                        row.innerHTML = "<td>" + paramName + "</td><td>" + paramValueText + "</td>";
+
+                        // Append the row to the tbody
+                        tbody.appendChild(row);
+                    }
+                }
+
+                // Show the modal
+                modal.style.display = "block";
+            } catch (error) {
+                console.error("Error parsing or updating modal with JSON data:", error);
+            }
+        }
+
+
+
+
+
+
+
+
+
+
     </script>
 </body>
 
