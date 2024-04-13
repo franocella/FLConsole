@@ -141,7 +141,7 @@
                 <a class="nav-link" href="#tab2Content">My FL Experiments</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#tab3Content">All FL Experiments</a>
+                <a class="nav-link" onclick="getExperiments()" href="#tab3Content">All FL Experiments</a>
             </li>
         </ul>
 
@@ -375,9 +375,7 @@
                 // Hide all tab contents
                 $('.tab-content').hide();
 
-                if ($(this).id === "tab3") {
-                    getExperiments();
-                }
+
 
                 // Show the corresponding tab content
                 const targetTab = $(this).attr('href');
