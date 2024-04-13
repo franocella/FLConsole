@@ -4,8 +4,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Service;
 
-import static it.unipi.mdwt.flconsole.utils.Criptography.decrypt;
-import static it.unipi.mdwt.flconsole.utils.Criptography.encrypt;
+import static it.unipi.mdwt.flconsole.utils.Cryptography.decrypt;
+import static it.unipi.mdwt.flconsole.utils.Cryptography.encrypt;
 
 @Service
 public class CookieService {

@@ -5,7 +5,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
 import java.util.Base64;
 
-public class Criptography {
+public class Cryptography {
 
     private static final String SECRET_KEY = "y#sP7dG2vK^9qZt5we!xJnR2u5x8A%D*";
 

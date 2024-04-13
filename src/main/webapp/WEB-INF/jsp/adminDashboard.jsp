@@ -1,5 +1,6 @@
+<%@ page import="it.unipi.mdwt.flconsole.utils.Constants" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page session="false" %>
 
 <!DOCTYPE html>
@@ -94,8 +95,8 @@
                     </tbody>
                 </table>
                 <div class="text-end my-3">
-                    <a onclick="addRow()" id="add-parameter" class="btn btn-outline-primary btn-sm me-2">Add Row</a>
-                    <a onclick="deleteRow()" id="remove-parameter" class="btn btn-outline-danger btn-sm">Delete Row</a>
+                    <a onclick="addParameterInputField()" id="add-parameter" class="btn btn-outline-primary btn-sm me-2">Add Row</a>
+                    <a onclick="removeParameterInputField()" id="remove-parameter" class="btn btn-outline-danger btn-sm">Delete Row</a>
                 </div>
                 <div class="text-end mt-5">
                     <a class="btn btn-primary me-2" onclick="submitConfigForm()">Save</a>
@@ -131,10 +132,13 @@
     <div class="container" style="margin-top: 50px;">
         <ul class="nav nav-underline">
             <li class="nav-item">
-                <a class="nav-link active" href="#tab1Content">FL configuration</a>
+                <a class="nav-link active" href="#tab1Content">FL Configurations</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#tab2Content">FL execution</a>
+                <a class="nav-link" href="#tab2Content">My FL Experiments</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#tab3Content">All FL Experiments</a>
             </li>
         </ul>
 
@@ -147,6 +151,12 @@
                     <input type="text" class="form-control me-2" name="config-name" id="ExpConfigName" required
                         placeholder="Configuration name" />
 
+                    <select class="form-select me-2" id="Algorithm">
+                        <option value="" selected>Algorithm</option>
+                        <option value="fcmeans">Fcmeans</option>
+                        <option value="kmeans">Kmeans</option>
+                    </select>
+
                     <select class="form-select me-2" id="ClientStrategy">
                         <option value="" selected>Client strategy</option>
                         <option value="probability">Probability</option>
@@ -157,12 +167,9 @@
                     <select class="form-select me-2" id="StopCondition">
                         <option value="" selected>Stop condition</option>
                         <option value="custom">Custom</option>
-                        <option value="max_number_rounds">Maximum Number of Rounds</option>
                         <option value="metric_under_threshold">Metric Under Threshold</option>
                         <option value="metric_over_threshold">Metric Over Threshold</option>
                     </select>
-
-
 
                     <a onclick="displayConfigModal()" class="btn btn-primary">New</a>
                 </div>
@@ -175,11 +182,9 @@
                             <th>ID</th>
                             <th>Config Name</th>
                             <th>Algorithm</th>
-                            <th>Client Selection Strategy</th>
-                            <th>Min. num. Clients</th>
-                            <th>Stop Condition</th>
-                            <th>Created At</th>
-                            <th>Delete</th>
+                            <th>Creation Date</th>
+                            <th></th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -206,7 +211,7 @@
             <div class="container py-2 my-2" style="box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);">
                 <div class="d-flex align-items-center">
                     <input type="text" class="form-control me-2" id="execution-name" required
-                        placeholder="Execution name" />
+                        placeholder="Experiment name" />
                     <input type="text" class="form-control me-2" id="config-name" required
                         placeholder="Configuration name" />
 
@@ -219,10 +224,11 @@
                     <thead>
                         <tr>
                             <th>Id</th>
-                            <th>Execution name</th>
+                            <th>Experiment Name</th>
                             <th>Config Name</th>
                             <th>Creation Date</th>
-                            <th>Open</th>
+                            <th></th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -232,7 +238,8 @@
                             <td class='align-middle'>${exp.name}</td>
                             <td class='align-middle'>${exp.configName}</td>
                             <td class='align-middle'>${exp.creationDate}</td>
-                            <td class='align-middle'><a href="/admin/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
+                            <td class='align-middle'><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
+                            <td class='align-middle'><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteExp('${exp.id}')" height="20px" width="20px"></figure></td>
                         </tr>
                     </c:forEach>
                     </tbody>
@@ -254,6 +261,60 @@
             </div>
 
         </div>
+
+        <%--TAB 3--%>
+        <div id="tab3Content" class="container tab-content" style="display: none;">
+            <div class="container py-2 my-2" style="box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);">
+                <div class="d-flex align-items-center">
+                    <input type="text" class="form-control me-2" id="all-execution-name" required
+                           placeholder="Experiment name" />
+                    <input type="text" class="form-control me-2" id="all-config-name" required
+                           placeholder="Configuration name" />
+                </div>
+
+
+                <table id="all-ExpTable" class="table mt-3 text-center"
+                       style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
+                    <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Experiment Name</th>
+                        <th>Config Name</th>
+                        <th>Creation Date</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <c:forEach items="${allExperiments.content}" var="exp">
+                        <tr>
+                            <td>${exp.id}</td>
+                            <td>${exp.name}</td>
+                            <td>${exp.expConfig.name}</td>
+                            <td>${exp.creationDate}</td>
+                            <td><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
+                        </tr>
+                    </c:forEach>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination buttons -->
+            <div class="d-flex justify-content-between position-fixed bottom-0 end-0" style="margin-bottom: 120px; margin-right: 80px">
+                <div class="d-flex gap-2">
+                    <!-- Left arrow to decrease the page -->
+                    <button class="btn btn-primary" onclick="nextPage(currentAllExpPage, totalAllExpPages)">
+                        &lt; Previous
+                    </button>
+                    <!-- Right arrow to increase the page -->
+                    <button class="btn btn-primary" onclick="prevPage(currentAllExpPage)">
+                        Next &gt;
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+
     </div>
 
 
@@ -270,21 +331,25 @@
         let configurations = null;
         let currentConfigPage = 0;
         let totalConfigPages = 1;
-
         <c:if test="${not empty configurations}">
-        configurations = ${configurations};
-        configurations.forEach(addNewConfigToList);
-        // Variables for pagination of configurations
-        totalConfigPages = ${totalConfigPages};
+            configurations = ${configurations};
+            configurations.forEach(addNewConfigToList);
+            // Variables for pagination of configurations
+            totalConfigPages = ${totalConfigPages};
         </c:if>
-
-
 
         // Variables for pagination of experiments
         let currentExpPage = 0;
         let totalExpPages = 1;
         <c:if test="${not empty totalExpPages}">
             totalExpPages = ${totalExpPages};
+        </c:if>
+
+        // Variables for pagination of experiments
+        let currentAllExpPage = 0;
+        let totalAllExpPages = 1;
+        <c:if test="${not empty allExperiments}">
+            totalAllExpPages = ${allExperiments.getTotalPages()};
         </c:if>
 
 
@@ -308,11 +373,15 @@
             });
 
             $('#execution-name, #config-name').on('input', function () {
-                searchExp();
+                getMyExperiments();
             });
 
-            $('#ExpConfigName, #ClientStrategy, #StopCondition').on('input', function () {
-                searchConfig();
+            $('#ExpConfigName, #ClientStrategy, #StopCondition, #Algorithm').on('input', function () {
+                getConfigurations();
+            });
+
+            $('#all-execution-name, #all-config-name').on('input', function () {
+                getExperiments();
             });
         });
 
@@ -407,14 +476,16 @@
                 '<td class="align-middle">' + id + '</td>' +
                 '<td class="align-middle">' + name + '</td>' +
                 '<td class="align-middle">' + algorithm + '</td>' +
-                '<td class="align-middle">' + formData.strategy + '</td>' +
-                '<td class="align-middle">' + formData.minNumClients + '</td>' +
-                '<td class="align-middle">' + formData.stopCondition + '</td>' +
                 '<td class="align-middle">' + formData.creationDate + '</td>' +
+                '<td class="align-middle"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="openConfigDetails(\'' + id + '\')"></td>' +
                 '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + id + '\')" height="20px" width="20px"></figure></td>' +
                 '</tr>';
 
-            table.append(newRow);
+            if (table.find("tbody tr").length === <c:out value="<%= Constants.PAGE_SIZE %>" />) {
+                table.find("tbody tr:last").remove();
+            }
+
+            table.prepend(newRow);
 
             // Add the option to the dropdown menu
             const selectElement = document.getElementById("FL_config_value");
@@ -424,6 +495,8 @@
             selectElement.appendChild(option);
         }
 
+        function openConfigDetails(id) {
+        }
 
         function deleteConfig(id) {
             console.log("Deleting config with id:", id);
@@ -434,12 +507,13 @@
                 success: function (response) {
                     console.log('Server response:', response);
 
-                    $('#ConfigTable tr:contains(' + id + ')').remove();
                 },
                 error: function (error) {
                     console.error('Error deleting config:', error);
                 }
             });
+
+            getConfigurations();
         }
 
 
@@ -480,7 +554,7 @@
         }
 
 
-        function deleteRow() {
+        function removeParameterInputField() {
             const table = document.getElementById("parametersTable");
             const rowCount = table.tBodies[0].rows.length;
             if (rowCount > 1) {
@@ -489,15 +563,9 @@
 
             const newRowCount = rowCount - 1;
             // Hide the delete button if there is only one row
-            if (newRowCount === 1) {
+            if (newRowCount === 0) {
                 const deleteButton = document.getElementById("remove-parameter");
                 deleteButton.style.display = "none";
-            }
-
-            // Show the add button if there are less than 5 rows
-            if (newRowCount < 5) {
-                const addRowButton = document.getElementById("add-parameter");
-                addRowButton.style.display = "inline-block";
             }
         }
 
@@ -541,6 +609,7 @@
 
         function addNewExpToList(formData) {
             const table = $("#ExpTable");
+            const table2 = $("#all-ExpTable");
 
             const id = formData.id;
             const executionName = formData.name;
@@ -552,10 +621,28 @@
                 "<td class='align-middle'>" + executionName + "</td>" +
                 "<td class='align-middle'>" + configName + "</td>" +
                 "<td class='align-middle'>" + creationDate + "</td>" +
-                '<td class="align-middle"><a href="/admin/experiment-' + id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>' +
+                "<td class='align-middle'><a href='/experiment-" + id + "'><img src='${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg' alt='Open' width='25px' height='25px'></a></td>" +
+                "<td class='align-middle'><figure class='m-0'><img src='${pageContext.request.contextPath}/Images/icon_delete.svg' alt='Delete' onclick='deleteExp(\"" + id + "\")' height='20px' width='20px'></figure></td>" +
                 "</tr>";
 
-            table.append(newRow);
+            if (table.find("tbody tr").length === <c:out value="<%= Constants.PAGE_SIZE %>" />) {
+                table.find("tbody tr:last").remove();
+            }
+            table.prepend(newRow);
+
+            const newRow2 = "<tr>" +
+                "<td class='align-middle'>" + id + "</td>" +
+                "<td class='align-middle'>" + executionName + "</td>" +
+                "<td class='align-middle'>" + configName + "</td>" +
+                "<td class='align-middle'>" + creationDate + "</td>" +
+                "<td class='align-middle'><a href='/experiment-" + id + "'><img src='${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg' alt='Open' width='25px' height='25px'></a></td>" +
+                "</tr>";
+
+            if (table2.find("tbody tr").length === <c:out value="<%= Constants.PAGE_SIZE %>" />) {
+                table2.find("tbody tr:last").remove();
+            }
+            table2.prepend(newRow2);
+
         }
 
         function formatDateString(dateString) {
@@ -632,11 +719,11 @@
                 }
 
                 // Add the second default row
-                addRow();
+                addParameterInputField();
             }
         }
 
-        function addRow() {
+        function addParameterInputField() {
             const table = document.getElementById("parametersTable");
             const rowCount = table.tBodies[0].rows.length;
             let newRowCount;
@@ -651,38 +738,11 @@
                 cell2.textContent = "Value" + newRowCount;
             }
 
-            // Hide the add button if there are 5 rows
-            if (newRowCount === 5) {
-                const addRowButton = document.getElementById("add-parameter");
-                addRowButton.style.display = "none";
-            }
-
             // Show the delete button if there are more than 1 row
-            if (newRowCount > 1) {
+            if (newRowCount > 0) {
                 const deleteButton = document.getElementById("remove-parameter");
                 deleteButton.style.display = "inline-block";
             }
-        }
-
-        // Function to perform search by configuration name
-        function searchExp() {
-            const executionName = $('#execution-name').val();
-            const configName = $('#config-name').val();
-            $.ajax({
-                url: '/admin/getExperiments',
-                method: 'GET',
-                data: {
-                    configName: configName,
-                    executionName: executionName,
-                    page: 0
-                },
-                success: function (response) {
-                    updateExpTable(response);
-                },
-                error: function (xhr) {
-                    console.error(xhr.responseText);
-                }
-            });
         }
 
         function updateExpTable(response) {
@@ -697,39 +757,11 @@
                     "<td class='align-middle'>" + item.name + "</td>" +
                     "<td class='align-middle'>" + item.configName + "</td>" +
                     "<td class='align-middle'>" + item.creationDate + "</td>" +
-                    '<td class="align-middle"><a href="/experiment-' + item.id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>'
-                );
+                    "<td class='align-middle'><a href='/experiment-" + item.id + "'><img src='${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg' alt='Open' width='25px' height='25px'></a></td>" +
+                    "<td class='align-middle'><figure class='m-0'><img src='${pageContext.request.contextPath}/Images/icon_delete.svg' alt='Delete' onclick='deleteExp(\"" + item.id + "\")' height='20px' width='20px'></figure></td>"
+
+            );
                 $('#tab2Content tbody').append(row);
-            });
-        }
-
-
-        // Function to perform configuration search
-        function searchConfig() {
-            // Retrieve values from input fields
-            const configName = $('#ExpConfigName').val();
-            const clientStrategy = $('#ClientStrategy').val();
-            const stopCondition = $('#StopCondition').val();
-
-            // Send asynchronous request
-            $.ajax({
-                url: '/admin/getConfigurations',
-                method: 'GET',
-                data: {
-                    configName: configName,
-                    clientStrategy: clientStrategy,
-                    stopCondition: stopCondition,
-                    page: 0
-                },
-                success: function (response) {
-                    // Call function to update configuration table
-                    console.log(response);
-                    updateConfigTable(response);
-                },
-                error: function (xhr, status, error) {
-                    // Handle error
-                    console.error(xhr.responseText);
-                }
             });
         }
 
@@ -747,25 +779,38 @@
                     '<td class="align-middle">' + item.id + '</td>' +
                     '<td class="align-middle">' + item.name + '</td>' +
                     '<td class="align-middle">' + item.algorithm + '</td>' +
-                    '<td class="align-middle">' + item.strategy + '</td>' +
-                    '<td class="align-middle">' + item.numClients + '</td>' +
-                    '<td class="align-middle">' + item.stopCondition + '</td>' +
                     '<td class="align-middle">' + item.creationDate + '</td>' +
-                    '<td class="align-middle">' + item.lastUpdate + '</td>' +
+                    '<td class="align-middle"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="openConfigDetails(\'' + item.id + '\')"></td>' +
                     '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + item.id + '\')" height="20px" width="20px"></figure></td>' +
                     '</tr>';
 
                 $('#ConfigTable tbody').append(row);
             });
-
         }
 
+        function deleteExp(id) {
+            console.log("Deleting experiment with id:", id);
+
+            $.ajax({
+                url: '/admin/deleteExp-' + id,
+                type: 'GET',
+                success: function (response) {
+                    console.log('Server response:', response);
+
+                },
+                error: function (error) {
+                    console.error('Error deleting experiment:', error);
+                }
+            });
+
+            getMyExperiments();
+        }
 
         // Function to retrieve the next page of configurations
         function nextConfigPage() {
             if (currentConfigPage < totalConfigPages - 1) {
                 currentConfigPage++;
-                getConfigurations();
+                getConfigurations(currentConfigPage);
             }
         }
 
@@ -773,7 +818,7 @@
         function prevConfigPage() {
             if (currentConfigPage > 0) {
                 currentConfigPage--;
-                getConfigurations();
+                getConfigurations(currentConfigPage);
             }
         }
 
@@ -781,7 +826,7 @@
         function nextExpPage() {
             if (currentExpPage < totalExpPages - 1) {
                 currentExpPage++;
-                getExperiments();
+                getMyExperiments(currentExpPage);
             }
         }
 
@@ -789,15 +834,17 @@
         function prevExpPage() {
             if (currentExpPage > 0) {
                 currentExpPage--;
-                getExperiments();
+                getMyExperiments(currentExpPage);
             }
         }
 
         // Function to retrieve configurations of the current page via an AJAX call
-        function getConfigurations() {
+        function getConfigurations(page = 0) {
             const configName = $('#ExpConfigName').val();
             const clientStrategy = $('#ClientStrategy').val();
             const stopCondition = $('#StopCondition').val();
+            const algorithm = $('#Algorithm').val();
+
             $.ajax({
                 url: '/admin/getConfigurations',
                 method: 'GET',
@@ -805,7 +852,8 @@
                     name: configName,
                     clientStrategy: clientStrategy,
                     stopCondition: stopCondition,
-                    page: currentConfigPage
+                    algorithm: algorithm,
+                    page: page
                 },
                 success: function (response) {
                     currentConfigPage = response.number;
@@ -819,7 +867,7 @@
         }
 
         // Function to retrieve experiments of the current page via an AJAX call
-        function getExperiments() {
+        function getMyExperiments(page = 0) {
             const executionName = $('#execution-name').val();
             const configName = $('#config-name').val();
             $.ajax({
@@ -828,7 +876,7 @@
                 data: {
                     configName: configName,
                     executionName: executionName,
-                    page: currentExpPage
+                    page: page
                 },
                 success: function (response) {
                     currentExpPage = response.number;
@@ -836,6 +884,86 @@
                     updateExpTable(response);
                 },
                 error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+
+
+        function updateAllExpTable(response) {
+            $('#all-ExpTable tbody').empty();
+
+            // Extract the list from the response
+            const configurations = response.content;
+
+            $.each(configurations, function (index, item) {
+                const row = $('<tr>').append(
+                    "<td class='align-middle'>" + item.id + "</td>" +
+                    "<td class='align-middle'>" + item.name + "</td>" +
+                    "<td class='align-middle'>" + item.expConfig.name + "</td>" +
+                    "<td class='align-middle'>" + item.creationDate + "</td>" +
+                    '<td class="align-middle"><a href="/experiment-' + item.id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>'
+                );
+                $('#all-ExpTable tbody').append(row);
+            });
+        }
+
+        // Function to retrieve the next page of experiments
+        function nextAllExpPage() {
+            if (currentAllExpPage < totalAllExpPages -1) {
+                currentAllExpPage++;
+                getExperiments(currentAllExpPage);
+            }
+            console.log("currentAllExpPage " + currentAllExpPage);
+
+        }
+
+        // Function to retrieve the previous page of experiments
+        function prevAllExpPage() {
+            if (currentAllExpPage > 0) {
+                currentAllExpPage--;
+                getExperiments(currentAllExpPage);
+            }
+            console.log("currentAllExpPage " + currentAllExpPage);
+
+        }
+
+        function nextPage(pageNumber, totalPage){
+            if (pageNumber < totalPage -1) {
+                pageNumber++;
+                getExperiments(pageNumber);
+            }
+        }
+        function prevPage(pageNumber){
+            if (pageNumber > 0) {
+                pageNumber--;
+                getExperiments(pageNumber);
+            }
+        }
+
+
+        // Function to retrieve experiments of the current page via an AJAX call
+        function getExperiments(page = 0) {
+            console.log("page " + page);
+            const executionName = $('#all-execution-name').val();
+            const configName = $('#all-config-name').val();
+            console.log(executionName, configName);
+            $.ajax({
+                url: '/getExperiments',
+                method: 'POST',
+                data: {
+                    configName: configName,
+                    expName: executionName,
+                    page: page
+                },
+                success: function (response) {
+                    console.log(response);
+                    currentAllExpPage = response.number;
+                    totalAllExpPages = response.totalPages;
+                    updateAllExpTable(response);
+                },
+                error: function (xhr) {
                     console.error(xhr.responseText);
                 }
             });

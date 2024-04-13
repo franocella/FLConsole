@@ -1,11 +1,11 @@
 package it.unipi.mdwt.flconsole.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import it.unipi.mdwt.flconsole.dto.ExperimentSummary;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Reference;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;

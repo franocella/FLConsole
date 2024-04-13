@@ -1,5 +1,6 @@
 package it.unipi.mdwt.flconsole.dao;
 
+import it.unipi.mdwt.flconsole.dto.ExperimentSummary;
 import it.unipi.mdwt.flconsole.model.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

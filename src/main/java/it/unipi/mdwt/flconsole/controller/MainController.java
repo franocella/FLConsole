@@ -5,15 +5,17 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.unipi.mdwt.flconsole.dto.UserDTO;
-import it.unipi.mdwt.flconsole.model.*;
+import it.unipi.mdwt.flconsole.dto.UserSummary;
+import it.unipi.mdwt.flconsole.model.ExpConfig;
+import it.unipi.mdwt.flconsole.model.ExpMetrics;
+import it.unipi.mdwt.flconsole.model.Experiment;
+import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.service.*;
 import it.unipi.mdwt.flconsole.utils.MessageType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -30,8 +32,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
-import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
 
 @Controller
 public class MainController {
@@ -172,7 +172,7 @@ public class MainController {
             model.addAttribute("experiment", experiment);
 
             // TODO: Implement getExpConfigById (better)
-            expConfig = expConfigService.getNconfigsList(List.of(experiment.getExpConfig().getId())).getContent().get(0);
+            expConfig = expConfigService.getNConfigsList(List.of(experiment.getExpConfig().getId())).getContent().get(0);
             applicationLogger.severe("expConfig: " + expConfig);
             model.addAttribute("expConfig", expConfig);
 
@@ -187,7 +187,7 @@ public class MainController {
                             ObjectMapper mapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
                             // Create a temporary map to remove the expId field
-                            Map<String, Object> tempMap = mapper.convertValue(expMetrics, new TypeReference<Map<String, Object>>() {});
+                            Map<String, Object> tempMap = mapper.convertValue(expMetrics, new TypeReference<>() {});
                             tempMap.remove("expId");
                             tempMap.remove("type");
 
@@ -249,7 +249,7 @@ public class MainController {
             }
 
             // Create a new UserDTO object with the updated fields
-            UserDTO updateUser = new UserDTO(newEmail, newPassword, newDescription);
+            UserSummary updateUser = new UserSummary(newEmail, newPassword, newDescription);
             // Update the user profile
             userService.updateUserProfile(email, updateUser);
 

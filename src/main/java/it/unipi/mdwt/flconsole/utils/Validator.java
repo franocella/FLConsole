@@ -2,8 +2,6 @@ package it.unipi.mdwt.flconsole.utils;
 
 import org.springframework.util.StringUtils;
 
-import javax.naming.AuthenticationException;
-
 public class Validator {
 
     /**
@@ -26,10 +24,6 @@ public class Validator {
         return StringUtils.hasText(email) && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$");
     }
 
-    public static String getNameFromEmail(String email) {
-        return email.split("@")[0];
-    }
-
     /**
      * Validates the format of a password.
      * The password must meet the following criteria to be considered valid:
@@ -49,4 +43,7 @@ public class Validator {
         return StringUtils.hasText(password) && password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()-=_+\\[\\]{}|;:'\",.<>?/\\\\])(?=\\S+$).{8,}$");
     }
 
+    public static String createCookieName(String value) {
+        return value + "_cookie";
+    }
 }
