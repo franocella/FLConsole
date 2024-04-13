@@ -10,7 +10,6 @@ import java.util.concurrent.Executors;
 @Configuration
 @EnableAsync
 public class ExecutorConfig {
-
     @Bean
     public ExecutorService executorService() {
         return Executors.newFixedThreadPool(20);

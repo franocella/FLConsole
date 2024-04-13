@@ -9,15 +9,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.*;
 
+import static it.unipi.mdwt.flconsole.utils.Constants.*;
+
 @Configuration
 public class ApplicationLogConfig {
-
-    private static final String LOG_FILE = "applicationLog.txt";
-    private static final String DIR = "logs";
-    private static final String PROJECT_PATH = System.getProperty("user.dir");
-    private static final int LOG_SIZE_LIMIT = 1024 * 1024; // 1MB per file
-    private static final int LOG_FILE_COUNT = 5; // 5 files max
-
     private static final Logger applicationLogger = createLogger();
 
     @Bean
@@ -45,7 +40,6 @@ public class ApplicationLogConfig {
             throw new RuntimeException(e);
         }
     }
-
     private static void createLogDirectory() throws IOException {
         Path logDirectoryPath = Paths.get(PROJECT_PATH, DIR);
         if (!Files.exists(logDirectoryPath)) {

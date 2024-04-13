@@ -43,18 +43,28 @@ public class AdminController {
         this.objectMapper = objectMapper;
     }
 
-
-
+    /**
+     * Controller method to handle requests for the dashboard page.
+     *
+     * @param model   The model to be populated with data for the view.
+     * @param request The HTTP servlet request.
+     * @return The view name for the dashboard page.
+     */
     @GetMapping("/dashboard")
     public String home(Model model, HttpServletRequest request) {
         try {
+            // Retrieve the email from the cookie
             String email = cookieService.getCookieValue(request.getCookies(),"email");
+            // Retrieve the user object based on the email
             User user = userService.getUser(email);
-            if (user.getConfigurations()!=null){
+
+            // If user configurations exist and are not empty, fetch them and add them to the model
+            if (user.getConfigurations() != null && !user.getConfigurations().isEmpty()) {
                 Page<ExpConfig> userConfigurations = expConfigService.getNConfigsList(user.getConfigurations());
                 int totalConfigPages = userConfigurations.getTotalPages();
+
+                // Convert ExpConfig objects to JSON strings and add them to the model
                 List<String> jsonList = userConfigurations.stream()
-                        .filter(Objects::nonNull) // Filter out null values
                         .map(expConfig -> {
                             try {
                                 return objectMapper.writeValueAsString(expConfig);
@@ -69,7 +79,9 @@ public class AdminController {
                 model.addAttribute("configurations", jsonList);
                 model.addAttribute("totalConfigPages", totalConfigPages);
             }
-            if (user.getExperiments()!=null){
+
+            // If user experiments exist, fetch them and add them to the model in DESC order of creation date
+            if (user.getExperiments() != null && !user.getExperiments().isEmpty()) {
                 int totalExpPages = (int) Math.ceil((double) user.getExperiments().size() / PAGE_SIZE);
                 List<ExperimentSummary> experimentSummaries = user.getExperiments().stream()
                         .sorted(Comparator.comparing(ExperimentSummary::getCreationDate).reversed())
@@ -79,7 +91,7 @@ public class AdminController {
                 model.addAttribute("totalExpPages", totalExpPages);
             }
 
-
+            // Fetch all experiments and add them to the model
             Page<Experiment> experiments = experimentService.getExperiments(null, null, 0);
             applicationLogger.severe("Experiments Pages number: " + experiments.getTotalPages());
             model.addAttribute("allExperiments", experiments);
@@ -88,39 +100,44 @@ public class AdminController {
 
         } catch (BusinessException e) {
             // If an exception occurs during the process, return a server error message
-            applicationLogger.severe(e.getErrorType()+" occurred:" + e.getMessage());
+            applicationLogger.severe(e.getErrorType() + " occurred: " + e.getMessage());
             model.addAttribute("error", "Internal server error");
             return "error";
         }
     }
 
+    /**
+     * Controller method to handle requests for creating a new configuration.
+     *
+     * @param expConfig The JSON string representing the configuration.
+     * @param request   The HTTP servlet request.
+     * @return A ResponseEntity containing a JSON response.
+     */
     @PostMapping("/newConfig")
     public ResponseEntity<String> newConfig(@RequestBody String expConfig, HttpServletRequest request) {
         try {
             // Convert the JSON string to an ExpConfig object
             ExpConfig config = objectMapper.readValue(expConfig, ExpConfig.class);
 
+            // Retrieve the email from the cookie
             String email = cookieService.getCookieValue(request.getCookies(),"email");
-            applicationLogger.severe("parameters:" + config.getParameters());
+
             // Perform the configuration save
             expConfigService.saveConfig(config, email);
-            
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
             // Create the JSON response with the data
             Map<String, Object> response = new HashMap<>();
             response.put("id", config.getId());
 
+            // Format the creation date for response
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             if (config.getCreationDate() != null) {
                 String creationTime = dateFormat.format(config.getCreationDate());
                 response.put("creationTime", creationTime);
             }
 
-
             // Convert the response map to a JSON string
             String jsonResponse = objectMapper.writeValueAsString(response);
-
-
 
             // Return the JSON response
             return ResponseEntity.ok(jsonResponse);
@@ -136,19 +153,27 @@ public class AdminController {
         }
     }
 
+
+    /**
+     * Controller method to handle requests for creating a new experiment.
+     *
+     * @param exp     The JSON string representing the experiment.
+     * @param request The HTTP servlet request.
+     * @return A ResponseEntity containing a JSON response.
+     */
     @PostMapping("/newExp")
     public ResponseEntity<String> newExp(@RequestBody String exp, HttpServletRequest request) {
         try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-            // Convert the JSON string to an ExpConfig object
+            // Convert the JSON string to an Experiment object
             Experiment experiment = objectMapper.readValue(exp, Experiment.class);
 
+            // Log the received experiment
             System.out.println(experiment);
 
+            // Retrieve the email from the cookie
             String email = cookieService.getCookieValue(request.getCookies(),"email");
 
-            // Perform the configuration save
+            // Perform the experiment save
             experimentService.saveExperiment(experiment, email);
 
             // Create the JSON response with the data
@@ -157,6 +182,9 @@ public class AdminController {
             response.put("name", experiment.getName());
             response.put("configName", experiment.getExpConfig().getName());
             response.put("algorithm", experiment.getExpConfig().getAlgorithm());
+
+            // Format for creation date
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             if (experiment.getCreationDate() != null) {
                 String creationTime = dateFormat.format(experiment.getCreationDate());
                 response.put("creationTime", creationTime);
@@ -165,6 +193,7 @@ public class AdminController {
             // Convert the response map to a JSON string
             String jsonResponse = objectMapper.writeValueAsString(response);
             System.out.println(jsonResponse);
+
             // Return the JSON response
             return ResponseEntity.ok(jsonResponse);
 
@@ -179,31 +208,67 @@ public class AdminController {
         }
     }
 
-
+    /**
+     * Handles the deletion of a configuration by ID.
+     *
+     * @param id      The ID of the configuration to delete.
+     * @param request The HTTP servlet request.
+     * @return A ResponseEntity containing a message indicating the success or failure of the deletion operation.
+     */
     @GetMapping("/deleteConfig-{id}")
     public ResponseEntity<String> deleteConfig(@PathVariable String id, HttpServletRequest request) {
-
-        String email = cookieService.getCookieValue(request.getCookies(),"email");
-        expConfigService.deleteExpConfig(id, email);
-
-        String message = "Config with ID " + id + " successfully deleted.";
-        return ResponseEntity.ok(message);
+        try {
+            // Get the email of the user from the cookie
+            String email = cookieService.getCookieValue(request.getCookies(),"email");
+            // Delete the configuration using the service
+            expConfigService.deleteExpConfig(id, email);
+            // Construct a success message
+            String message = "Config with ID " + id + " successfully deleted.";
+            // Return a ResponseEntity with the success message
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            // If an exception occurs during deletion, log the error and return an error message
+            applicationLogger.severe("Error deleting config with ID " + id + ": " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete config with ID " + id);
+        }
     }
 
+    /**
+     * Handles the deletion of an experiment by ID.
+     *
+     * @param id      The ID of the experiment to delete.
+     * @param request The HTTP servlet request.
+     * @return A ResponseEntity containing a message indicating the success or failure of the deletion operation.
+     */
     @GetMapping("/deleteExp-{id}")
     public ResponseEntity<String> deleteExperiment(@PathVariable String id, HttpServletRequest request) {
-
-        String email = cookieService.getCookieValue(request.getCookies(),"email");
-        experimentService.deleteExperiment(id, email);
-
-        String message = "Experiment with ID " + id + " successfully deleted.";
-        return ResponseEntity.ok(message);
+        try {
+            // Get the email of the user from the cookie
+            String email = cookieService.getCookieValue(request.getCookies(),"email");
+            // Delete the experiment using the service
+            experimentService.deleteExperiment(id, email);
+            // Construct a success message
+            String message = "Experiment with ID " + id + " successfully deleted.";
+            // Return a ResponseEntity with the success message
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            // If an exception occurs during deletion, log the error and return an error message
+            applicationLogger.severe("Error deleting experiment with ID " + id + ": " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete experiment with ID " + id);
+        }
     }
 
-    @PostMapping("/start-exp")
-    public ResponseEntity<?> startTask(HttpServletRequest request) {
-        try {
 
+    /**
+     * Handles the request to start an experiment task.
+     * This method expects 'config' and 'expId' parameters in the query string.
+     *
+     * @param request The HTTP servlet request containing the query parameters.
+     * @return A ResponseEntity containing a message indicating the success or failure of the task start operation.
+     */
+    @PostMapping("/start-exp")
+    public ResponseEntity<String> startTask(HttpServletRequest request) {
+        try {
             // Get the value of the 'config' parameter from the query string
             String config = request.getParameter("config");
 
@@ -212,33 +277,76 @@ public class AdminController {
 
             // Check if the 'config' and 'expId' parameters are present and not blank
             if (StringUtils.isBlank(config) || StringUtils.isBlank(expId)) {
+                // Return a bad request response if required parameters are missing or blank
                 return ResponseEntity.badRequest().body("Missing or blank required parameters");
             }
 
-            // Run the experiment task
+            // Run the experiment task using the provided configuration and experiment ID
             experimentService.runExp(config, expId);
 
             // Return success response
             return ResponseEntity.ok("Task started successfully");
         } catch (Exception e) {
-            // Return internal server error response if an exception occurs
+            // If an exception occurs during task start, return internal server error response
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error starting the task");
         }
     }
 
+    /**
+     * Retrieves experiments based on specified search criteria.
+     *
+     * @param page          The page number to retrieve.
+     * @param executionName The name of the execution to search for (optional).
+     * @param configName    The name of the configuration to search for (optional).
+     * @param request       The HTTP servlet request containing user information.
+     * @return A ResponseEntity containing a Page of ExperimentSummary objects matching the search criteria.
+     */
     @GetMapping("/getExperiments")
     public ResponseEntity<Page<ExperimentSummary>> searchExp(@RequestParam int page, String executionName, String configName, HttpServletRequest request) {
-        String email = cookieService.getCookieValue(request.getCookies(),"email");
-        Page<ExperimentSummary> experiments = experimentService.getMyExperiments(email, executionName, configName, page);
-        return ResponseEntity.ok(experiments);
+        try {
+            // Get the email of the user from the cookie
+            String email = cookieService.getCookieValue(request.getCookies(), "email");
+
+            // Retrieve experiments based on the specified search criteria
+            Page<ExperimentSummary> experiments = experimentService.getMyExperiments(email, executionName, configName, page);
+
+            // Return the experiments as a ResponseEntity with OK status
+            return ResponseEntity.ok(experiments);
+        } catch (Exception e) {
+            // If an exception occurs, log the error and return an internal server error response
+            applicationLogger.severe("Error retrieving experiments: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
+
+    /**
+     * Retrieves configurations based on specified search criteria.
+     *
+     * @param page           The page number to retrieve.
+     * @param name           The name of the configuration to search for (optional).
+     * @param clientStrategy The client strategy of the configuration to search for (optional).
+     * @param stopCondition  The stop condition of the configuration to search for (optional).
+     * @param algorithm      The algorithm of the configuration to search for (optional).
+     * @param request        The HTTP servlet request containing user information.
+     * @return A ResponseEntity containing a Page of ExpConfig objects matching the search criteria.
+     */
     @GetMapping("/getConfigurations")
     public ResponseEntity<Page<ExpConfig>> searchConfig(@RequestParam int page, String name, String clientStrategy, String stopCondition, String algorithm, HttpServletRequest request) {
-        String email = cookieService.getCookieValue(request.getCookies(),"email");
-        applicationLogger.severe(algorithm);
-        Page<ExpConfig> expConfigs = expConfigService.searchMyExpConfigs(email, name, clientStrategy, stopCondition, algorithm, page);
-        return ResponseEntity.ok(expConfigs);
+        try {
+            // Get the email of the user from the cookie
+            String email = cookieService.getCookieValue(request.getCookies(), "email");
+
+            // Retrieve configurations based on the specified search criteria
+            Page<ExpConfig> expConfigs = expConfigService.searchMyExpConfigs(email, name, clientStrategy, stopCondition, algorithm, page);
+
+            // Return the configurations as a ResponseEntity with OK status
+            return ResponseEntity.ok(expConfigs);
+        } catch (Exception e) {
+            // If an exception occurs, log the error and return an internal server error response
+            applicationLogger.severe("Error retrieving configurations: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
 
