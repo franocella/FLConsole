@@ -26,23 +26,7 @@ public interface UserDao extends MongoRepository<User, String> {
     @Query(value = "{ 'email' : ?0, 'password' : ?1 }", fields = "{ 'role' : 1, '_id' : 0}")
     User findRoleByEmailAndPassword(String email, String password);
 
-    default User findRoleByEmailAndPasswordWithException(String email, String password) throws DaoException{
-        User user = findRoleByEmailAndPassword(email, password);
-        if (user == null) {
-            throw new DaoException(DaoTypeErrorsEnum.NOT_FOUND);
-        }
-        return user;
-    }
-
-    @Query(value = "{'email' : ?0}", fields = "{'configurations' : 1}")
-    User findConfigurationsByEmail(String email);
-
-    default List<String> findListOfConfigurationsByEmail(String email){
-        User user = findConfigurationsByEmail(email);
-        return user != null ? user.getConfigurations() : Collections.emptyList();
-    }
-
     @Query(value = "{ 'email' : ?0, 'experiments.id' : ?1 }", exists = true)
-    boolean existsUserByEmailAndExperimentId(String email, String experimentId);
+    Boolean existsUserByEmailAndExperimentId(String email, String experimentId);
 
 }

@@ -12,6 +12,7 @@ import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.service.*;
 import it.unipi.mdwt.flconsole.utils.MessageType;
+import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,18 +80,17 @@ public class MainController {
 
         try {
             // Attempt to authenticate the user
-            Optional<String> roleOptional = userService.authenticate(email, password);
+            String role = userService.authenticate(email, password);
 
             // Authentication successful, set cookies
             cookieService.setCookie("email", email, response);
-            if (roleOptional.isPresent()) {
-                String role = roleOptional.get();
+            if (role != null) {
                 cookieService.setCookie("role", role, response);
             }
 
             // Return a success JSON response
             return ResponseEntity.ok("{\"status\": \"success\"}");
-        } catch (AuthenticationException e) {
+        } catch (AuthenticationException | BusinessException e) {
             // If authentication fails, return an error JSON response with UNAUTHORIZED status
             applicationLogger.severe("Error: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"error\": \"" + e.getMessage() + "\"}");

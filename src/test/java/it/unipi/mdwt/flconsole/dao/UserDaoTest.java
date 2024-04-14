@@ -189,20 +189,6 @@ class UserDaoTest {
         assertEquals("admin", retrievedAdmin.getRole());  // Assuming "admin" is the expected role
     }
 
-    @Test
-    void findListOfConfigurationsByEmail() {
-        // Given
-        String userEmail = "firstTest@example.com";
-
-        // When
-        List<String> retrievedConfigurations = userRepository.findListOfConfigurationsByEmail(userEmail);
-
-        // Then
-        assertNotNull(retrievedConfigurations);
-        assertFalse(retrievedConfigurations.isEmpty());
-
-        System.out.println(retrievedConfigurations);
-    }
 
     @Test
     void existsUserByEmailAndExperimentId() {
