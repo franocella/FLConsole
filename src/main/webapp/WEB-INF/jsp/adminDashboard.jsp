@@ -114,7 +114,7 @@
                 <select id="FL_config_value" class="form-select me-2 my-2">
                     <option selected>FL Configuration</option>
                     <c:forEach items="${allConfigurations}" var="config">
-                        <option value='${config.toJson()}'>${config.name}</option>
+                        <option id="${config.id}" value='${config.toJson()}'>${config.name}</option>
                     </c:forEach>
                 </select>
 
@@ -366,20 +366,28 @@
                     formData["parameters"] = parameters;
                 }
 
-                $.post('/admin/newConfig', JSON.stringify(formData), function (response) {
-                    const jsonData = JSON.parse(response);
+                $.ajax({
+                    type: "POST",
+                    url: "/admin/newConfig",
+                    contentType: "application/json",
+                    data: JSON.stringify(formData),
+                    success: function (response) {
 
-                    formData["id"] = jsonData.id;
-                    formData["creationDate"] = jsonData.creationTime;
+                        const jsonData = JSON.parse(response);
 
-                    console.log("New config:", formData);
+                        formData["id"] = jsonData.id;
+                        formData["creationDate"] = jsonData.creationTime;
 
-                    getMyConfigurations();
-                    addNewConfigToDropDown(formData);
+                        console.log("New config:", formData);
 
-                    closeModal();
-                }).fail(function (error) {
-                    console.error("Error:", error);
+                        getMyConfigurations();
+                        addNewConfigToDropDown(formData);
+
+                        closeModal();
+                    },
+                    error: function (error) {
+                        console.error("Error:", error);
+                    }
                 });
             }
         }
@@ -434,8 +442,9 @@
         function deleteConfig(id) {
             console.log("Deleting config with id:", id);
 
-            $.delete('/admin/deleteConfig-' + id, function (response) {
+            $.post('/admin/deleteConfig-' + id, function (response) {
                 console.log('Server response:', response);
+                $("#"+id).remove();
 
             }).fail(function (error) {
                 console.error('Error deleting config:', error);
@@ -461,26 +470,34 @@
                 }
             };
 
-            $.post('/admin/newExp', JSON.stringify(formData), function (response) {
-                const jsonData = JSON.parse(response);
-                console.log("Server response:", jsonData);
+            $.ajax({
+                type: "POST",
+                url: "/admin/newExp",
+                contentType: "application/json",
+                data: JSON.stringify(formData),
+                success: function (response) {
 
-                formData["id"] = jsonData.id;
-                formData["creationDate"] = jsonData.creationTime;
+                    const jsonData = JSON.parse(response);
+                    console.log("Server response:", jsonData);
 
-                console.log("New config:", formData);
-                getMyExperiments();
+                    formData["id"] = jsonData.id;
+                    formData["creationDate"] = jsonData.creationTime;
 
-                closeModal();
-            }).fail(function (error) {
-                console.error("Error:", error);
+                    console.log("New config:", formData);
+                    getMyExperiments();
+
+                    closeModal();
+                },
+                error: function (error) {
+                    console.error("Error:", error);
+                }
             });
         }
 
         function deleteExp(id) {
             console.log("Deleting experiment with id:", id);
 
-            $.delete('/admin/deleteExp-' + id, function (response) {
+            $.post('/admin/deleteExp-' + id, function (response) {
                 console.log('Server response:', response);
 
             }).fail(function (error) {

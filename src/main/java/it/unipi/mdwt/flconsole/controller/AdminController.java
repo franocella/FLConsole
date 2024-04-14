@@ -207,7 +207,7 @@ public class AdminController {
      * @param request The HTTP servlet request.
      * @return A ResponseEntity containing a message indicating the success or failure of the deletion operation.
      */
-    @DeleteMapping("/deleteConfig-{id}")
+    @PostMapping("/deleteConfig-{id}")
     public ResponseEntity<String> deleteConfig(@PathVariable String id, HttpServletRequest request) {
         try {
             // Get the email of the user from the cookie
@@ -232,7 +232,7 @@ public class AdminController {
      * @param request The HTTP servlet request.
      * @return A ResponseEntity containing a message indicating the success or failure of the deletion operation.
      */
-    @DeleteMapping("/deleteExp-{id}")
+    @PostMapping("/deleteExp-{id}")
     public ResponseEntity<String> deleteExperiment(@PathVariable String id, HttpServletRequest request) {
         try {
             // Get the email of the user from the cookie
