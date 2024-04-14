@@ -2,7 +2,15 @@ package it.unipi.mdwt.flconsole.utils;
 
 import org.springframework.util.StringUtils;
 
-public class Validator {
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static it.unipi.mdwt.flconsole.utils.Constants.PROJECT_PATH;
+
+public class ValidatorAndSaver {
 
     /**
      * Validates the format of an email address.
@@ -43,7 +51,35 @@ public class Validator {
         return StringUtils.hasText(password) && password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()-=_+\\[\\]{}|;:'\",.<>?/\\\\])(?=\\S+$).{8,}$");
     }
 
-    public static String createCookieName(String value) {
-        return value + "_cookie";
+    /**
+     * Saves a file containing model data.
+     *
+     * @param byteArray The byte array representing the file contents.
+     * @param expId The ID of the experiment associated with the file.
+     * @return The relative file path where the file is saved.
+     * @throws IOException If an I/O error occurs while saving the file.
+     */
+    public static String saveFile(byte[] byteArray, String expId) throws IOException {
+        // Generates a unique name for the file
+        String modelName = "exp_" + expId + ".bin";
+
+        // Create the full path for saving the file
+        Path filePath = Paths.get(PROJECT_PATH, "FL_models", modelName);
+
+        // Ensure the directory exists, otherwise create the directory
+        Files.createDirectories(filePath.getParent());
+
+        // Write byte array to file
+        try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
+            fos.write(byteArray);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save file: " + filePath, e);
+        }
+
+        // Extract relative path
+        String base = Paths.get(PROJECT_PATH).toString();
+
+        // Return the relative file path as a string
+        return filePath.toString().substring(base.length());
     }
 }

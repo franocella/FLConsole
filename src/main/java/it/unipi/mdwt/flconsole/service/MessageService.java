@@ -18,14 +18,11 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.logging.Logger;
 
 import static it.unipi.mdwt.flconsole.utils.Constants.*;
+import static it.unipi.mdwt.flconsole.utils.ValidatorAndSaver.saveFile;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 
@@ -45,6 +42,12 @@ public class MessageService {
         this.mongoTemplate = mongoTemplate;
     }
 
+    /**
+     * Sends an experiment configuration to Erlang nodes and monitors the progress.
+     *
+     * @param config The experiment configuration in JSON format.
+     * @param expId The ID of the experiment.
+     */
     public void sendAndMonitor(String config, String expId) {
         OtpNode webConsoleNode = null;
         try {
@@ -213,6 +216,13 @@ public class MessageService {
         }
     }
 
+    /**
+     * Creates a request message to send to Erlang nodes.
+     *
+     * @param receiverPid The process ID of the receiver.
+     * @param jsonConfig The experiment configuration in JSON format.
+     * @return The created request message.
+     */
     private OtpErlangTuple createRequestMessage(OtpErlangPid receiverPid, String jsonConfig) {
         OtpErlangObject[] message = new OtpErlangObject[3];
         message[0] = new OtpErlangAtom("fl_start_str_run"); // message type
@@ -243,27 +253,4 @@ public class MessageService {
         return new OtpErlangTuple(message);
     }
 
-    public String saveFile(byte[] byteArray, String expId) throws IOException {
-        // Generates a unique name for the file
-        String modelName = "exp_" + expId + ".bin";
-
-        // Create the full path for saving the file
-        Path filePath = Paths.get(PROJECT_PATH, "FL_models", modelName);
-
-        // Ensure the directory exists, otherwise create the directory
-        Files.createDirectories(filePath.getParent());
-
-        // Write byte array to file
-        try (FileOutputStream fos = new FileOutputStream(filePath.toFile())) {
-            fos.write(byteArray);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to save file: " + filePath, e);
-        }
-
-        // Extract relative path
-        String base = Paths.get(PROJECT_PATH).toString();
-
-        // Return the relative file path as a string
-        return filePath.toString().substring(base.length());
-    }
 }
