@@ -28,109 +28,117 @@
     </head>
 
     <body style="background-color: #f8f8fe;">
+
+
         <!-- Header section with navbar -->
         <%@ include file="components/header.txt" %>
-            <div class="experiment">
-                <div class="container-fluid d-flex justify-content-center">
-                    <div id="ExpInfoTableDiv" class="container">
-                        <h1 class="text-center mb-5">${experiment.name}</h1>
-                        <c:choose>
-                            <c:when test="${experiment.expConfig.deleted}">
-                                <div class="input-group">
-                                <span class="input-group-text"
-                                      style="font-weight: bold; font-size: large; width: 240px;">Configuration
-                                    Name:</span>
-                                    <input type="text" disabled aria-label="Configuration Name" class="form-control"
-                                           value="${experiment.expConfig.name} (DELETED)">
-                                </div>
-                            </c:when>
-                            <c:otherwise>
-                                <div class="input-group">
-                                <span class="input-group-text"
-                                      style="font-weight: bold; font-size: large; width: 240px;">Configuration
-                                    Name:</span>
-                                    <input type="text" disabled aria-label="Configuration Name" class="form-control"
-                                           value="${experiment.expConfig.name}">
-                                </div>
-                            </c:otherwise>
-                        </c:choose>
 
+        <!-- Overlay -->
+        <div id="overlay-ov" class="overlay-ov"></div>
 
+        <!-- Error modal -->
+        <div id="error-modal" class="myAlert-sm" style="z-index: 9999"></div>
+
+        <div class="experiment">
+            <div class="container-fluid d-flex justify-content-center">
+                <div id="ExpInfoTableDiv" class="container">
+                    <h1 class="text-center mb-5">${experiment.name}</h1>
+                    <c:choose>
+                        <c:when test="${experiment.expConfig.deleted}">
+                            <div class="input-group">
+                            <span class="input-group-text"
+                                  style="font-weight: bold; font-size: large; width: 240px;">Configuration
+                                Name:</span>
+                                <input type="text" disabled aria-label="Configuration Name" class="form-control"
+                                       value="${experiment.expConfig.name} (DELETED)">
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="input-group">
+                            <span class="input-group-text"
+                                  style="font-weight: bold; font-size: large; width: 240px;">Configuration
+                                Name:</span>
+                                <input type="text" disabled aria-label="Configuration Name" class="form-control"
+                                       value="${experiment.expConfig.name}">
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+
+                        <div class="input-group">
+                            <span class="input-group-text"
+                                  style="font-weight: bold; font-size: large; width: 240px;">Algorithm:</span>
+                            <input type="text" disabled aria-label="Algorithm" class="form-control"
+                                   value="${experiment.expConfig.algorithm}">
+                        </div>
+
+                        <c:if test="${expConfig.present}">
 
                             <div class="input-group">
-                                <span class="input-group-text"
-                                      style="font-weight: bold; font-size: large; width: 240px;">Algorithm:</span>
-                                <input type="text" disabled aria-label="Algorithm" class="form-control"
-                                       value="${experiment.expConfig.algorithm}">
+                            <span class="input-group-text"
+                                  style="font-weight: bold; font-size: large; width: 240px;">Strategy:</span>
+                                <input type="text" disabled aria-label="Strategy" class="form-control"
+                                       value="${expConfig.get().clientSelectionStrategy}">
                             </div>
 
-                            <c:if test="${expConfig.present}">
+                            <div class="input-group">
+                            <span class="input-group-text"
+                                  style="font-weight: bold; font-size: large; width: 240px;">Number of Clients:</span>
+                                <input type="text" disabled aria-label="Number of Clients" class="form-control"
+                                       value="${expConfig.get().minNumberClients}">
+                            </div>
 
-                                <div class="input-group">
+                            <div class="input-group">
+                            <span class="input-group-text"
+                                  style="font-weight: bold; font-size: large; width: 240px;">Stop Condition:</span>
+                                <input type="text" disabled aria-label="Stop Condition" class="form-control"
+                                       value="${expConfig.get().stopCondition}">
+                            </div>
+
+                            <div class="input-group">
+                            <span class="input-group-text"
+                                  style="font-weight: bold; font-size: large; width: 240px;">Threshold:</span>
+                                <input type="text" disabled aria-label="Threshold" class="form-control"
+                                       value="${expConfig.get().stopConditionThreshold}">
+                            </div>
+
+                            <c:if test="${not empty expConfig.get().parameters}">
+                                <c:set var="map" value="${expConfig.get().parameters}" />
+                                <c:forEach items="${map}" var="entry">
+                                    <div class="input-group">
                                 <span class="input-group-text"
-                                      style="font-weight: bold; font-size: large; width: 240px;">Strategy:</span>
-                                    <input type="text" disabled aria-label="Strategy" class="form-control"
-                                           value="${expConfig.get().clientSelectionStrategy}">
-                                </div>
+                                      style="font-weight: bold; font-size: large; width: 240px;">${entry.key}:</span>
+                                        <input type="text" disabled aria-label="${entry.key}" class="form-control"
+                                               value="${entry.value}">
+                                    </div>
+                                </c:forEach>
+                            </c:if>
+                        </c:if>
 
-                                <div class="input-group">
-                                <span class="input-group-text"
-                                      style="font-weight: bold; font-size: large; width: 240px;">Number of Clients:</span>
-                                    <input type="text" disabled aria-label="Number of Clients" class="form-control"
-                                           value="${expConfig.get().minNumberClients}">
-                                </div>
+                        <div class="input-group">
+                            <span class="input-group-text"
+                                style="font-weight: bold; font-size: large; width: 240px;">Created
+                                At:</span>
+                            <input type="text" disabled aria-label="Created At" class="form-control"
+                                value="${experiment.creationDate}">
+                        </div>
 
-                                <div class="input-group">
-                                <span class="input-group-text"
-                                      style="font-weight: bold; font-size: large; width: 240px;">Stop Condition:</span>
-                                    <input type="text" disabled aria-label="Stop Condition" class="form-control"
-                                           value="${expConfig.get().stopCondition}">
-                                </div>
-
-                                <div class="input-group">
-                                <span class="input-group-text"
-                                      style="font-weight: bold; font-size: large; width: 240px;">Threshold:</span>
-                                    <input type="text" disabled aria-label="Threshold" class="form-control"
-                                           value="${expConfig.get().stopConditionThreshold}">
-                                </div>
-
-                                <c:if test="${not empty expConfig.get().parameters}">
-                                    <c:set var="map" value="${expConfig.get().parameters}" />
-                                    <c:forEach items="${map}" var="entry">
-                                        <div class="input-group">
-                                    <span class="input-group-text"
-                                          style="font-weight: bold; font-size: large; width: 240px;">${entry.key}:</span>
-                                            <input type="text" disabled aria-label="${entry.key}" class="form-control"
-                                                   value="${entry.value}">
-                                        </div>
-                                    </c:forEach>
+                        <div class="input-group">
+                            <span class="input-group-text"
+                                style="font-weight: bold; font-size: large; width: 240px;">Status:</span>
+                            <input type="text" id="statusInput" disabled aria-label="Finished At" class="form-control"
+                                value="${experiment.status}">
+                        </div>
+                        <c:if test="${experiment.status.toString() == 'NOT_STARTED'}">
+                            <c:if test="${isAuthor}">
+                                <c:if test="${expConfig.present}">
+                                    <button id="startTaskBtn" class="btn btn-primary mt-4 float-end" onclick="startTask()">Start
+                                        Experiment</button>
                                 </c:if>
                             </c:if>
-
-                            <div class="input-group">
-                                <span class="input-group-text"
-                                    style="font-weight: bold; font-size: large; width: 240px;">Created
-                                    At:</span>
-                                <input type="text" disabled aria-label="Created At" class="form-control"
-                                    value="${experiment.creationDate}">
-                            </div>
-
-                            <div class="input-group">
-                                <span class="input-group-text"
-                                    style="font-weight: bold; font-size: large; width: 240px;">Status:</span>
-                                <input type="text" id="statusInput" disabled aria-label="Finished At" class="form-control"
-                                    value="${experiment.status}">
-                            </div>
-                            <c:if test="${experiment.status.toString() == 'NOT_STARTED'}">
-                                <c:if test="${isAuthor}">
-                                    <c:if test="${expConfig.present}">
-                                        <button id="startTaskBtn" class="btn btn-primary mt-4 float-end" onclick="startTask()">Start
-                                            Experiment</button>
-                                    </c:if>
-                                </c:if>
-                            </c:if>
-                        </div></div>
+                        </c:if>
+                </div>
             </div>
+        </div>
         <h1 class="text-center my-5">Metrics</h1>
 
         <div class="container-fluid d-flex justify-content-center">
@@ -203,5 +211,7 @@
                 integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
                 crossorigin="anonymous">
         </script>
+        <script src="${pageContext.request.contextPath}/JS/modals.js"></script>
+
     </body>
 </html>

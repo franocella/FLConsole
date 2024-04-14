@@ -33,7 +33,7 @@
         <div class="myAlertBody" style="z-index: 9999">
             <h3 id="Err-Title"></h3>
             <p class="mt-3" id="Err-Message"></p>
-            <button class="btn btn-primary" id="close-error-modal" onclick="closeErrorModal()">Close</button>
+            <button class="btn btn-primary" id="close-error-modal" onclick="closeModal('error')">Close</button>
         </div>
     </div>
 
@@ -95,6 +95,7 @@
             crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="${pageContext.request.contextPath}/JS/main.js"></script>
+    <script src="${pageContext.request.contextPath}/JS/modals.js"></script>
 
     <script>
         // Variables for pagination of experiments

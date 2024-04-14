@@ -64,5 +64,6 @@
         crossorigin="anonymous"></script>
     <script src="${pageContext.request.contextPath}/JS/main.js"></script>
     <script src="${pageContext.request.contextPath}/JS/profilePage.js"></script>
+    <script src="${pageContext.request.contextPath}/JS/modals.js"></script>
 </body>
 </html>

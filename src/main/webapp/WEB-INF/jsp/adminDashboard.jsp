@@ -26,7 +26,7 @@
     <%-- Custom scripts --%>
     <script src="${pageContext.request.contextPath}/JS/main.js"></script>
     <script src="${pageContext.request.contextPath}/JS/adminDashboard.js"></script>
-    <script src="${pageContext.request.contextPath}/JS/dateUtils.js"></script>
+    <script src="${pageContext.request.contextPath}/JS/modals.js"></script>
 </head>
 
 <body style="background-color: #f8f8fe;">
@@ -200,7 +200,7 @@
                             <td class='align-middle'>${config.name}</td>
                             <td class='align-middle'>${config.algorithm}</td>
                             <td class='align-middle'>${configsDate[config.id]}</td>
-                            <td class='align-middle'><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="openModal('', 'configDetails', '${config.id}')"></td>
+                            <td class='align-middle'><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="openModal('', 'config-details', '${config.id}')"></td>
                             <td class='align-middle'><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig('${config.id}')" height="20px" width="20px"></figure></td>
                         </tr>
                     </c:forEach>

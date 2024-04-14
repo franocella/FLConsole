@@ -27,22 +27,23 @@ function openConnection() {
                 $("#statusInput").val("QUEUED");
             }
             if (progressUpdate.type != null && progressUpdate.type === 'start_round' && progressUpdate.round === 1) {
-                openModal("Experiment started", 'message', "The experiment has started running")
+                openModal("Experiment started", 'error', "The experiment has started running");
                 $("#statusInput").val("RUNNING");
+                setTimeout(() => {closeModal("error")}, 3000);
             }
             if (progressUpdate.type != null && progressUpdate.type === 'strategy_server_metrics') {
                 jsonDataArray.push(progressUpdate);
                 generateCharts();
             }
             if (progressUpdate.type === 'END_EXPERIMENT') {
-                openModal("Experiment finished", 'message', "The experiment has finished running")
+                openModal("Experiment finished", 'error', "The experiment has finished running");
                 $("#statusInput").val("FINISHED");
                 stompClient.disconnect();
             }
         });
     }, (error) => {
         console.error("WebSocket connection error:", error);
-        openModal("Error", 'error', "An error occurred while connecting to the WebSocket")
+        openModal("Error", 'error', "An error occurred while connecting to the WebSocket");
     });
 }
 
