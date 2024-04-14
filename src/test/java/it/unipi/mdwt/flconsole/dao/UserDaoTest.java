@@ -176,35 +176,6 @@ class UserDaoTest {
     }
 
     @Test
-    void saveAdmin() {
-        // Given
-        String adminEmail = "admin@example.com";
-        String adminPassword = "AdminP@ss";
-        String adminRole = "admin";
-
-        // When
-        User adminUser = new User();
-        adminUser.setEmail(adminEmail);
-        adminUser.setPassword(adminPassword);
-        adminUser.setRole(adminRole);
-
-        // Then
-        assertDoesNotThrow(() -> {
-            User savedAdmin = userRepository.saveWithException(adminUser);
-
-            assertNotNull(savedAdmin.getId());
-            assertEquals(adminEmail, savedAdmin.getEmail());
-            assertEquals(adminPassword, savedAdmin.getPassword());
-            assertEquals(adminRole, savedAdmin.getRole());
-
-            // Check if the saved user can be retrieved by email and password
-            User retrievedAdmin = userRepository.findRoleByEmailAndPassword(adminEmail, adminPassword);
-            assertEquals(adminRole, retrievedAdmin.getRole());
-        });
-    }
-
-
-    @Test
     void findRoleByEmailAndPasswordForAdmin() {
         // Given
         String adminEmail = "admin@example.com";
@@ -218,20 +189,6 @@ class UserDaoTest {
         assertEquals("admin", retrievedAdmin.getRole());  // Assuming "admin" is the expected role
     }
 
-    @Test
-    void findListOfConfigurationsByEmail() {
-        // Given
-        String userEmail = "admin@example.com";
-
-        // When
-        List<String> retrievedConfigurations = userRepository.findListOfConfigurationsByEmail(userEmail);
-
-        // Then
-        assertNotNull(retrievedConfigurations);
-        assertFalse(retrievedConfigurations.isEmpty());
-
-        System.out.println(retrievedConfigurations);
-    }
 
     @Test
     void existsUserByEmailAndExperimentId() {

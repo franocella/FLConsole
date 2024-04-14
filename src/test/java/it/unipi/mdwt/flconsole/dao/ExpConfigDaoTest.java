@@ -3,6 +3,7 @@ package it.unipi.mdwt.flconsole.dao;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
 import it.unipi.mdwt.flconsole.dto.ExpConfigSummary;
 import it.unipi.mdwt.flconsole.model.Experiment;
+import it.unipi.mdwt.flconsole.model.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
@@ -19,13 +20,16 @@ class ExpConfigDaoTest {
     private final ExpConfigDao expConfigDao;
     private final MongoTemplate mongoTemplate;
 
+    private final UserDao userDao;
+
     @Autowired
     private ExperimentDao experimentDao;
 
     @Autowired
-    ExpConfigDaoTest(ExpConfigDao expConfigDao, MongoTemplate mongoTemplate) {
+    ExpConfigDaoTest(ExpConfigDao expConfigDao, MongoTemplate mongoTemplate, UserDao userDao) {
         this.expConfigDao = expConfigDao;
         this.mongoTemplate = mongoTemplate;
+        this.userDao = userDao;
     }
 
 

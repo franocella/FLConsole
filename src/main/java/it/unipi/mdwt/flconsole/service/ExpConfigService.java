@@ -3,18 +3,19 @@ package it.unipi.mdwt.flconsole.service;
 import it.unipi.mdwt.flconsole.dao.ExpConfigDao;
 import it.unipi.mdwt.flconsole.dao.UserDao;
 import it.unipi.mdwt.flconsole.model.ExpConfig;
+import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessTypeErrorsEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -61,11 +62,20 @@ public class ExpConfigService {
         Query query = new Query(Criteria.where("email").is(userEmail));
         Update update = new Update().pull("configurations", configId);
         mongoTemplate.updateFirst(query, update, User.class);
+
+        // Mark experiments associated with the deleted configuration as deleted
+        Query query2 = new Query(Criteria.where("expConfig.id").is(configId));
+        Update update2 = new Update().set("expConfig.deleted", true);
+        mongoTemplate.updateMulti(query2, update2, Experiment.class);
     }
 
-    public Page<ExpConfig> getNConfigsList(List<String> configurations) {
-        List<ExpConfig> configs = expConfigDao.findTopNByIdInOrderByCreationDateDesc(configurations, PageRequest.of(0, PAGE_SIZE));
-        return PageableExecutionUtils.getPage(configs, PageRequest.of(0, PAGE_SIZE), configurations::size);
+    public Page<ExpConfig> getConfigsListFirstPage(List<String> configurations, Integer pageSize) {
+        if (pageSize == null || pageSize <= 0) {
+            pageSize = PAGE_SIZE;
+        }
+
+        List<ExpConfig> configs = expConfigDao.findTopNByIdInOrderByCreationDateDesc(configurations, PageRequest.of(0, pageSize));
+        return new PageImpl<>(configs, PageRequest.of(0, pageSize), configurations.size());
     }
 
     /**
@@ -90,7 +100,7 @@ public class ExpConfigService {
 
             if (!StringUtils.hasText(configName) && !StringUtils.hasText(clientStrategy) && !StringUtils.hasText(stopCondition) && !StringUtils.hasText(algorithm)){
                 List<ExpConfig> matchingConfigs = expConfigDao.findTopNByIdInOrderByCreationDateDesc(confList, PageRequest.of(page, PAGE_SIZE));
-                return PageableExecutionUtils.getPage(matchingConfigs, PageRequest.of(page, PAGE_SIZE), confList::size);
+                return new PageImpl<>(matchingConfigs, PageRequest.of(page, PAGE_SIZE), confList.size());
             }
 
             // Create a list to hold the search criteria pairs
@@ -108,8 +118,6 @@ public class ExpConfigService {
             }
             if (algorithm != null && !algorithm.isEmpty()) {
                 criteriaList.add(Pair.of("algorithm", algorithm));
-                applicationLogger.info("Algorithm: " + algorithm);
-
             }
 
             // Create a query to search for ExpConfig objects based on the provided criteria
@@ -128,15 +136,22 @@ public class ExpConfigService {
 
             // Retrieve the matching ExpConfig objects from the database
             List<ExpConfig> matchingConfigs = mongoTemplate.find(query, ExpConfig.class);
+            applicationLogger.severe("Matching configs: " + matchingConfigs);
 
             // Retrieve the total count of matching ExpConfig objects
             long totalCount = mongoTemplate.count(query, ExpConfig.class);
 
+            applicationLogger.severe("Total count: " + totalCount);
+
             // Create a Page object using the retrieved ExpConfig objects, the requested page, and the total count
-            return PageableExecutionUtils.getPage(matchingConfigs, PageRequest.of(page, PAGE_SIZE), () -> totalCount);
+            return new PageImpl<>(matchingConfigs, PageRequest.of(page, PAGE_SIZE), totalCount);
         } catch (Exception e) {
             throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public ExpConfig getExpConfigById(String configId) {
+        return expConfigDao.findById(configId).orElse(null);
     }
 }
 

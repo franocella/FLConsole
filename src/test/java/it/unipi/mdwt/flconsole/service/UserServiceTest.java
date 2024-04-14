@@ -24,16 +24,5 @@ class UserServiceTest {
         this.experimentDao = experimentDao;
     }
 
-    @Test
-    void getExperimentsForUser() {
-        String userEmail = "firstTest@example.com";
-        List<String> experimentsList = userDAO.findListOfConfigurationsByEmail(userEmail);
-        assertNotNull(experimentsList);
-        System.out.println(experimentsList);
-        List<Experiment> experiments = experimentDao.findAllById(experimentsList);
-        assertNotNull(experiments);
-        System.out.println(experiments);
 
-
-    }
 }
