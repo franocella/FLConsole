@@ -180,7 +180,7 @@ public class MainController {
      * @param configName The name of the configuration associated with the experiment to search for (optional).
      * @return A ResponseEntity containing a Page of Experiment objects matching the search criteria.
      */
-    @PostMapping("/getExperiments")
+    @GetMapping("/getExperiments")
     public ResponseEntity<Page<Experiment>> searchAllExpPOST(@RequestParam int page, String expName, String configName) {
         try {
             // Log the search criteria

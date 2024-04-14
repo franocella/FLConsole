@@ -73,20 +73,18 @@ public class AdminController {
             }
 
             if (user.getExperiments() != null) {
-                int totalExpPages = (int) Math.ceil((double) user.getExperiments().size() / PAGE_SIZE);
                 List<ExperimentSummary> experimentSummaries = user.getExperiments().stream()
                         .sorted(Comparator.comparing(ExperimentSummary::getCreationDate).reversed())
                         .limit(Math.min(user.getExperiments().size(), PAGE_SIZE))
                         .toList();
-                model.addAttribute("experiments", experimentSummaries);
-                model.addAttribute("totalExpPages", totalExpPages);
+                Page<ExperimentSummary> userExperiments = new PageImpl<>(experimentSummaries, PageRequest.of(0, PAGE_SIZE), user.getExperiments().size());
+                model.addAttribute("experiments", userExperiments);
             }
 
             // Fetch all experiments and add them to the model
 
 
             Page<Experiment> experiments = experimentService.getExperiments(null, null, 0);
-            applicationLogger.severe("Experiments Pages number: " + experiments.getTotalPages());
             model.addAttribute("allExperiments", experiments);
 
             return "adminDashboard";
@@ -209,7 +207,7 @@ public class AdminController {
      * @param request The HTTP servlet request.
      * @return A ResponseEntity containing a message indicating the success or failure of the deletion operation.
      */
-    @GetMapping("/deleteConfig-{id}")
+    @DeleteMapping("/deleteConfig-{id}")
     public ResponseEntity<String> deleteConfig(@PathVariable String id, HttpServletRequest request) {
         try {
             // Get the email of the user from the cookie
@@ -304,6 +302,7 @@ public class AdminController {
 
             // Retrieve experiments based on the specified search criteria
             Page<ExperimentSummary> experiments = experimentService.getMyExperiments(email, executionName, configName, page);
+            applicationLogger.severe("number of pages: " + experiments.getTotalPages());
 
             // Return the experiments as a ResponseEntity with OK status
             return ResponseEntity.ok(experiments);
