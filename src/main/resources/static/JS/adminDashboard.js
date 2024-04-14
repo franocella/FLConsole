@@ -126,7 +126,7 @@ function getMyConfigurations(page = 0) {
         stopCondition: stopCondition,
         algorithm: algorithm,
         page: page
-    }, $('#configPage'), totalConfigPages, getMyConfigurations, updateConfigTable);
+    }, $('#configPage'), updateConfigTable);
 }
 
 // Function to retrieve experiments of the current page
@@ -138,23 +138,11 @@ function getMyExperiments(page = 0) {
         configName: configName,
         executionName: executionName,
         page: page
-    }, $('#expPage'), totalExpPages, getMyExperiments, updateExpTable, 'tab2Content');
-}
-
-// Function to retrieve all experiments of the current page
-function getAllExperiments(page = 0) {
-    const executionName = $('#all-execution-name').val();
-    const configName = $('#all-config-name').val();
-
-    getData('/getExperiments', {
-        configName: configName,
-        expName: executionName,
-        page: page
-    }, $('#allExpPage'), totalAllExpPages, getAllExperiments, updateExpTable, 'tab3Content');
+    }, $('#expPage'), updateExpTable, 'tab2Content');
 }
 
 // Function to retrieve configurations or experiments of the current page via an AJAX call
-function getData(url, data, pageElement, totalPagesElement, getPageFunction, updateTableFunction, tableId = null) {
+function getData(url, data, pageElement, updateTableFunction, tableId = null) {
     if (pageElement.val() === 0) {
         pageElement.val(0);
     }

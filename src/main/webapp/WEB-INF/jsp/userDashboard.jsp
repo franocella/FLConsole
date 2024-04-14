@@ -17,6 +17,15 @@
     <!-- Custom stylesheet -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/main.css" />
 
+    <!-- External scripts for jQuery, Bootstrap, and custom JavaScript files -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="${pageContext.request.contextPath}/JS/main.js"></script>
+    <script src="${pageContext.request.contextPath}/JS/adminDashboard.js"></script>
+    <script src="${pageContext.request.contextPath}/JS/modals.js"></script>
 </head>
 
 <body style="background-color: #f8f8fe;">
@@ -38,14 +47,15 @@
     </div>
 
     <!-- Container -->
-    <div id="main-container" class="container" style="margin-top: 50px;">
+    <div id="tab3Content" class="container tab-content" style="margin-top: 50px;">
         <div class="container py-2 my-2" style="box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);">
             <div class="d-flex align-items-center">
-                <input type="text" class="form-control me-2" id="execution-name" required placeholder="Execution name"/>
-                <input type="text" class="form-control me-2" id="config-name" required placeholder="Configuration name"/>
-                <input type="hidden" id="currentPage" value="0">
+                <input type="text" class="form-control me-2" id="all-execution-name" required
+                       placeholder="Experiment name" />
+                <input type="text" class="form-control me-2" id="all-config-name" required
+                       placeholder="Configuration name" />
+                <input type="hidden" id="allExpPage" value="0">
             </div>
-
             <table id="all-ExpTable" class="table mt-3 text-center" style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
                 <thead>
                 <tr>
@@ -84,26 +94,16 @@
                 </button>
             </div>
         </div>
-
-
     </div>
-
-    <!-- External scripts for jQuery, Bootstrap, and custom JavaScript files -->
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    <script src="${pageContext.request.contextPath}/JS/main.js"></script>
-    <script src="${pageContext.request.contextPath}/JS/modals.js"></script>
 
     <script>
         // Variables for pagination of experiments
         let totalAllExpPages = ${experiments.totalPages};
-        let currentPage = $("#currentPage");
+        const contextPath = '${pageContext.request.contextPath}';
 
         // Function to handle the page change
-        function handleUserPage(direction){
+        function handleUserPage(direction) {
+            let currentPage = $('#allExpPage');
             if (direction === 'next' && currentPage.val() < totalAllExpPages - 1) {
                 currentPage.val(parseInt(currentPage.val()) + 1);
                 getAllExperiments(currentPage.val());
@@ -115,26 +115,9 @@
             }
         }
 
-        function getAllExperiments(page) {
-            $.ajax({
-                url: "/getExperiments",
-                type: "GET",
-                data: {
-                    page: page
-                },
-                success: function (data) {
-                    $("#all-ExpTable tbody").empty();
-                    $.each(data.content, function (index, value) {
-                        let row = "<tr><td>" + value.id + "</td><td>" + value.name + "</td><td>" + value.expConfig.name + "</td><td>" + value.creationDate + "</td><td><a href='/experiment-" + value.id + "'><img src='${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg' alt='Open' width='25px' height='25px'></a></td></tr>";
-                        $("#all-ExpTable tbody").append(row);
-                    });
-                },
-                error: function (error) {
-                    console.log(error);
-                }
-            });
-        }
-
+        $(function () {
+            $('#all-execution-name, #all-config-name').on('input', function () {getAllExperiments();});
+        });
     </script>
 </body>
 

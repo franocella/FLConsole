@@ -33,6 +33,18 @@ function handlePage(direction) {
     getPageFunction(currentPage.val());
 }
 
+// Function to retrieve all experiments of the current page
+function getAllExperiments(page = 0) {
+    const executionName = $('#all-execution-name').val();
+    const configName = $('#all-config-name').val();
+
+    getData('/getExperiments', {
+        configName: configName,
+        expName: executionName,
+        page: page
+    }, $('#allExpPage'), updateExpTable, 'tab3Content');
+}
+
 function formatDateString(dateString) {
     return new Date(dateString).toLocaleString();
 }
