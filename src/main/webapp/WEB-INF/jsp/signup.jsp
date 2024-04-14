@@ -57,8 +57,6 @@
 <!-- External scripts for jQuery, Bootstrap, and custom JavaScript files -->
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-
-
 <script>
     function submitSignup() {
         const email = document.getElementById("email").value.trim();
@@ -66,9 +64,9 @@
         const confirmPassword = document.getElementById("confirmPassword").value.trim();
 
         if (email === "" || password === "" || confirmPassword === "") {
-            openErrorModal("Error", "Please fill in all the fields");
+            openModal("Error", "error", "Please fill in all the fields")
         } else if (password !== confirmPassword) {
-            openErrorModal("Passwords Error", "Passwords do not match. Please enter the same password in both fields.");
+            openModal("Error", "error", "Passwords do not match. Please enter the same password in both fields.")
         } else {
             // Send the data to the server for signup
             $.ajax({
@@ -94,77 +92,10 @@
                             message = "An error occurred during signup";
                         }
                     }
-
-                    openErrorModal("Error", message);
+                    openModal("Error", "error", message)
                 }
             });
         }
-    }
-
-    function openErrorModal(title, message) {
-        // Check if overlay already exists
-        let overlay = document.getElementById('overlay');
-
-        if (!overlay) {
-            // If overlay does not exist, create HTML element
-            overlay = document.createElement('div');
-            overlay.id = 'overlay';
-            overlay.className = 'overlay';
-
-            // Add overlay to the page
-            document.body.appendChild(overlay);
-        }
-
-        // Check if modal already exists
-        let modal = document.getElementById('error-modal');
-
-        if (!modal) {
-            // If modal does not exist, create HTML elements
-            modal = document.createElement('div');
-            modal.id = 'error-modal';
-            modal.className = 'myAlert-sm';
-
-            const modalBody = document.createElement('div');
-            modalBody.className = 'myAlertBody';
-
-            const titleElement = document.createElement('h3');
-            titleElement.id = 'Err-Title';
-
-            const messageElement = document.createElement('p');
-            messageElement.className = 'mt-3';
-            messageElement.id = 'Err-Message';
-
-            const closeButton = document.createElement('button');
-            closeButton.className = 'btn btn-primary';
-            closeButton.innerText = 'Close';
-            closeButton.onclick = closeErrorModal;
-
-            // Add elements to the modal
-            modalBody.appendChild(titleElement);
-            modalBody.appendChild(messageElement);
-            modalBody.appendChild(closeButton);
-            modal.appendChild(modalBody);
-
-            // Add modal to the page
-            document.body.appendChild(modal);
-        }
-
-        // Set titles and messages dynamically
-        document.getElementById('Err-Title').innerText = title;
-        document.getElementById('Err-Message').innerText = message;
-
-        // Show overlay and modal
-        overlay.style.display = 'block';
-        modal.style.display = 'block';
-    }
-
-    function closeErrorModal() {
-        // Remove modal, hide overlay
-        const modal = document.getElementById('error-modal');
-        document.body.removeChild(modal);
-
-        const overlay = document.getElementById('overlay');
-        overlay.style.display = 'none';
     }
 </script>
 </body>

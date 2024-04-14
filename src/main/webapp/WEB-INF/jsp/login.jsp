@@ -64,7 +64,7 @@
         const password = document.getElementById("password").value;
         // Check if are empty and if the format of the email is correct
         if(email === "" || password === ""){
-            alert("Please fill in all the fields");
+            openModal("Error", "error", "Please fill in all the fields")
         } else {
             // Send the data to the server
             $.ajax({
@@ -84,7 +84,7 @@
                     }
                 },
                 error: function(){
-                    openErrorModal("Error", "Invalid email or password");
+                    openModal("Error", "error", "Invalid email or password")
                 }
             });
         }
@@ -99,73 +99,6 @@
             }
         }
         return null;
-    }
-
-
-    function openErrorModal(title, message) {
-        // Check if overlay already exists
-        let overlay = document.getElementById('overlay');
-
-        if (!overlay) {
-            // If overlay does not exist, create HTML element
-            overlay = document.createElement('div');
-            overlay.id = 'overlay';
-            overlay.className = 'overlay';
-
-            // Add overlay to the page
-            document.body.appendChild(overlay);
-        }
-
-        // Check if modal already exists
-        let modal = document.getElementById('error-modal');
-
-        if (!modal) {
-            // If modal does not exist, create HTML elements
-            modal = document.createElement('div');
-            modal.id = 'error-modal';
-            modal.className = 'myAlert-sm';
-
-            const modalBody = document.createElement('div');
-            modalBody.className = 'myAlertBody';
-
-            const titleElement = document.createElement('h3');
-            titleElement.id = 'Err-Title';
-
-            const messageElement = document.createElement('p');
-            messageElement.className = 'mt-3';
-            messageElement.id = 'Err-Message';
-
-            const closeButton = document.createElement('button');
-            closeButton.className = 'btn btn-primary';
-            closeButton.innerText = 'Close';
-            closeButton.onclick = closeErrorModal;
-
-            // Add elements to the modal
-            modalBody.appendChild(titleElement);
-            modalBody.appendChild(messageElement);
-            modalBody.appendChild(closeButton);
-            modal.appendChild(modalBody);
-
-            // Add modal to the page
-            document.body.appendChild(modal);
-        }
-
-        // Set titles and messages dynamically
-        document.getElementById('Err-Title').innerText = title;
-        document.getElementById('Err-Message').innerText = message;
-
-        // Show overlay and modal
-        overlay.style.display = 'block';
-        modal.style.display = 'block';
-    }
-
-    function closeErrorModal() {
-        // Remove modal, hide overlay
-        const modal = document.getElementById('error-modal');
-        document.body.removeChild(modal);
-
-        const overlay = document.getElementById('overlay');
-        overlay.style.display = 'none';
     }
 
 </script>
