@@ -70,25 +70,27 @@ public class AdminController {
                         PageRequest.of(0, PAGE_SIZE),
                         allConfigurations.getTotalElements());
                 model.addAttribute("configurations", userConfigurations);
+
+                Map<String, String> ConfigDate = new HashMap<>();
+                userConfigurations.getContent().forEach(config ->
+                        ConfigDate.put(config.getId(), new SimpleDateFormat("dd/MM/yyyy, HH:mm:ss").format(config.getCreationDate())));
+                model.addAttribute("configsDate", ConfigDate);
             }
 
             if (user.getExperiments() != null) {
+                Map<String, String> ExperimentsDate = new HashMap<>();
                 List<ExperimentSummary> experimentSummaries = user.getExperiments().stream()
                         .sorted(Comparator.comparing(ExperimentSummary::getCreationDate).reversed())
                         .limit(Math.min(user.getExperiments().size(), PAGE_SIZE))
+                        .peek(exp -> ExperimentsDate.put(exp.getId(), new SimpleDateFormat("dd/MM/yyyy, HH:mm:ss").format(exp.getCreationDate())))
                         .toList();
+
                 Page<ExperimentSummary> userExperiments = new PageImpl<>(experimentSummaries, PageRequest.of(0, PAGE_SIZE), user.getExperiments().size());
                 model.addAttribute("experiments", userExperiments);
+                model.addAttribute("experimentsDate", ExperimentsDate);
             }
 
-            // Fetch all experiments and add them to the model
-
-
-            Page<Experiment> experiments = experimentService.getExperiments(null, null, 0);
-            model.addAttribute("allExperiments", experiments);
-
             return "adminDashboard";
-
         } catch (BusinessException e) {
             // If an exception occurs during the process, return a server error message
             applicationLogger.severe(e.getErrorType() + " occurred: " + e.getMessage());
@@ -116,23 +118,7 @@ public class AdminController {
             // Perform the configuration save
             expConfigService.saveConfig(config, email);
 
-            // Create the JSON response with the data
-            Map<String, Object> response = new HashMap<>();
-            response.put("id", config.getId());
-
-            // Format the creation date for response
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            if (config.getCreationDate() != null) {
-                String creationTime = dateFormat.format(config.getCreationDate());
-                response.put("creationTime", creationTime);
-            }
-
-            // Convert the response map to a JSON string
-            String jsonResponse = objectMapper.writeValueAsString(response);
-
-            // Return the JSON response
-            return ResponseEntity.ok(jsonResponse);
-
+            return ResponseEntity.ok(config.getId());
         } catch (JsonProcessingException e) {
             // Handle the error in JSON string parsing
             applicationLogger.severe("Error parsing JSON: " + e.getMessage());
@@ -167,27 +153,7 @@ public class AdminController {
             // Perform the experiment save
             experimentService.saveExperiment(experiment, email);
 
-            // Create the JSON response with the data
-            Map<String, Object> response = new HashMap<>();
-            response.put("id", experiment.getId());
-            response.put("name", experiment.getName());
-            response.put("configName", experiment.getExpConfig().getName());
-            response.put("algorithm", experiment.getExpConfig().getAlgorithm());
-
-            // Format for creation date
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            if (experiment.getCreationDate() != null) {
-                String creationTime = dateFormat.format(experiment.getCreationDate());
-                response.put("creationTime", creationTime);
-            }
-
-            // Convert the response map to a JSON string
-            String jsonResponse = objectMapper.writeValueAsString(response);
-            System.out.println(jsonResponse);
-
-            // Return the JSON response
-            return ResponseEntity.ok(jsonResponse);
-
+            return ResponseEntity.ok(experiment.getId());
         } catch (JsonProcessingException e) {
             // Handle the error in JSON string parsing
             applicationLogger.severe("Error parsing JSON: " + e.getMessage());

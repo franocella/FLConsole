@@ -17,6 +17,16 @@
     <!-- Custom stylesheet -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/main.css" />
 
+    <!-- External scripts for jQuery, Bootstrap, and custom JavaScript files -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <%-- Custom scripts --%>
+    <script src="${pageContext.request.contextPath}/JS/main.js"></script>
+    <script src="${pageContext.request.contextPath}/JS/adminDashboard.js"></script>
+    <script src="${pageContext.request.contextPath}/JS/dateUtils.js"></script>
 </head>
 
 <body style="background-color: #f8f8fe;">
@@ -189,7 +199,7 @@
                             <td class='align-middle'>${config.id}</td>
                             <td class='align-middle'>${config.name}</td>
                             <td class='align-middle'>${config.algorithm}</td>
-                            <td class='align-middle'>${config.creationDate}</td>
+                            <td class='align-middle'>${configsDate[config.id]}</td>
                             <td class='align-middle'><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="openModal('', 'configDetails', '${config.id}')"></td>
                             <td class='align-middle'><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig('${config.id}')" height="20px" width="20px"></figure></td>
                         </tr>
@@ -231,7 +241,7 @@
                             <td class='align-middle'>${exp.id}</td>
                             <td class='align-middle'>${exp.name}</td>
                             <td class='align-middle'>${exp.configName}</td>
-                            <td class='align-middle'>${exp.creationDate}</td>
+                            <td class='align-middle'>${experimentsDate[exp.id]}</td>
                             <td class='align-middle'><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
                             <td class='align-middle'><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteExp('${exp.id}')" height="20px" width="20px"></figure></td>
                         </tr>
@@ -264,15 +274,6 @@
                     </thead>
 
                     <tbody>
-                    <c:forEach items="${allExperiments.content}" var="exp">
-                        <tr>
-                            <td>${exp.id}</td>
-                            <td>${exp.name}</td>
-                            <td>${exp.expConfig.name}</td>
-                            <td>${exp.creationDate}</td>
-                            <td><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
-                        </tr>
-                    </c:forEach>
                     </tbody>
                 </table>
             </div>
@@ -293,98 +294,28 @@
         </div>
     </div>
 
-    <!-- External scripts for jQuery, Bootstrap, and custom JavaScript files -->
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-        crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-
-    <%-- Script for the main page --%>
-    <script src="${pageContext.request.contextPath}/JS/main.js"></script>
-    <script src="${pageContext.request.contextPath}/JS/adminDashboard.js"></script>
-
     <script>
+        const contextPath = '${pageContext.request.contextPath}';
+
         let totalConfigPages = ${configurations.totalPages};
         let totalExpPages = ${experiments.totalPages};
-        let totalAllExpPages = ${allExperiments.totalPages};
+        let totalAllExpPages = 0;
 
-        $(document).ready(function () {
+        $(function () {
             // Event listener for tab clicks
             $('.nav-link').on('click', function (e) {
                 e.preventDefault();
-
-                // Remove the "active" class from all links
                 $('.nav-link').removeClass('active');
-
-                // Add the "active" class to the clicked link
                 $(this).addClass('active');
-
-                // Hide all tab contents
                 $('.tab-content').hide();
-
-                $('#configPage').val(0);
-                $('#expPage').val(0);
-                $('#allExpPage').val(0);
-
-                // Show the corresponding tab content
                 const targetTab = $(this).attr('href');
                 $(targetTab).show();
             });
 
-            $('#execution-name, #config-name').on('input', function () {
-                getMyExperiments();
-            });
-
-            $('#ExpConfigName, #ClientStrategy, #StopCondition, #Algorithm').on('input', function () {
-                getMyConfigurations();
-            });
-
-            $('#all-execution-name, #all-config-name').on('input', function () {
-                getExperiments();
-            });
+            $('#execution-name, #config-name').on('input', function () {getMyExperiments();});
+            $('#ExpConfigName, #ClientStrategy, #StopCondition, #Algorithm').on('input', function () {getMyConfigurations();});
+            $('#all-execution-name, #all-config-name').on('input', function () {getAllExperiments();});
         });
-
-        function updateExpTable(response, tableId) {
-            const tbody = $('#' + tableId + ' tbody');
-            tbody.empty();
-            const configurations = response.content;
-            $.each(configurations, function (_, item) {
-                const row = $('<tr>').append(
-                    '<td class="align-middle">' + item.id + '</td>' +
-                    '<td class="align-middle">' + item.name + '</td>' +
-                    '<td class="align-middle">' + (tableId === 'tab2Content' ? item.configName : item.expConfig.name) + '</td>' +
-                    '<td class="align-middle">' + item.creationDate + '</td>' +
-                    '<td class="align-middle"><a href="/experiment-' + item.id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>' +
-                    (tableId === 'tab2Content' ?
-                        '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteExp(\'' + item.id + '\')" height="20px" width="20px"></figure></td>' :
-                        '')
-                );
-                tbody.append(row);
-            });
-        }
-        function updateConfigTable(response) {
-            // Clear previous search results
-            const tbody = $('#ConfigTable tbody');
-            tbody.empty();
-
-            // Extract the list from the response
-            const configurations = response.content;
-
-            // Insert rows based on the response
-            $.each(configurations, function (index, item) {
-                const row = $('<tr>').append(
-                    '<td class="align-middle">' + item.id + '</td>' +
-                    '<td class="align-middle">' + item.name + '</td>' +
-                    '<td class="align-middle">' + item.algorithm + '</td>' +
-                    '<td class="align-middle">' + item.creationDate + '</td>' +
-                    '<td class="align-middle"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="openModal(\'\', \'configDetails\', \'' + item.id + '\')"></td>' +
-                    '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + item.id + '\')" height="20px" width="20px"></figure></td>'
-                );
-
-                tbody.append(row);
-            });
-        }
     </script>
 </body>
 </html>
