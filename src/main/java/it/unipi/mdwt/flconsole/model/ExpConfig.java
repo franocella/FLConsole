@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import it.unipi.mdwt.flconsole.dto.ExpConfigSummary;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
@@ -74,6 +75,14 @@ public class ExpConfig {
             e.printStackTrace();
             return null;
         }
+    }
+    public ExpConfigSummary toSummary() {
+        ExpConfigSummary summary = new ExpConfigSummary();
+        summary.setId(this.id);
+        summary.setName(this.name);
+        summary.setAlgorithm(this.algorithm);
+        summary.setCreationDate(this.creationDate);
+        return summary;
     }
 
 }

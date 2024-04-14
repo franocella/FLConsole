@@ -640,6 +640,10 @@
                 case "FL Configurations":
                     currentPage = $("#configPage");
                     totalPages = totalConfigPages;
+
+                    console.log("Configurations totalPages "+ totalPages);
+                    console.log("Configurations currentPage "+ currentPage.val());
+
                     getPageFunction = getMyConfigurations;
                     break;
                 case "My FL Experiments":

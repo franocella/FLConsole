@@ -10,6 +10,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.util.Date;
 
 
 @Data
@@ -27,6 +28,10 @@ public class ExpConfigSummary {
     @Field("delete")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Boolean deleted;
+
+    @Field("creationDate")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Date creationDate;
 
 
     public String toJson() {

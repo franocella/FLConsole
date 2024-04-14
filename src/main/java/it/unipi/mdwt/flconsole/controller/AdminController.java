@@ -57,9 +57,10 @@ public class AdminController {
             User user = userService.getUser(email);
 
             if (user.getConfigurations() != null){
+
                 Page<ExpConfig> allConfigurations = expConfigService.getConfigsListFirstPage(user.getConfigurations(), user.getConfigurations().size());
                 List<ExpConfigSummary> allConfigurationsSummary = allConfigurations.getContent().stream()
-                        .map(config -> new ExpConfigSummary(config.getId(), config.getName(), config.getAlgorithm(),null))
+                        .map(ExpConfig::toSummary)
                         .toList();
                 model.addAttribute("allConfigurations", allConfigurationsSummary);
 
@@ -233,7 +234,7 @@ public class AdminController {
      * @param request The HTTP servlet request.
      * @return A ResponseEntity containing a message indicating the success or failure of the deletion operation.
      */
-    @GetMapping("/deleteExp-{id}")
+    @DeleteMapping("/deleteExp-{id}")
     public ResponseEntity<String> deleteExperiment(@PathVariable String id, HttpServletRequest request) {
         try {
             // Get the email of the user from the cookie
