@@ -76,7 +76,6 @@
                 <select id="StopConditionModal" class="form-select me-2 my-2">
                     <option selected>Stop condition</option>
                     <option value="custom">Custom</option>
-                    <option value="max_number_rounds">Maximum Number of Rounds</option>
                     <option value="metric_under_threshold">Metric Under Threshold</option>
                     <option value="metric_over_threshold">Metric Over Threshold</option>
                 </select>
@@ -160,7 +159,6 @@
                     <select class="form-select me-2" id="Algorithm">
                         <option value="" selected>Algorithm</option>
                         <option value="fcmeans">Fcmeans</option>
-                        <option value="kmeans">Kmeans</option>
                     </select>
 
                     <select class="form-select me-2" id="ClientStrategy">
@@ -182,7 +180,6 @@
                     <a onclick="displayConfigModal()" class="btn btn-primary">New</a>
                 </div>
 
-
                 <table id="ConfigTable" class="table mt-3 text-center"
                     style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
                     <thead>
@@ -202,7 +199,7 @@
                             <td class='align-middle'>${config.name}</td>
                             <td class='align-middle'>${config.algorithm}</td>
                             <td class='align-middle'>${config.creationDate}</td>
-                            <td class='align-middle'><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick='updateConfigModal(${config.toJson()})'></td>
+                            <td class='align-middle'><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="updateConfigModal('${config.id}')"></td>
                             <td class='align-middle'><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig('${config.id}')" height="20px" width="20px"></figure></td>
                         </tr>
                     </c:forEach>
@@ -365,12 +362,12 @@
                 // If all mandatory parameters are provided, proceed with creating the formData object
                 const formData = {
                     "name": name,
-                    "strategy": strategy,
-                    "minNumberOfClients": numClients,
+                    "clientSelectionStrategy": strategy,
+                    "minNumberClients": numClients,
                     "algorithm": algorithm,
                     "stopCondition": stopCondition,
-                    "threshold": threshold,
-                    "maxNumRounds": maxNumRounds,
+                    "stopConditionThreshold": threshold,
+                    "maxNumberOfRounds": maxNumRounds,
                     "codeLanguage": codeLanguage,
                     "clientSelectionRatio": Number(clientSelectionRatio)
                 };
@@ -461,9 +458,6 @@
                 const deleteButton = document.getElementById("remove-parameter");
                 deleteButton.style.display = "none";
             }
-        }
-
-        function openConfigDetails(id) {
         }
 
         function deleteConfig(id) {
@@ -768,7 +762,7 @@
                     '<td class="align-middle">' + item.name + '</td>' +
                     '<td class="align-middle">' + item.algorithm + '</td>' +
                     '<td class="align-middle">' + item.creationDate + '</td>' +
-                    '<td class="align-middle"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="updateConfigModal(' + JSON.stringify(item) + ')"></td>' +
+                    '<td class="align-middle"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="updateConfigModal(\'' + item.id + '\')"></td>' +
                     '<td class="align-middle"><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + item.id + '\')" height="20px" width="20px"></figure></td>'
                 );
 
@@ -813,6 +807,12 @@
         });
 
         function createConfigModal() {
+            const overlayElement = document.getElementById("overlay");
+            overlayElement.style.display = "block";
+
+            let body = document.getElementsByTagName("body")[0];
+            body.style.overflowY = "hidden";
+
             // Check if the modal already exists in the DOM
             let modal = document.getElementById("config-details-modal");
             if (!modal) {
@@ -861,60 +861,94 @@
             return modal;
         }
 
-
         // Function to close the modal
         function closeConfigDetailModal() {
+            const overlayElement = document.getElementById("overlay");
+            overlayElement.style.display = "none";
+
+            let body = document.getElementsByTagName("body")[0];
+            body.style.overflowY = "auto";
+
             document.getElementById("config-details-modal").style.display = "none";
             $('#config-table-details tbody').empty();
         }
 
-        function updateConfigModal(jsonData) {
-            try {
-                // Create or retrieve the modal element
-                const modal = createConfigModal();
+        function updateConfigModal(configId) {
+            // Create or retrieve the modal element
+            const modal = createConfigModal();
 
-                // Get the tbody element of the table
-                const tbody = modal.querySelector("#config-table-details tbody");
+            // Get the tbody element of the table
+            const tbody = modal.querySelector("#config-table-details tbody");
 
-                // Loop through all parameters in the JSON
-                for (let parameter in jsonData) {
-                    // Create a new row
-                    const row = document.createElement("tr");
+            // Get the configuration details with ajax
+            $.ajax({
+                url: '/admin/getConfigDetails',
+                type: 'GET',
+                data: {
+                    id: configId
+                },
+                success: function (response) {
+                    console.log("Server response:", response);
 
-                    // Get the parameter name
-                    const paramName = parameter;
+                    // Access fields directly from the response object
+                    const id = response.id;
+                    const name = response.name;
+                    const algorithm = response.algorithm;
+                    const codeLanguage = response.codeLanguage;
+                    const clientSelectionStrategy = response.clientSelectionStrategy;
+                    const clientSelectionRatio = response.clientSelectionRatio;
+                    const minNumberClients = response.minNumberClients;
+                    const stopCondition = response.stopCondition;
+                    const stopConditionThreshold = response.stopConditionThreshold;
+                    const maxNumberOfRounds = response.maxNumberOfRounds;
+                    const parameters = response.parameters;
 
-                    // Initialize paramValue
-                    let paramValueText = "";
+                    // Create a row for each field
+                    const idRow = createRow("ID", id);
+                    const nameRow = createRow("Name", name);
+                    const algorithmRow = createRow("Algorithm", algorithm);
+                    const codeLanguageRow = createRow("Code Language", codeLanguage);
+                    const clientSelectionStrategyRow = createRow("Client Selection Strategy", clientSelectionStrategy);
+                    const clientSelectionRatioRow = createRow("Client Selection Ratio", clientSelectionRatio);
+                    const minNumberClientsRow = createRow("Min Number of Clients", minNumberClients);
+                    const stopConditionRow = createRow("Stop Condition", stopCondition);
+                    const stopConditionThresholdRow = createRow("Stop Condition Threshold", stopConditionThreshold);
+                    const maxNumberOfRoundsRow = createRow("Max Number of Rounds", maxNumberOfRounds);
 
-                    // Check if the parameter is "parameters"
-                    if (parameter === "parameters" && typeof jsonData[parameter] === "object") {
-                        // Iterate over the parameters inside "parameters"
-                        for (let subParameter in jsonData[parameter]) {
-                            // Create a new row for each parameter inside "parameters"
-                            const subRow = document.createElement("tr");
-                            // Set the parameter name and value
-                            subRow.innerHTML = "<td>" + subParameter + "</td><td>" + jsonData[parameter][subParameter] + "</td>";
-                            // Append the row to the tbody
-                            tbody.appendChild(subRow);
-                        }
-                    } else {
-                        // Set the parameter value
-                        paramValueText = jsonData[parameter];
+                    // Append rows to the tbody
+                    tbody.appendChild(idRow);
+                    tbody.appendChild(nameRow);
+                    tbody.appendChild(algorithmRow);
+                    tbody.appendChild(codeLanguageRow);
+                    tbody.appendChild(clientSelectionStrategyRow);
+                    tbody.appendChild(clientSelectionRatioRow);
+                    tbody.appendChild(minNumberClientsRow);
+                    tbody.appendChild(stopConditionRow);
+                    tbody.appendChild(stopConditionThresholdRow);
+                    tbody.appendChild(maxNumberOfRoundsRow);
 
-                        // Set the innerHTML of the row with the parameter name and value
-                        row.innerHTML = "<td>" + paramName + "</td><td>" + paramValueText + "</td>";
-
-                        // Append the row to the tbody
-                        tbody.appendChild(row);
+                    // Check if parameters exist and append rows for each parameter
+                    if (parameters) {
+                        Object.entries(parameters).forEach(([key, value]) => {
+                            const parameterRow = createRow(key, value);
+                            tbody.appendChild(parameterRow);
+                        });
                     }
-                }
 
-                // Show the modal
-                modal.style.display = "block";
-            } catch (error) {
-                console.error("Error parsing or updating modal with JSON data:", error);
-            }
+                    // Show the modal
+                    modal.style.display = "block";
+                },
+                error: function (error) {
+                    console.error("Error getting config details:", error);
+                }
+            });
+        }
+
+        // Function to create a row with parameter name and value
+        function createRow(name, value) {
+            const row = document.createElement("tr");
+            row.innerHTML = "<td>" + name + "</td><td>" + value + "</td>";
+            return row;
         }
     </script>
 </body>

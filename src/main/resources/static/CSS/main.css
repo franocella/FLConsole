@@ -54,10 +54,12 @@ a:hover{
     width: auto;
     max-width: 900px; /* maximum width */
     height: auto;
+    max-height: 900px; /* maximum height */
     background-color: white;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     z-index: 9997;
     border-radius: 20px;
+    overflow-y: scroll;
 }
 
 .myAlert-sm {

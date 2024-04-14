@@ -110,6 +110,7 @@ public class AdminController {
         try {
             // Convert the JSON string to an ExpConfig object
             ExpConfig config = objectMapper.readValue(expConfig, ExpConfig.class);
+            applicationLogger.severe("New Config: " + config);
 
             // Retrieve the email from the cookie
             String email = cookieService.getCookieValue(request.getCookies(),"email");
@@ -338,6 +339,21 @@ public class AdminController {
         } catch (Exception e) {
             // If an exception occurs, log the error and return an internal server error response
             applicationLogger.severe("Error retrieving configurations: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/getConfigDetails")
+    public ResponseEntity<ExpConfig> getConfigDetails(@RequestParam String id) {
+        try {
+            // Retrieve the configuration details
+            ExpConfig expConfig = expConfigService.getExpConfigById(id);
+
+            // Return the configuration as a ResponseEntity with OK status
+            return ResponseEntity.ok(expConfig);
+        } catch (Exception e) {
+            // If an exception occurs, log the error and return an internal server error response
+            applicationLogger.severe("Error retrieving configuration details: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
