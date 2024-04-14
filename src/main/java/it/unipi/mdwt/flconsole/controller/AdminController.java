@@ -59,7 +59,7 @@ public class AdminController {
             if (user.getConfigurations() != null){
                 Page<ExpConfig> allConfigurations = expConfigService.getConfigsListFirstPage(user.getConfigurations(), user.getConfigurations().size());
                 List<ExpConfigSummary> allConfigurationsSummary = allConfigurations.getContent().stream()
-                        .map(config -> new ExpConfigSummary(config.getId(), config.getName(), config.getAlgorithm()))
+                        .map(config -> new ExpConfigSummary(config.getId(), config.getName(), config.getAlgorithm(),null))
                         .toList();
                 model.addAttribute("allConfigurations", allConfigurationsSummary);
 

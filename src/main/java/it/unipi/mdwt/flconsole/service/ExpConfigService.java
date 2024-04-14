@@ -62,6 +62,11 @@ public class ExpConfigService {
         Query query = new Query(Criteria.where("email").is(userEmail));
         Update update = new Update().pull("configurations", configId);
         mongoTemplate.updateFirst(query, update, User.class);
+
+        // Mark experiments associated with the deleted configuration as deleted
+        Query query2 = new Query(Criteria.where("expConfig.id").is(configId));
+        Update update2 = new Update().set("expConfig.deleted", true);
+        mongoTemplate.updateMulti(query2, update2, Experiment.class);
     }
 
     public Page<ExpConfig> getConfigsListFirstPage(List<String> configurations, Integer pageSize) {

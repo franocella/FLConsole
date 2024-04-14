@@ -1,5 +1,6 @@
 package it.unipi.mdwt.flconsole.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,11 @@ public class ExpConfigSummary {
     private String name;
     @Field("algorithm")
     private String algorithm;
+
+    @Field("delete")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Boolean deleted;
+
 
     public String toJson() {
         ObjectMapper objectMapper = new ObjectMapper();

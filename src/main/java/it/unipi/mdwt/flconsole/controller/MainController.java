@@ -34,6 +34,8 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
+
 @Controller
 public class MainController {
 
@@ -221,9 +223,16 @@ public class MainController {
             Experiment experiment = experimentService.getExpDetails(id);
             model.addAttribute("experiment", experiment);
 
+
             // Retrieve details of the experiment configuration
             ExpConfig expConfig = expConfigService.getExpConfigById(experiment.getExpConfig().getId());
-            model.addAttribute("expConfig", expConfig);
+            Optional<ExpConfig> optionalExpConfig = Optional.ofNullable(expConfig);
+            if (optionalExpConfig.isPresent()) {
+                expConfig = optionalExpConfig.get();
+            }
+
+            model.addAttribute("expConfig", Optional.ofNullable(expConfig));
+
 
             // Retrieve the list of ExpMetrics for the given experiment ID
             List<ExpMetrics> expMetricsList = metricsService.getMetrics(experiment.getId());
