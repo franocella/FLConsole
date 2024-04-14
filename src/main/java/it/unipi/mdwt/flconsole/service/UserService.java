@@ -7,6 +7,8 @@ import it.unipi.mdwt.flconsole.utils.ValidatorAndSaver;
 
 import javax.naming.AuthenticationException;
 
+import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
+import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessTypeErrorsEnum;
 import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoException;
 import it.unipi.mdwt.flconsole.utils.exceptions.dao.DaoTypeErrorsEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,10 +71,10 @@ public class UserService {
      *
      * @param email The email of the user.
      * @param password The password of the user.
-     * @throws DaoException If an error occurs in the data access layer.
+     * @throws BusinessException If an error occurs in the data access layer.
      * @throws AuthenticationException If the provided email or password is invalid.
      */
-    public void signUp(String email, String password) throws DaoException, AuthenticationException {
+    public void signUp(String email, String password) throws BusinessException, AuthenticationException {
         User user = new User();
 
         // Validate email and password using the Validator utility class
@@ -84,12 +86,14 @@ public class UserService {
         }
         user.setEmail(email);
         user.setPassword(password);
-        try {
-            userDAO.saveWithException(user);
-        } catch (DaoException e) {
-            throw new DaoException(DaoTypeErrorsEnum.DUPLICATED_ELEMENT);
+
+        if (!userDAO.existsByEmail(email)) {
+            userDAO.save(user);
+        } else {
+            throw new BusinessException(BusinessTypeErrorsEnum.DUPLICATED_ELEMENT);
         }
     }
+
 
     /**
      * Deletes the user account associated with the given email.

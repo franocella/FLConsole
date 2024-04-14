@@ -23,15 +23,8 @@ public interface UserDao extends MongoRepository<User, String> {
 
     Boolean existsByEmailAndPassword(String email, String password);
 
-    default User saveWithException(User user) throws DaoException {
-        if (existsByEmail(user.getEmail())) {
-            throw new DaoException(DaoTypeErrorsEnum.DUPLICATED_ELEMENT);
-        }
-        return save(user);
-    }
-
-    @Query(value = "{ 'email' : :#{#email}, 'password' : :#{#password} }", fields = "{ 'role' : 1, '_id' : 0}")
-    User findRoleByEmailAndPassword(@Param("email") String email, @Param("password") String password);
+    @Query(value = "{ 'email' : ?0, 'password' : ?1 }", fields = "{ 'role' : 1, '_id' : 0}")
+    User findRoleByEmailAndPassword(String email, String password);
 
     default User findRoleByEmailAndPasswordWithException(String email, String password) throws DaoException{
         User user = findRoleByEmailAndPassword(email, password);
