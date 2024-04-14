@@ -113,7 +113,7 @@
                 <select id="FL_config_value" class="form-select me-2 my-2">
                     <option selected>FL Configuration</option>
                     <c:forEach items="${allConfigurations}" var="config">
-                        <option value='${config.toJson()}'>${config.name}</option>
+                        <option id="${config.id}" value='${config.toJson()}'>${config.name}</option>
                     </c:forEach>
                 </select>
 
@@ -388,7 +388,7 @@
         function deleteConfig(id) {
 
             $.post('/admin/deleteConfig-' + id)
-                .done(response => console.log('Server response:', response))
+                .done(() => $("#"+id).remove())
                 .fail(error => console.error('Error deleting config:', error))
                 .always(getMyConfigurations);
         }
