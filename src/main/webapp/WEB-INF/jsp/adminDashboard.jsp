@@ -91,7 +91,7 @@
                     </tbody>
                 </table>
                 <div class="text-end my-3">
-                    <a onclick="removeParameterInputField()" id="remove-parameter" class="btn btn-outline-danger btn-sm">Delete Row</a>
+                    <a onclick="removeParameterInputField()" id="remove-parameter" class="btn btn-outline-danger btn-sm" style="display: none">Delete Row</a>
                     <a onclick="addParameterInputField()" id="add-parameter" class="btn btn-outline-primary btn-sm me-2">Add Row</a>
                 </div>
                 <div class="text-end mt-5">
@@ -99,7 +99,6 @@
                     <a onclick="closeModal()" class="btn btn-danger">Cancel</a>
                 </div>
             </form>
-
         </div>
     </div>
 
@@ -312,137 +311,88 @@
         let totalAllExpPages = ${allExperiments.totalPages};
 
         function submitConfigForm() {
-            // Get values from input fields
-            const name = $("#config-name-modal").val().trim();
-            const strategy = $("#ClientStrategyModal").val();
-            const numClients = $("#MinNumberOfClients").val();
-            const algorithm = $("#AlgorithmModal").val();
-            const stopCondition = $("#StopConditionModal").val();
-            const threshold = $("#StopThreshold").val().trim();
-            const maxNumRounds = $("#MaxNumRounds").val();
-            const codeLanguage = $("#codeLanguage").val();
-            const clientSelectionRatio = $("#ClientSelectionRatio").val();
+            const formData = {
+                name: $("#config-name-modal").val().trim(),
+                clientSelectionStrategy: $("#ClientStrategyModal").val(),
+                minNumberClients: $("#MinNumberOfClients").val(),
+                algorithm: $("#AlgorithmModal").val(),
+                stopCondition: $("#StopConditionModal").val(),
+                stopConditionThreshold: $("#StopThreshold").val().trim(),
+                maxNumberOfRounds: $("#MaxNumRounds").val(),
+                codeLanguage: $("#codeLanguage").val(),
+                clientSelectionRatio: Number($("#ClientSelectionRatio").val())
+            };
 
-            // Check if mandatory parameters are provided
-            if (name === "" || strategy === "Client strategy" || numClients === "" || algorithm === "Algorithm" || stopCondition === "Stop condition" || threshold === "" || maxNumRounds === "" || codeLanguage === "Code Language" || clientSelectionRatio === "") {
-                // Display an error modal with the names of missing mandatory parameters
-                displayErrorModal("Missing Fields", [
-                    ...(name === "" && ["Name"]),
-                    ...(strategy === "Client Strategy" && ["Client Strategy"]),
-                    ...(numClients === "" && ["Number of Clients"]),
-                    ...(algorithm === "Algorithm" && ["Algorithm"]),
-                    ...(stopCondition === "Stop Condition" && ["Stop Condition"]),
-                    ...(threshold === "" && ["Threshold"]),
-                    ...(maxNumRounds === "" && ["maxNumRounds"]),
-                    ...(codeLanguage === "Code Language" && ["codeLanguage"]),
-                    ...(clientSelectionRatio === "" && ["clientSelectionRatio"])
-                ].filter(Boolean));
+            const missingFields = ["name", "clientSelectionStrategy", "minNumberClients", "algorithm",
+                "stopCondition", "stopConditionThreshold", "maxNumberOfRounds", "codeLanguage", "clientSelectionRatio"]
+                .filter(field => !formData[field] || formData[field] === "Client Strategy" || formData[field] === "Algorithm"
+                    || formData[field] === "Stop Condition" || formData[field] === "Code Language")
+                .map(field => getDisplayName(field));
 
-            } else {
-                // If all mandatory parameters are provided, proceed with creating the formData object
-                const formData = {
-                    "name": name,
-                    "clientSelectionStrategy": strategy,
-                    "minNumberClients": numClients,
-                    "algorithm": algorithm,
-                    "stopCondition": stopCondition,
-                    "stopConditionThreshold": threshold,
-                    "maxNumberOfRounds": maxNumRounds,
-                    "codeLanguage": codeLanguage,
-                    "clientSelectionRatio": Number(clientSelectionRatio)
-                };
+            if (missingFields.length > 0) {
+                displayErrorModal("Missing Fields", missingFields);
+                return;
+            }
 
-                // Take the parameters from the table and add them to the formData object
-                const parameters = {};  // Initialize parameters as an empty object
+            const parameters = {};
+            $("#Form table tbody tr").each(function(index, row) {
+                parameters[$(row).find("td:eq(0)").text()] = $(row).find("td:eq(1)").text();
+            });
+            formData.parameters = parameters;
 
-                $("#Form table tbody tr").each(function (index, row) {
-                    const parameterName = $(row).find("td:eq(0)").text();
-                    parameters[parameterName] = $(row).find("td:eq(1)").text();
-                });
-
-                console.log("Parameters:", parameters);
-                // Only add parameters field to formData if there are parameters
-                if (parameters !== {}) {
-                    formData["parameters"] = parameters;
-                }
-
-                $.post('/admin/newConfig', JSON.stringify(formData), function (response) {
+            $.ajax({
+                type: "POST",
+                url: "/admin/newConfig",
+                contentType: "application/json",
+                data: JSON.stringify(formData),
+                success: function(response) {
                     const jsonData = JSON.parse(response);
-
-                    formData["id"] = jsonData.id;
-                    formData["creationDate"] = jsonData.creationTime;
-
-                    console.log("New config:", formData);
-
+                    formData.id = jsonData.id;
+                    formData.creationDate = jsonData.creationTime;
                     getMyConfigurations();
                     addNewConfigToDropDown(formData);
-
                     closeModal();
-                }).fail(function (error) {
+                },
+                error: function(error) {
                     console.error("Error:", error);
-                });
-            }
+                }
+            });
         }
 
         function addNewConfigToDropDown(formData) {
-            const id = formData.id;
-            const name = formData.name;
-            const algorithm = formData.algorithm;
-
-            // Add the option to the dropdown menu
-            const selectElement = document.getElementById("FL_config_value");
-            const option = document.createElement("option");
-            option.value = JSON.stringify({id, name, algorithm});
-            option.text = name;
-            selectElement.appendChild(option);
+            const { id, name, algorithm } = formData;
+            $("#FL_config_value").append($("<option>", { value: JSON.stringify({ id, name, algorithm }), text: name })[0]);
         }
 
         function addParameterInputField() {
-            const table = document.getElementById("parametersTable");
-            const rowCount = table.tBodies[0].rows.length;
-            let newRowCount;
-            const newRow = table.tBodies[0].insertRow(rowCount);
-            newRowCount = rowCount + 1;
-            const cell1 = newRow.insertCell(0);
-            const cell2 = newRow.insertCell(1);
-            cell1.contentEditable = true;
-            cell2.contentEditable = true;
-            cell1.textContent = "Parameter" + newRowCount;
-            cell2.textContent = "Value" + newRowCount;
-
-            // Show the delete button if there is at least 1 row
-            if (newRowCount > 0) {
-                const deleteButton = document.getElementById("remove-parameter");
-                deleteButton.style.display = "inline-block";
-            }
+            const table = $("#parametersTable tbody");
+            const newRowCount = table.find("tr").length + 1;
+            const newRow = $("<tr>").appendTo(table);
+            $("<td>", { contentEditable: true, text: "Parameter " + newRowCount }).appendTo(newRow);
+            $("<td>", { contentEditable: true, text: "Value " + newRowCount }).appendTo(newRow);
+            $("#remove-parameter").show();
         }
 
         function removeParameterInputField() {
-            const table = $("#parametersTable")[0];
-            const rowCount = table.tBodies[0].rows.length;
+            const table = $("#parametersTable tbody");
+            const rowCount = table.find("tr").length;
             if (rowCount > 0) {
-                table.tBodies[0].deleteRow(rowCount - 1);
+                table.find("tr:last").remove();
             }
-
-            const newRowCount = rowCount - 1;
-            // Hide the delete button if there is only one row
-            if (newRowCount === 0) {
+            if (rowCount === 1) {
                 $("#remove-parameter").hide();
             }
         }
 
+
         function deleteConfig(id) {
-            console.log("Deleting config with id:", id);
 
-            $.delete('/admin/deleteConfig-' + id, function (response) {
-                console.log('Server response:', response);
-
-            }).fail(function (error) {
-                console.error('Error deleting config:', error);
-            });
-
-            getMyConfigurations();
+            $.post('/admin/deleteConfig-' + id)
+                .done(response => console.log('Server response:', response))
+                .fail(error => console.error('Error deleting config:', error))
+                .always(getMyConfigurations);
         }
+
 
         function formatDateString(dateString) {
             if (!dateString) return "";
@@ -461,26 +411,34 @@
                 }
             };
 
-            $.post('/admin/newExp', JSON.stringify(formData), function (response) {
-                const jsonData = JSON.parse(response);
-                console.log("Server response:", jsonData);
+            $.ajax({
+                type: "POST",
+                url: "/admin/newExp",
+                contentType: "application/json",
+                data: JSON.stringify(formData),
+                success: function (response) {
 
-                formData["id"] = jsonData.id;
-                formData["creationDate"] = jsonData.creationTime;
+                    const jsonData = JSON.parse(response);
+                    console.log("Server response:", jsonData);
 
-                console.log("New config:", formData);
-                getMyExperiments();
+                    formData["id"] = jsonData.id;
+                    formData["creationDate"] = jsonData.creationTime;
 
-                closeModal();
-            }).fail(function (error) {
-                console.error("Error:", error);
+                    console.log("New config:", formData);
+                    getMyExperiments();
+
+                    closeModal();
+                },
+                error: function (error) {
+                    console.error("Error:", error);
+                }
             });
         }
 
         function deleteExp(id) {
             console.log("Deleting experiment with id:", id);
 
-            $.delete('/admin/deleteExp-' + id, function (response) {
+            $.post('/admin/deleteExp-' + id, function (response) {
                 console.log('Server response:', response);
 
             }).fail(function (error) {
@@ -516,7 +474,6 @@
                     break;
             }
 
-            console.log('totalPages:', totalPages);
             if (direction === 'next' && currentPage.val() < totalPages - 1) {
                 currentPage.val(parseInt(currentPage.val()) + 1);
             } else if (direction === 'prev' && currentPage.val() > 0) {
@@ -752,15 +709,13 @@
                 $("#StopConditionModal").val("Stop Condition");
                 $("#StopThreshold").val("");
                 $("#MaxNumRounds").val("");
-
+                $("#parametersTable tbody").empty();
+                $("#remove-parameter").hide();
             } else if (modalId === "exp-modal") {
                 // Fields for exp-modal
                 $("#config-name-exp-modal").val("");
                 $("#FL_config_value").val("FL Configuration");
             }
-
-            // Reset values in the parameters table
-            $("#parametersTable tbody").empty();
         }
 
         function displayConfigDetailsModal(configId) {
