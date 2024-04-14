@@ -7,7 +7,6 @@ public class Constants {
     public static final String DIR = "logs";
     public static final int LOG_SIZE_LIMIT = 2048 * 1024; // 2MB max size per file
     public static final int LOG_FILE_COUNT = 5; // 5 files max
-
     public static final int PAGE_SIZE = 2;
     public static final String DIRECTOR_NODE_NAME = "director@10.2.1.125";
     public static final String DIRECTOR_MAILBOX = "mboxDirector";
