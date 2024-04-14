@@ -38,12 +38,12 @@
     </div>
 
     <!-- Container -->
-    <div class="container" style="margin-top: 50px;">
+    <div id="main-container" class="container" style="margin-top: 50px;">
         <div class="container py-2 my-2" style="box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);">
             <div class="d-flex align-items-center">
                 <input type="text" class="form-control me-2" id="execution-name" required placeholder="Execution name"/>
                 <input type="text" class="form-control me-2" id="config-name" required placeholder="Configuration name"/>
-                <input type="hidden" id="allExpPage" value="0">
+                <input type="hidden" id="currentPage" value="0">
             </div>
 
             <table id="all-ExpTable" class="table mt-3 text-center" style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
@@ -75,11 +75,11 @@
         <div class="d-flex justify-content-between position-fixed bottom-0 end-0" style="margin-bottom: 120px; margin-right: 80px">
             <div class="d-flex gap-2">
                 <!-- Left arrow to decrease the page -->
-                <button id="prevPageButton" class="btn btn-primary" onclick="handlePage('prev')">
+                <button id="prevPageButton" class="btn btn-primary" onclick="handleUserPage('prev')">
                     &lt; Previous
                 </button>
                 <!-- Right arrow to increase the page -->
-                <button id="nextPageButton" class="btn btn-primary" onclick="handlePage('next')">
+                <button id="nextPageButton" class="btn btn-primary" onclick="handleUserPage('next')">
                     Next &gt;
                 </button>
             </div>
@@ -99,56 +99,41 @@
     <script>
         // Variables for pagination of experiments
         let totalAllExpPages = ${experiments.totalPages};
-        $(document).ready(function () {
-            // Event listener for the search button
-            $('#execution-name, #config-name').on('input', function () {
-                getExperiments();
-            });
-        });
+        let currentPage = $("#currentPage");
 
-        function updateExpTable(response) {
-            $('#table tbody').empty();
+        // Function to handle the page change
+        function handleUserPage(direction){
+            if (direction === 'next' && currentPage.val() < totalAllExpPages - 1) {
+                currentPage.val(parseInt(currentPage.val()) + 1);
+                getAllExperiments(currentPage.val());
 
-            // Extract the list from the response
-            const configurations = response.content;
 
-            $.each(configurations, function (index, item) {
-                const row = $('<tr>').append(
-                    "<td class='align-middle'>" + item.id + "</td>" +
-                    "<td class='align-middle'>" + item.name + "</td>" +
-                    "<td class='align-middle'>" + item.expConfig.name + "</td>" +
-                    "<td class='align-middle'>" + item.creationDate + "</td>" +
-                    '<td class="align-middle"><a href="/experiment-' + item.id + '"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>'
-                );
-                $('#table tbody').append(row);
-            });
+            } else if (direction === 'prev' && currentPage.val() > 0) {
+                currentPage.val(parseInt(currentPage.val()) - 1);
+                getAllExperiments(currentPage.val());
+            }
         }
 
-        // Function to retrieve experiments of the current page via an AJAX call
-        function getExperiments(page = 0) {
-
-            const executionName = $('#execution-name').val();
-            const configName = $('#config-name').val();
-            console.log(executionName, configName);
+        function getAllExperiments(page) {
             $.ajax({
-                url: '/getExperiments',
-                method: 'POST',
+                url: "/getExperiments",
+                type: "GET",
                 data: {
-                    configName: configName,
-                    expName: executionName,
                     page: page
                 },
-                success: function (response) {
-                    console.log(response);
-                    currentExpPage = response.number;
-                    totalExpPages = response.totalPages;
-                    updateExpTable(response);
+                success: function (data) {
+                    $("#all-ExpTable tbody").empty();
+                    $.each(data.content, function (index, value) {
+                        let row = "<tr><td>" + value.id + "</td><td>" + value.name + "</td><td>" + value.expConfig.name + "</td><td>" + value.creationDate + "</td><td><a href='/experiment-" + value.id + "'><img src='${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg' alt='Open' width='25px' height='25px'></a></td></tr>";
+                        $("#all-ExpTable tbody").append(row);
+                    });
                 },
-                error: function (xhr) {
-                    console.error(xhr.responseText);
+                error: function (error) {
+                    console.log(error);
                 }
             });
         }
+
     </script>
 </body>
 

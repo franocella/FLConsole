@@ -180,7 +180,7 @@ public class MainController {
      * @return A ResponseEntity containing a Page of Experiment objects matching the search criteria.
      */
     @GetMapping("/getExperiments")
-    public ResponseEntity<Page<Experiment>> searchAllExpPOST(@RequestParam int page, String expName, String configName) {
+    public ResponseEntity<Page<Experiment>> searchAllExpGET(@RequestParam int page, String expName, String configName) {
         try {
             // Log the search criteria
             applicationLogger.severe("Searching experiments with name: " + expName + " and configName: " + configName);
@@ -192,6 +192,7 @@ public class MainController {
             return ResponseEntity.ok(experiments);
         } catch (Exception e) {
             // If an exception occurs, return an internal server error response
+            applicationLogger.severe("Error occurred while searching experiments: " + e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
