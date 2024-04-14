@@ -164,7 +164,6 @@ public class MainController {
     public String homeGET(Model model) {
         // Retrieve experiments data for the user dashboard
         Page<Experiment> experiments = experimentService.getExperiments(null, null, 0);
-
         // Add experiments data to the model
         model.addAttribute("experiments", experiments);
 

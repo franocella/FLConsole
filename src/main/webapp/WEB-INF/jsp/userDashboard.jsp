@@ -43,10 +43,10 @@
             <div class="d-flex align-items-center">
                 <input type="text" class="form-control me-2" id="execution-name" required placeholder="Execution name"/>
                 <input type="text" class="form-control me-2" id="config-name" required placeholder="Configuration name"/>
+                <input type="hidden" id="allExpPage" value="0">
             </div>
 
-
-            <table id="table" class="table mt-3 text-center" style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
+            <table id="all-ExpTable" class="table mt-3 text-center" style="box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
                 <thead>
                 <tr>
                     <th>Id</th>
@@ -75,15 +75,16 @@
         <div class="d-flex justify-content-between position-fixed bottom-0 end-0" style="margin-bottom: 120px; margin-right: 80px">
             <div class="d-flex gap-2">
                 <!-- Left arrow to decrease the page -->
-                <button class="btn btn-primary" onclick="">
+                <button id="prevPageButton" class="btn btn-primary" onclick="handlePage('prev')">
                     &lt; Previous
                 </button>
                 <!-- Right arrow to increase the page -->
-                <button class="btn btn-primary" onclick="">
+                <button id="nextPageButton" class="btn btn-primary" onclick="handlePage('next')">
                     Next &gt;
                 </button>
             </div>
         </div>
+
 
     </div>
 
@@ -93,62 +94,17 @@
             integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
             crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="${pageContext.request.contextPath}/JS/main.js"></script>
 
     <script>
         // Variables for pagination of experiments
-        let currentExpPage = 0;
-        let totalExpPages = 1;
-        totalExpPages = ${experiments.totalPages};
-
+        let totalAllExpPages = ${experiments.totalPages};
         $(document).ready(function () {
             // Event listener for the search button
             $('#execution-name, #config-name').on('input', function () {
                 getExperiments();
             });
         });
-
-        function displayErrorModal(title, params) {
-            const overlayElement = $("#overlay-ov");
-            overlayElement.css("display", "block");
-
-            $("body").css("overflow-y", "hidden");
-
-            const modalElement = $("#error-modal");
-            modalElement.css("display", "block");
-
-            // Set the text of the Err-Title element
-            $("#Err-Title").text(title);
-
-            // Construct the HTML content for Err-Message using the JSON parameters
-            let errorMessage = "<ul>";
-            Object.keys(params).forEach(function (param) {
-                errorMessage += "<li>" + param + ": " + params[param] + "</li>";
-            });
-            errorMessage += "</ul>";
-
-            $("#Err-Message").html(errorMessage);
-
-            // Show the close button
-            $("#close-error-modal").css("display", "block");
-        }
-
-        function closeErrorModal() {
-            const overlayElement = $("#overlay-ov");
-            overlayElement.css("display", "none");
-
-            $("body").css("overflow-y", "auto");
-
-            const modalElement = $("#error-modal");
-            modalElement.css("display", "none");
-
-            // Hide the close button
-            $("#close-error-modal").css("display", "none");
-        }
-
-        function formatDateString(dateString) {
-            if (!dateString) return "";
-            return moment(dateString).format('ddd MMM DD HH:mm:ss ZZ YYYY');
-        }
 
         function updateExpTable(response) {
             $('#table tbody').empty();
@@ -166,22 +122,6 @@
                 );
                 $('#table tbody').append(row);
             });
-        }
-
-        // Function to retrieve the next page of experiments
-        function nextExpPage() {
-            if (currentExpPage < totalExpPages - 1) {
-                currentExpPage++;
-                getExperiments(currentExpPage);
-            }
-        }
-
-        // Function to retrieve the previous page of experiments
-        function prevExpPage() {
-            if (currentExpPage > 0) {
-                currentExpPage--;
-                getExperiments(currentExpPage);
-            }
         }
 
         // Function to retrieve experiments of the current page via an AJAX call
