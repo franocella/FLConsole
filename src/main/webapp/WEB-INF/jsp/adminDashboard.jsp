@@ -386,13 +386,17 @@
 
 
         function deleteConfig(id) {
+            console.log("Deleting config with id:", id);
 
-            $.post('/admin/deleteConfig-' + id)
-                .done(() => $("#"+id).remove())
-                .fail(error => console.error('Error deleting config:', error))
-                .always(getMyConfigurations);
+            $.post('/admin/deleteConfig-' + id, function (response) {
+                console.log('Server response:', response);
+                $("#" + id).remove();
+            }).fail(function (error) {
+                console.error('Error deleting config:', error);
+            });
+
+            getMyConfigurations();
         }
-
 
         function formatDateString(dateString) {
             if (!dateString) return "";
@@ -411,36 +415,27 @@
                 }
             };
 
-            $.ajax({
-                type: "POST",
-                url: "/admin/newExp",
-                contentType: "application/json",
-                data: JSON.stringify(formData),
-                success: function (response) {
+            $.post('/admin/newExp', JSON.stringify(formData), function (response) {
+                const jsonData = JSON.parse(response);
+                console.log("Server response:", jsonData);
 
-                    const jsonData = JSON.parse(response);
-                    console.log("Server response:", jsonData);
+                formData["id"] = jsonData.id;
+                formData["creationDate"] = jsonData.creationTime;
 
-                    formData["id"] = jsonData.id;
-                    formData["creationDate"] = jsonData.creationTime;
+                console.log("New config:", formData);
+                getMyExperiments();
 
-                    console.log("New config:", formData);
-                    getMyExperiments();
-
-                    closeModal();
-                },
-                error: function (error) {
-                    console.error("Error:", error);
-                }
+                closeModal();
+            }).fail(function (error) {
+                console.error("Error:", error);
             });
         }
 
         function deleteExp(id) {
             console.log("Deleting experiment with id:", id);
 
-            $.post('/admin/deleteExp-' + id, function (response) {
+            $.delete('/admin/deleteExp-' + id, function (response) {
                 console.log('Server response:', response);
-
             }).fail(function (error) {
                 console.error('Error deleting experiment:', error);
             });
@@ -474,6 +469,7 @@
                     break;
             }
 
+            console.log('totalPages:', totalPages);
             if (direction === 'next' && currentPage.val() < totalPages - 1) {
                 currentPage.val(parseInt(currentPage.val()) + 1);
             } else if (direction === 'prev' && currentPage.val() > 0) {
@@ -709,13 +705,15 @@
                 $("#StopConditionModal").val("Stop Condition");
                 $("#StopThreshold").val("");
                 $("#MaxNumRounds").val("");
-                $("#parametersTable tbody").empty();
-                $("#remove-parameter").hide();
+
             } else if (modalId === "exp-modal") {
                 // Fields for exp-modal
                 $("#config-name-exp-modal").val("");
                 $("#FL_config_value").val("FL Configuration");
             }
+
+            // Reset values in the parameters table
+            $("#parametersTable tbody").empty();
         }
 
         function displayConfigDetailsModal(configId) {
