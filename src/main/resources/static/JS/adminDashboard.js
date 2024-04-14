@@ -11,15 +11,14 @@ function resetModalFields(modalId) {
         $("#StopConditionModal").val("Stop Condition");
         $("#StopThreshold").val("");
         $("#MaxNumRounds").val("");
+        $("#parametersTable tbody").empty();
+        $("#remove-parameter").hide();
 
     } else if (modalId === "exp-modal") {
         // Fields for exp-modal
         $("#config-name-exp-modal").val("");
         $("#FL_config_value").val("FL Configuration");
     }
-
-    // Reset values in the parameters table
-    $("#parametersTable tbody").empty();
 }
 
 function displayConfigDetailsModal(configId) {
@@ -28,14 +27,12 @@ function displayConfigDetailsModal(configId) {
 
     let modal = $("#config-details-modal").show().empty();
     let modalBody = $("<div>").addClass("myAlertBody").css({"padding-left": "100px", "padding-right": "100px"});
-    modalBody.append($("<h3>").text("Configuration").css("margin-bottom", "30px"));
+    modalBody.append($("<h3>").text("Configuration"));
 
     let table = $("<table>").addClass("table").attr("id", "config-table-details");
     let tableBody = $("<tbody>");
 
     $.get('/admin/getConfigDetails', {id: configId}, function(response) {
-        console.log("Server response:", response);
-
         $.each(response, function(key, value) {
             if (key === "parameters") {
                 $.each(value, function(paramKey, paramValue) {
@@ -119,40 +116,22 @@ function closeModal() {
 }
 
 function displayErrorModal(title, params) {
-    const modalElement = $("#error-modal");
-
-    modalElement.show();
+    const modalElement = $("#error-modal").empty().show();
     $("#overlay-ov").show();
     $("body").css("overflow-y", "hidden");
 
-    // Remove existing content
-    modalElement.empty();
+    const errorMessage = $("<ul>");
+    params.forEach(param => errorMessage.append($("<li>").text(param + ": Missing")));
 
-    // Create the myAlertBody div
-    const alertBodyDiv = $("<div>").addClass("myAlertBody").css("z-index", "9999");
-
-    // Create the h3 element for the error title
-    const titleElement = $("<h3>").attr("id", "Err-Title").text(title);
-
-    // Create the p element for the error message
-    const messageElement = $("<p>").addClass("mt-3").attr("id", "Err-Message");
-
-    // Construct the HTML content for Err-Message using the JSON parameters
-    let errorMessage = "<ul>";
-    params.forEach(function (param) {
-        errorMessage += "<li>" + param + ": " + "Missing" + "</li>";
-    });
-    errorMessage += "</ul>";
-    messageElement.html(errorMessage);
-
-    // Create the close button
     const closeButton = $("<button>").addClass("btn btn-primary").attr("id", "close-error-modal").text("Close").click(closeErrorModal);
 
-    // Append elements to the myAlertBody div
-    alertBodyDiv.append(titleElement, messageElement, closeButton);
-
-    // Append the myAlertBody div to the modal
-    modalElement.append(alertBodyDiv);
+    modalElement.append(
+        $("<div>").addClass("myAlertBody").css("z-index", "9999").append(
+            $("<h3>").attr("id", "Err-Title").text(title),
+            $("<p>").addClass("mt-3").attr("id", "Err-Message").append(errorMessage),
+            closeButton
+        )
+    );
 }
 
 
@@ -164,7 +143,6 @@ function getData(url, data, pageElement, totalPagesElement, getPageFunction, upd
 
     $.get(url, data, function (response) {
         pageElement.val(response.number);
-        // Update global variables
         if (pageElement.attr('id') === 'allExpPage') {
             totalAllExpPages = response.totalPages;
         } else if (pageElement.attr('id') === 'expPage') {
@@ -179,9 +157,10 @@ function getData(url, data, pageElement, totalPagesElement, getPageFunction, upd
         }
     }).fail(function (error) {
         console.error("Error getting data:", error);
-        openModal('Error', 'error', 'Error getting data');
     });
 }
+
+
 function submitConfigForm() {
     const formData = {
         name: $("#config-name-modal").val().trim(),
@@ -202,7 +181,7 @@ function submitConfigForm() {
         .map(field => getDisplayName(field));
 
     if (missingFields.length > 0) {
-        openModal('Missing Fields', 'error', missingFields);
+        displayErrorModal("Missing Fields", missingFields);
         return;
     }
 
@@ -217,16 +196,13 @@ function submitConfigForm() {
         url: "/admin/newConfig",
         contentType: "application/json",
         data: JSON.stringify(formData),
-        success: function(response) {
-            const jsonData = JSON.parse(response);
-            formData.id = jsonData.id;
-            formData.creationDate = jsonData.creationTime;
+        success: () => {
             getMyConfigurations();
             addNewConfigToDropDown(formData);
+            closeModal();
         },
         error: function(error) {
             console.error("Error:", error);
-            openModal('Error', 'error', 'Error creating configuration');
         }
     });
 }
@@ -258,28 +234,15 @@ function removeParameterInputField() {
 
 function deleteConfig(id) {
     console.log("Deleting config with id:", id);
-
-    $.post('/admin/deleteConfig-' + id, function (response) {
-        console.log('Server response:', response);
-        $("#" + id).remove();
-    }).fail(function (error) {
-        console.error('Error deleting config:', error);
-        openModal('Error', 'error', 'Error deleting configuration')
-    });
-
+    $.post('/admin/deleteConfig-' + id, () => $("#" + id).remove())
+        .fail(error => console.error('Error deleting config:', error));
     getMyConfigurations();
 }
 
-function formatDateString(dateString) {
-    if (!dateString) return "";
-    return moment(dateString).format('ddd MMM DD HH:mm:ss ZZ YYYY');
-}
-
 function submitExpForm() {
-    const expName = $("#config-name-exp-modal").val().trim();
     const flConfig = JSON.parse($("#FL_config_value").val());
     const formData = {
-        "name": expName,
+        "name": $("#config-name-exp-modal").val().trim(),
         "expConfig": {
             "id": flConfig.id,
             "name": flConfig.name,
@@ -287,31 +250,23 @@ function submitExpForm() {
         }
     };
 
-    $.post('/admin/newExp', JSON.stringify(formData), function (response) {
-        const jsonData = JSON.parse(response);
-
-        formData["id"] = jsonData.id;
-        formData["creationDate"] = jsonData.creationTime;
-
-        getMyExperiments();
-
-    }).fail(function (error) {
-        console.error("Error:", error);
-        openModal('Error', 'error', 'Error creating experiment');
+    $.ajax({
+        url: '/admin/newExp',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: () => {
+            getMyExperiments();
+            closeModal();
+        },
+        error: error => console.error("Error:", error)
     });
 }
 
 function deleteExp(id) {
-    console.log("Deleting experiment with id:", id);
-
-    $.delete('/admin/deleteExp-' + id, function (response) {
-        console.log('Server response:', response);
-    }).fail(function (error) {
-        console.error('Error deleting experiment:', error);
-        openModal('Error', 'error', 'Error deleting experiment')
-    });
-
-    getMyExperiments();
+    $.post('/admin/deleteExp-' + id)
+        .done(() => getMyExperiments())
+        .fail(error => console.error('Error deleting experiment:', error));
 }
 
 // Function to handle pagination
@@ -357,37 +312,37 @@ function getAllExperiments(page = 0) {
     }, $('#allExpPage'), totalAllExpPages, getAllExperiments, updateExpTable, 'tab3Content');
 }
 
-function handlePage(direction) {
-    let currentPage, totalPages, getPageFunction;
-    const activeTabText = $('.nav-link.active');
-    switch (activeTabText.text().trim()) {
-        case "FL Configurations":
-            currentPage = $("#configPage");
-            totalPages = totalConfigPages;
+function updateExpTable(response, tableId) {
+    const tbody = $('#' + tableId + ' tbody').empty();
+    const configurations = response.content;
+    $.each(configurations, function (_, item) {
+        const row = $('<tr>').append(
+            '<td class="align-middle">' + item.id + '</td>' +
+            '<td class="align-middle">' + item.name + '</td>' +
+            '<td class="align-middle">' + (tableId === 'tab2Content' ? item.configName : item.expConfig.name) + '</td>' +
+            '<td class="align-middle">' + formatDateString(item.creationDate) + '</td>' +
+            '<td class="align-middle"><a href="/experiment-' + item.id + '"><img src="' + contextPath + '/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>' +
+            (tableId === 'tab2Content' ?
+                '<td class="align-middle"><figure class="m-0"><img src="' + contextPath + '/Images/icon_delete.svg" alt="Delete" onclick="deleteExp(\'' + item.id + '\')" height="20px" width="20px"></figure></td>' :
+                '')
+        );
+        tbody.append(row);
+    });
+}
 
-            console.log("Configurations totalPages " + totalPages);
-            console.log("Configurations currentPage " + currentPage.val());
-
-            getPageFunction = getMyConfigurations;
-            break;
-        case "My FL Experiments":
-            currentPage = $("#expPage");
-            totalPages = totalExpPages;
-            getPageFunction = getMyExperiments;
-            break;
-        case "All FL Experiments":
-            currentPage = $("#allExpPage");
-            totalPages = totalAllExpPages;
-            getPageFunction = getAllExperiments;
-            break;
-    }
-
-    console.log('totalPages:', totalPages);
-    if (direction === 'next' && currentPage.val() < totalPages - 1) {
-        currentPage.val(parseInt(currentPage.val()) + 1);
-    } else if (direction === 'prev' && currentPage.val() > 0) {
-        currentPage.val(parseInt(currentPage.val()) - 1);
-    }
-
-    getPageFunction(currentPage.val());
+// Function to update configuration table
+function updateConfigTable(response) {
+    const tbody = $('#ConfigTable tbody').empty();
+    const configurations = response.content;
+    $.each(configurations, function (index, item) {
+        const row = $('<tr>').append(
+            '<td class="align-middle">' + item.id + '</td>' +
+            '<td class="align-middle">' + item.name + '</td>' +
+            '<td class="align-middle">' + item.algorithm + '</td>' +
+            '<td class="align-middle">' + formatDateString(item.creationDate) + '</td>' +
+            '<td class="align-middle"><img src="' + contextPath + '/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px" onclick="openModal(\'\', \'configDetails\', \'' + item.id + '\')"></td>' +
+            '<td class="align-middle"><figure class="m-0"><img src="' + contextPath + '/Images/icon_delete.svg" alt="Delete" onclick="deleteConfig(\'' + item.id + '\')" height="20px" width="20px"></figure></td>'
+        );
+        tbody.append(row);
+    });
 }
