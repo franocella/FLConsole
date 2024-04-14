@@ -80,3 +80,18 @@ User Interface module is responsible for providing a user-friendly interface for
 \section{Adopted Patterns and Techniques}
 
 %The patterns and techniques adopted in the project are described in this section.
+
+During the implementation of the Federated Learning Web Console project, various patterns and techniques are adopted to ensure the efficiency, scalability, and maintainability of the application. These are some of the used patterns and techniques:\\
+
+\subsection*{Model-View-Controller (MVC) Pattern}
+The Federated Learning Web Console project is implemented by following the Model-View-Controller (MVC) pattern. This pattern is used to separate the application into three main components: Model, View, and Controller. The Model represents the data and business logic
+of the application, the View represents the presentation layer, and the Controller handles the user input and updates the model and view accordingly. This pattern ensures a clean separation of concerns and makes the application easier to maintain and extend.\\
+
+\subsection*{WebSocket Communication}
+WebSocket communication is implemented to provide real-time communication between the frontend and backend. This allows the application to send and receive messages in real-time without the need for polling or long-polling. WebSocket communication is used to update the user interface with the latest data and provide a seamless user experience.\\
+
+\subsection*{Asynchronous Processing}
+Asynchronous processing techniques like Java threads and ExecutorService are e used to manage concurrent execution of experiments and other tasks. This allows the application to handle multiple requests and tasks simultaneously and improve performance and scalability.\\
+
+\subsection*{Message Passing Protocol}
+To achieve seamless communication between Erlang FL director and Java web application, a customized and well specified message passing protocol is defined. This protocol guarantees the reliable and well-defined exchange of messages and data.
