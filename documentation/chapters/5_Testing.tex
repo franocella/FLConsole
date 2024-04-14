@@ -98,23 +98,51 @@ necessary functionalities and meets user expectations.
 %    \end{tabularx}
 %\end{table}
 
+
 \begin{table}[ht!]
     \centering
-    \caption{Test case}
-    \begin{tabularx}{\textwidth}{|Sl|S{X}|S{X}|S{X}|S{X}|S{X}|}
+    \caption{Admin Test case}
+    \begin{tabularx}{\textwidth}{|c|>{\RaggedRight}p{2.2cm}|>{\RaggedRight}X|>{\RaggedRight}p{2.7cm}|>{\RaggedRight}p{1.98cm}|>{\RaggedRight}p{1.5cm}|}
         \hline
-        \textbf{Id} & \textbf{Description} &            \textbf{Input} &                        \textbf{E. Output} &                            \textbf{Output} &                       \textbf{Outcome} \\ \hline
-        U\_T\_01    & User Authentication               & Email:admin@example.com                & Login Successfully and                       & Redirected to admin dashboard          & Passed     \\ \hline
-                                                          password: Adm1nP@ss
-                                                          (valid credentials)
-        U\_T\_02    & User Authentication 2             & Email: invalid@example.com             & Error message displayes                      & Unable to login                        & Passed    \\ \hline
-                                                            password: invalid
-                                                            (invalid credentials)
-        U\_T\_03    & Creating New Configuration        & Adding all the necessary values to     & Configuration Created successfuly            & Configuration Created successfuly      & Passed     \\ \hline
-                                                            the new FL configuration form
-        U\_T\_04    & Creating New Configuration 2      & Entering all the values                & Error of missing value message is displayed  & Configuration is not created           & Passed       \\ \hline
-                                                            except stop condition
-        U\_T\_05    & Creating New Experiment           & Name is written and FL                 & Experiment Created successfuly               & Experiment Created successfuly         & Passed     \\ \hline
-                                                            configuration is selected
+        \textbf{Id} & \textbf{Description} & \textbf{Input} & \textbf{Expected Output} & \textbf{Output} & \textbf{Outcome} \\
+        \hline
+        \multirow{2}{*}{A\_T\_01} & \multirow{2}{2.2cm}{Admin Login} & \multirow{2}{\linewidth}{Email: admin@example.com \\ Password: Adm1nP@ss (valid credentials)} & Login Successfully  & Redirected to admin dashboard & Passed \\
+        & & & & & \\
+        \hline
+        \multirow{2}{*}{A\_T\_02} & \multirow{2}{2.2cm}{Admin Login 2} & Email: invalid@example.com & \multirow{2}{\linewidth}{Error message displayed} & Unable to login & Passed \\
+        & & Password: invalid (invalid credentials) & & & \\
+        \hline
+        A\_T\_03 & Creating New Configuration & Adding all necessary values to the new FL configuration form & Configuration Created successfully & Configuration Created successfully & Passed \\
+        \hline
+        A\_T\_04 & Creating New Configuration 2 & Entering all values except stop condition & Error of missing value message displayed & Configuration is not created & Passed \\
+        \hline
+        A\_T\_05 & Creating New Experiment & Name is written and FL configuration is selected & Experiment Created successfully & Experiment Created successfully & Passed \\
+        \hline
+        A\_T\_06 & Starting an Experiment & Press Start Experiment button & Experiment starts & Experiment starts & Passed \\
+        \hline
+    \end{tabularx}
+\end{table}
+
+
+\begin{table}[ht!]
+    \centering
+    \caption{User Test case}
+    \begin{tabularx}{\textwidth}{|c|>{\RaggedRight}p{2.2cm}|>{\RaggedRight}X|>{\RaggedRight}p{2.7cm}|>{\RaggedRight}p{1.98cm}|>{\RaggedRight}p{1.5cm}|}
+        \hline
+        \textbf{Id} & \textbf{Description} & \textbf{Input} & \textbf{Expected Output} & \textbf{Output} & \textbf{Outcome} \\
+        \hline
+        \multirow{2}{*}{U\_T\_01} & \multirow{2}{2.2cm}{User Login} & \multirow{2}{\linewidth}{Email: firstTest@example.com \\ Password: P@ssw0rd (valid credentials)} & Login Successfully  & Redirected to user dashboard & Passed \\
+        & & & & & \\
+        \hline
+        \multirow{2}{*}{U\_T\_02} & \multirow{2}{2.2cm}{User Login 2} & Email: wrong@example.com & \multirow{2}{\linewidth}{Error message displayed} & Unable to login & Passed \\
+        & & Password: invalid (invalid credentials) & & & \\
+        \hline
+        \multirow{2}{*}{U\_T\_02} & \multirow{2}{2.2cm}{User Signup} & Email: new@example.com & Sign up successfully & Sign up su and Redirected to user dashboard & Passed \\
+        & & Password: P@ssw0rd (valid input) & & & \\
+        \hline
+        \multirow{2}{*}{U\_T\_02} & \multirow{2}{2.2cm}{User Signup 2} & Email: new@example.com & \multirow{2}{\linewidth}{Error message displayed} & Unable to Signup & Passed \\
+        & & Password: invalid (invalid password) & & & \\
+        \hline
+        
     \end{tabularx}
 \end{table}
