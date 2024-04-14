@@ -72,17 +72,30 @@
                         </div>
 
                         <c:if test="${expConfig.present}">
+                            <div class="input-group">
+                            <span class="input-group-text"
+                                  style="font-weight: bold; font-size: large; width: 240px;">Code Language:</span>
+                                <input type="text" disabled aria-label="Strategy" class="form-control"
+                                       value="${expConfig.get().codeLanguage}">
+                            </div>
 
                             <div class="input-group">
                             <span class="input-group-text"
                                   style="font-weight: bold; font-size: large; width: 240px;">Strategy:</span>
-                                <input type="text" disabled aria-label="Strategy" class="form-control"
+                                <input type="text" disabled aria-label="Client Selection Strategy" class="form-control"
                                        value="${expConfig.get().clientSelectionStrategy}">
                             </div>
 
                             <div class="input-group">
                             <span class="input-group-text"
-                                  style="font-weight: bold; font-size: large; width: 240px;">Number of Clients:</span>
+                                  style="font-weight: bold; font-size: large; width: 240px;">Number of Rounds:</span>
+                                <input type="text" disabled aria-label="Client Selection Ratio" class="form-control"
+                                       value="${expConfig.get().clientSelectionRatio}">
+                            </div>
+
+                            <div class="input-group">
+                            <span class="input-group-text"
+                                  style="font-weight: bold; font-size: large; width: 240px;">Min Number of Clients:</span>
                                 <input type="text" disabled aria-label="Number of Clients" class="form-control"
                                        value="${expConfig.get().minNumberClients}">
                             </div>
@@ -101,6 +114,13 @@
                                        value="${expConfig.get().stopConditionThreshold}">
                             </div>
 
+                            <div class="input-group">
+                            <span class="input-group-text"
+                                  style="font-weight: bold; font-size: large; width: 240px;">Max Number of Rounds:</span>
+                                <input type="text" disabled aria-label="Threshold" class="form-control"
+                                       value="${expConfig.get().maxNumberOfRounds}">
+                            </div>
+
                             <c:if test="${not empty expConfig.get().parameters}">
                                 <c:set var="map" value="${expConfig.get().parameters}" />
                                 <c:forEach items="${map}" var="entry">
@@ -116,19 +136,18 @@
 
                         <div class="input-group">
                             <span class="input-group-text"
-                                style="font-weight: bold; font-size: large; width: 240px;">Created
-                                At:</span>
+                                style="font-weight: bold; font-size: large; width: 240px;">Creation Date:</span>
                             <input type="text" disabled aria-label="Created At" class="form-control"
-                                value="${experiment.creationDate}">
+                                value="${experimentDate}">
                         </div>
 
                         <div class="input-group">
                             <span class="input-group-text"
                                 style="font-weight: bold; font-size: large; width: 240px;">Status:</span>
                             <input type="text" id="statusInput" disabled aria-label="Finished At" class="form-control"
-                                value="${experiment.status}">
+                                value="${experiment.status.toString()}">
                         </div>
-                        <c:if test="${experiment.status.toString() == 'NOT_STARTED'}">
+                        <c:if test="${experiment.status.toString() == 'Not Started'}">
                             <c:if test="${isAuthor}">
                                 <c:if test="${expConfig.present}">
                                     <button id="startTaskBtn" class="btn btn-primary mt-4 float-end" onclick="startTask()">Start

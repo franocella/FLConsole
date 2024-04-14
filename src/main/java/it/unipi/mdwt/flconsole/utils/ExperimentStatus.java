@@ -12,4 +12,14 @@ public enum ExperimentStatus {
     public static ExperimentStatus fromString(String value) {
         return ExperimentStatus.valueOf(value.toUpperCase());
     }
+
+    @Override
+    public String toString() {
+        return switch (this) {
+            case NOT_STARTED -> "Not Started";
+            case QUEUED -> "Queued";
+            case RUNNING -> "Running";
+            case FINISHED -> "Finished";
+        };
+    }
 }

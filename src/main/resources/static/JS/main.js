@@ -1,3 +1,4 @@
+// TODO: use in the switch the id of the tab to determine the active tab
 function handlePage(direction) {
     let currentPage, totalPages, getPageFunction;
     const activeTabText = $('.nav-link.active');

@@ -71,6 +71,7 @@ public class AdminController {
                         allConfigurations.getTotalElements());
                 model.addAttribute("configurations", userConfigurations);
 
+                // Add formatted creation dates to the model
                 Map<String, String> ConfigDate = new HashMap<>();
                 userConfigurations.getContent().forEach(config ->
                         ConfigDate.put(config.getId(), new SimpleDateFormat("dd/MM/yyyy, HH:mm:ss").format(config.getCreationDate())));
@@ -87,6 +88,8 @@ public class AdminController {
 
                 Page<ExperimentSummary> userExperiments = new PageImpl<>(experimentSummaries, PageRequest.of(0, PAGE_SIZE), user.getExperiments().size());
                 model.addAttribute("experiments", userExperiments);
+
+                // Add formatted creation dates to the model
                 model.addAttribute("experimentsDate", ExperimentsDate);
             }
 
