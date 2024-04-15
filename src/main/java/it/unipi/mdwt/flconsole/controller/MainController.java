@@ -298,6 +298,17 @@ public class MainController {
         return "access-denied";
     }
 
+
+    /**
+     * Handles the GET request for the error page.
+     *
+     * @return The name of the error view page.
+     */
+    @GetMapping("/error")
+    public String errorPageGET() {
+        return "error";
+    }
+
     /**
      * Handles the GET request for the user profile page.
      *
