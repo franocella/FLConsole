@@ -27,10 +27,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.naming.AuthenticationException;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -167,6 +165,13 @@ public class MainController {
         // Add experiments data to the model
         model.addAttribute("experiments", experiments);
 
+        // Add experiment formatted creation date to the model
+        Map<String, String> experimentsDate = new HashMap<>();
+        experiments.getContent().forEach(exp ->
+                experimentsDate.put(exp.getId(), new SimpleDateFormat("dd/MM/yyyy, HH:mm:ss").format(exp.getCreationDate())));
+
+        model.addAttribute("experimentsDate", experimentsDate);
+
         // Return the name of the user dashboard view page
         return "userDashboard";
     }
@@ -223,6 +228,9 @@ public class MainController {
             Experiment experiment = experimentService.getExpDetails(id);
             model.addAttribute("experiment", experiment);
 
+            // Add experiment formatted creation date to the model
+            String experimentDate = new SimpleDateFormat("dd/MM/yyyy, HH:mm:ss").format(experiment.getCreationDate());
+            model.addAttribute("experimentDate", experimentDate);
 
             // Retrieve details of the experiment configuration
             ExpConfig expConfig = expConfigService.getExpConfigById(experiment.getExpConfig().getId());
