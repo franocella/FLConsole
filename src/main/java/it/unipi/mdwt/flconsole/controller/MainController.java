@@ -305,7 +305,13 @@ public class MainController {
      * @return The name of the error view page.
      */
     @GetMapping("/error")
-    public String errorPageGET() {
+    public String errorPageGET(Model model, HttpServletRequest request) {
+        String role = cookieService.getCookieValue(request.getCookies(), "role");
+        if (role != null && role.equals("admin")) {
+            model.addAttribute("isAdmin", true);
+        } else {
+            model.addAttribute("isAdmin", false);
+        }
         return "error";
     }
 

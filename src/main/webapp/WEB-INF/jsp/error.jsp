@@ -56,8 +56,15 @@
 
 
 <script>
+    let isAdmin = false;
+    <c:if test="${isAdmin}">
+        isAdmin = true;
+    </c:if>
     function goHomePage() {
-           window.location.href = "${pageContext.request.contextPath}/";
+        if (isAdmin) {
+            window.location.href = "/admin/dashboard";
+        }
+            window.location.href = "/";
     }
 </script>
 </html>
