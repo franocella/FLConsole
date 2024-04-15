@@ -16,6 +16,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Custom stylesheet -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/main.css" />
+
+    <!-- External scripts for jQuery, Bootstrap, and custom JavaScript files -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+            crossorigin="anonymous"></script>
+    <!-- Custom JavaScript files -->
+    <script src="${pageContext.request.contextPath}/JS/main.js"></script>
+    <script src="${pageContext.request.contextPath}/JS/profilePage.js"></script>
+    <script src="${pageContext.request.contextPath}/JS/modals.js"></script>
 </head>
 <body style="background-color: #f8f8fe;">
     <!-- Header section with navbar -->
@@ -56,14 +66,5 @@
             </div>
         </div>
     </div>
-
-    <!-- External scripts for jQuery, Bootstrap, and custom JavaScript files -->
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-        crossorigin="anonymous"></script>
-    <script src="${pageContext.request.contextPath}/JS/main.js"></script>
-    <script src="${pageContext.request.contextPath}/JS/profilePage.js"></script>
-    <script src="${pageContext.request.contextPath}/JS/modals.js"></script>
 </body>
 </html>

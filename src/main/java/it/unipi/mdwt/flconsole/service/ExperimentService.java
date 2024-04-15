@@ -170,7 +170,7 @@ public class ExperimentService {
 
         // Remove the metrics linked to the deleted experiment
         Query metricsQuery = new Query(Criteria.where("expId").is(expId));
-        mongoTemplate.remove(metricsQuery, "metrics");
+        mongoTemplate.remove(metricsQuery, "expMetrics");
     }
 
     /**

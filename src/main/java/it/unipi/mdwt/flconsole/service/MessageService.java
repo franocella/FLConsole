@@ -104,7 +104,7 @@ public class MessageService {
 
                     applicationLogger.severe("Received ack message.");
                 } else {
-                    System.out.println("Invalid ack message type.");
+                    applicationLogger.severe("Invalid ack message type.");
                     throw new MessageException(MessageTypeErrorsEnum.INVALID_MESSAGE);
                 }
             } else {

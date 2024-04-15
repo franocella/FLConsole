@@ -95,9 +95,6 @@ $(document).ready(function () {
         $('#password').val('');
         $('#email').val('');
 
-        // Log updated values (for testing purposes)
-        console.log(data)
-
         // Perform further actions (e.g., AJAX request)
         $.ajax({
             type: 'POST',

@@ -78,7 +78,6 @@ function removeParameterInputField() {
 }
 
 function deleteConfig(id) {
-    console.log("Deleting config with id:", id);
     $.post('/admin/deleteConfig-' + id, () => $("#" + id).remove())
         .fail(error => console.error('Error deleting config:', error));
     getMyConfigurations();

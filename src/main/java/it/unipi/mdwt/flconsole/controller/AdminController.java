@@ -147,9 +147,6 @@ public class AdminController {
             // Convert the JSON string to an Experiment object
             Experiment experiment = objectMapper.readValue(exp, Experiment.class);
 
-            // Log the received experiment
-            System.out.println(experiment);
-
             // Retrieve the email from the cookie
             String email = cookieService.getCookieValue(request.getCookies(),"email");
 

@@ -10,7 +10,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Signup</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"  crossorigin="anonymous"/>
-    <link rel="stylesheet" href="CSS/main.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/CSS/main.css"/>
+
+    <!-- External scripts for jQuery, Bootstrap, and custom JavaScript files -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script src="${pageContext.request.contextPath}/JS/modals.js"></script>
+    <script src="${pageContext.request.contextPath}/JS/main.js"></script>
 </head>
 
 <body style="background-color: #f8f8fe;">
@@ -54,9 +60,6 @@
     </div>
 </div>
 
-<!-- External scripts for jQuery, Bootstrap, and custom JavaScript files -->
-<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 <script>
     function submitSignup() {
         const email = document.getElementById("email").value.trim();

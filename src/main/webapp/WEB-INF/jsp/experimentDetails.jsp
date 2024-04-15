@@ -222,7 +222,7 @@
         </div>
 
         <script>
-            let jsonDataArray = null;
+            let jsonDataArray = [];
             let conf = null;
             let status = "${experiment.status.frontEndFormatted()}";
             const id = "${experiment.id}";
