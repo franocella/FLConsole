@@ -14,6 +14,7 @@ In this section, we outline the functional and non-functional requirements neces
     \item Administrators must be able to create new configurations for experiments.
     \item Administrators must be able to create experiments based on the configurations they have defined.
     \item Administrators must be able to initiate experiments and oversee their execution.
+    \item Administrators must be able to view other administrators' experiments.
     \item Administrators must possess the authority to perform CRUD operations on configurations and experiments.
 \end{itemize}
 
@@ -23,35 +24,23 @@ In this section, we outline the functional and non-functional requirements neces
     \item Users must be able to log in to the application.
     \item Users must be able to log out of the application securely.
     \item Users must be able to register for a new account within the application.
-    \item Users must be able to monitor real-time progress of experiments.
     \item Users must be able to search for experiments based on configuration and experiment names.
+    \item Users must be able to monitor real-time progress of experiments.
 \end{itemize}
 
+\newpage
 \subsection{Non-Functional Requirements}
 
 \begin{enumerate}
     \item \textbf{Performance:} The system must handle a large number of concurrent users without significant performance degradation. Response times for critical operations should be kept within acceptable limits.
-    \item \textbf{Reliability:} The system should be highly available with minimal downtime. Data integrity must be maintained at all times.
-    \item \textbf{Security:} User authentication and authorization mechanisms must be implemented. Data transmission must be encrypted.
+    \item \textbf{Reliability:} The system should be highly available with minimal downtime. 
+    \item \textbf{Security:} User authentication and authorization mechanisms must be implemented.
     \item \textbf{Scalability:} The system should scale horizontally to accommodate increasing user loads and data volumes.
     \item \textbf{Usability:} The user interface must be intuitive and error messages must be informative.
     \item \textbf{Maintainability:} The codebase must be well-organized and documentation must be comprehensive.
     \item \textbf{Compatibility:} The application must be compatible with a wide range of web browsers and devices. Integration with external systems must be seamless.
 \end{enumerate}
 
-\subsection{Constraints/Other Requirements}
-
-\begin{itemize}
-    \item \textbf{Regulatory Compliance:} The application must comply with relevant laws and regulations.
-    \item \textbf{Hardware Requirements:} Specific hardware specifications may be necessary for hosting.
-    \item \textbf{Localization Requirements:} The application may need to support multiple languages.
-    \item \textbf{Data Migration:} Data from existing systems may need to be migrated.
-    \item \textbf{Interact with FL Director:} Integration with the FL Director, including defining message formats and communication technologies.
-    \item \textbf{Data Variability and Schemaless Handling:} The application must be capable of handling variable and schemaless data.
-    \item \textbf{Deployment on Three Different Nodes:} The application must be deployed on separate nodes for redundancy and reliability.
-\end{itemize}
-
-\newpage
 \section{Use Case Diagram}
 \subsection{Actors}
 
@@ -63,7 +52,7 @@ The actors who can interact with the web console system consist of the following
 
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=\textwidth]{images/2_analisys/FL_use_case.png}
+    \includegraphics[width=0.8\textwidth]{images/2_analisys/FL_use_case.png}
     \caption{Use Case Diagram}
     \label{fig:use_case_diagram}
 \end{figure}
@@ -124,12 +113,10 @@ In the following tables, we present several key use cases related to the managem
         \textbf{Description}             & Allows the admin to start a specific experiment                             \\ \hline
         \textbf{Pre-Conditions}          & Actor must be logged in and have admin privileges                           \\ \hline
         \textbf{Main event steps}        & 1. Admin selects the experiment and reaches the details page.               \\
-                                         & 2. Admin presses the start button.                                          \\
-                                         & 3. If the experiment has not started yet                                    \\
-                                         & \hspace{1em} 3.1 the system will start the experiment.                      \\
-                                         & Otherwise                                                                   \\
-                                         & \hspace{1em} 3.2 the system will show a message with the experiment status. \\ \hline
-        \textbf{Post-Conditions}         & The experiment statistics are shown on the experiment details page          \\
+                                         & 2. If the experiment has not started yet                                         \\
+                                         & \hspace{1em} 2.1 when the start button is clicked \\
+                                         & \hspace{2.5em} the system will start the experiment.                      \\
+        \textbf{Post-Conditions}         & 3. The experiment statistics are shown on the experiment details page          \\
                                          & and saved in the database.                                                  \\ \hline
         \textbf{Correlated Use cases}    &                                                                             \\ \hline
         \textbf{Alternative event steps} & --                                                                          \\ \hline
@@ -163,11 +150,12 @@ In the following tables, we present several key use cases related to the managem
 
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=0.8\textwidth]{images/2_analisys/FL_class_diag.png}
+    \includegraphics[width=0.7\textwidth]{images/2_analisys/FL_class_diag.png}
     \caption{Class Diagram}
     \label{fig:class_diagram}
 \end{figure}
 
+\newpage
 \section{Sequence Diagrams}
 
 \begin{figure}[ht!]
