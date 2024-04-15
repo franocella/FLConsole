@@ -147,9 +147,6 @@ public class AdminController {
             // Convert the JSON string to an Experiment object
             Experiment experiment = objectMapper.readValue(exp, Experiment.class);
 
-            // Log the received experiment
-            System.out.println(experiment);
-
             // Retrieve the email from the cookie
             String email = cookieService.getCookieValue(request.getCookies(),"email");
 
@@ -227,7 +224,7 @@ public class AdminController {
      * @return A ResponseEntity containing a message indicating the success or failure of the task start operation.
      */
     @PostMapping("/start-exp")
-    public ResponseEntity<String> startTask(HttpServletRequest request) {
+    public ResponseEntity<String> startExp(HttpServletRequest request) {
         try {
 
             // Get the value of the 'config' parameter from the query string

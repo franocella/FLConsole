@@ -6,10 +6,6 @@ function handlePage(direction) {
         case "FL Configurations":
             currentPage = $("#configPage");
             totalPages = totalConfigPages;
-
-            console.log("Configurations totalPages " + totalPages);
-            console.log("Configurations currentPage " + currentPage.val());
-
             getPageFunction = getMyConfigurations;
             break;
         case "My FL Experiments":
@@ -24,7 +20,6 @@ function handlePage(direction) {
             break;
     }
 
-    console.log('totalPages:', totalPages);
     if (direction === 'next' && currentPage.val() < totalPages - 1) {
         currentPage.val(parseInt(currentPage.val()) + 1);
     } else if (direction === 'prev' && currentPage.val() > 0) {

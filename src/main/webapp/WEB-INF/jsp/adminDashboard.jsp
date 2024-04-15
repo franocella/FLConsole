@@ -298,7 +298,10 @@
         const contextPath = '${pageContext.request.contextPath}';
 
         let totalConfigPages = ${configurations.totalPages};
-        let totalExpPages = ${experiments.totalPages};
+        let totalExpPages = 1;
+        <c:if test="${experiments != null}">
+            totalExpPages = ${experiments.totalPages};
+        </c:if>
         let totalAllExpPages = 0;
 
         $(function () {

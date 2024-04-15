@@ -1,3 +1,10 @@
+const stompClient = Stomp.over(new SockJS('http://localhost:8080/ws'));
+$(window).on('beforeunload', function() {
+    if (stompClient && stompClient.connected) {
+        stompClient.disconnect();
+    }
+});
+
 // Call generateCharts function once the DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
     if (jsonDataArray != null && jsonDataArray.length > 0)
@@ -7,38 +14,65 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+function deleteExp(id) {
+    $.post('/admin/deleteExp-' + id)
+        .done(() => {
+            openModal("Experiment deleted", 'error', "The experiment has been deleted");
+            const redirectButton = $("#error-modal button").text("Go to dashboard");
+
+            const redirectAfterDelay = setTimeout(() => {
+                window.location.href = '/admin/dashboard';
+            }, 3000);
+
+            stompClient.disconnect();
+
+            redirectButton.on("click", () => {
+                window.location.href = '/admin/dashboard';
+                clearTimeout(redirectAfterDelay);
+            });
+        })
+        .fail(error => console.error('Error deleting experiment:', error));
+}
+
+
 function startTask() {
     if (!(status === 'Not Started')) {return;}
+    // disable the button to prevent multiple clicks
+    $("#deleteExpBtn").prop("disabled", true);
     sendStartRequest();
 }
 
 function openConnection() {
-    const socketUrl = 'http://localhost:8080/ws';
-    const socket = new SockJS(socketUrl);
-    const stompClient = Stomp.over(socket);
-
     stompClient.connect({}, () => {
-        console.log("Connected to WebSocket");
-
         stompClient.subscribe("/experiment/" + id + "/metrics", (message) => {
             const progressUpdate = JSON.parse(message.body);
 
-            if (progressUpdate.type != null && progressUpdate.type === 'experiment_queued') {
-                $("#statusInput").val("Queued");
-            }
-            if (progressUpdate.type != null && progressUpdate.type === 'start_round' && progressUpdate.round === 1) {
-                openModal("Experiment started", 'error', "The experiment has started running");
-                $("#statusInput").val("Running");
-                setTimeout(() => {closeModal("error")}, 3000);
-            }
-            if (progressUpdate.type != null && progressUpdate.type === 'strategy_server_metrics') {
-                jsonDataArray.push(progressUpdate);
-                generateCharts();
-            }
-            if (progressUpdate.type === 'END_EXPERIMENT') {
-                openModal("Experiment finished", 'error', "The experiment has finished running");
-                $("#statusInput").val("Finished");
-                stompClient.disconnect();
+            if (progressUpdate.type != null) {
+                const statusInput = $("#statusInput");
+                switch (progressUpdate.type) {
+                    case 'experiment_queued':
+                        statusInput.val("Queued");
+                        break;
+                    case 'start_round':
+                        if (progressUpdate.round === 1) {
+                            openModal("Experiment started", 'error', "The experiment has started running");
+                            statusInput.val("Running");
+                            setTimeout(() => { closeModal("error") }, 3000);
+                        }
+                        break;
+                    case 'strategy_server_metrics':
+                        jsonDataArray.push(progressUpdate);
+                        generateCharts();
+                        break;
+                    case 'END_EXPERIMENT':
+                        openModal("Experiment finished", 'error', "The experiment has finished running");
+                        statusInput.val("Finished");
+                        $("#deleteExpBtn").prop("disabled", false);
+                        stompClient.disconnect();
+                        break;
+                    default:
+                        break;
+                }
             }
         });
     }, (error) => {
