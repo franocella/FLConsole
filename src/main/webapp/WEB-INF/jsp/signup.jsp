@@ -34,7 +34,7 @@
 <div class="container" style="margin-top: 50px;">
     <div class="row justify-content-center align-items-center g-5">
         <div class="col-md-6">
-            <img src="Images/FedLearningPic.png" class="img-fluid" alt="">
+            <img src="${pageContext.request.contextPath}/Images/FedLearningPic.png" class="img-fluid" alt="">
         </div>
         <!-- Form for user registration -->
         <div class="col-md-6">
@@ -86,7 +86,7 @@
                     password: password,
                 },
                 success: function(response) {
-                    window.location.href = "/";
+                    window.location.href = "/FLConsole/";
                 },
                 error: function(error) {
                     let message;

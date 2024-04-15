@@ -34,7 +34,7 @@ function getAllExperiments(page = 0) {
     const executionName = $('#all-execution-name').val();
     const configName = $('#all-config-name').val();
 
-    getData('/getExperiments', {
+    getData('/FLConsole/getExperiments', {
         configName: configName,
         expName: executionName,
         page: page

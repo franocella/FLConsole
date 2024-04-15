@@ -37,7 +37,7 @@
 <div class="container" style="margin-top: 50px;">
     <div class="row justify-content-center align-items-center g-5">
         <div class="col-md-6">
-            <img src="Images/FedLearningPic.png" class="img-fluid" alt="">
+            <img src="${pageContext.request.contextPath}/Images/FedLearningPic.png" class="img-fluid" alt="">
         </div>
         <div class="col-md-6">
             <div class="card">
@@ -53,7 +53,7 @@
                             <label for="password" class="form-label">Password</label>
                             <input type="password" class="form-control" id="password" required title="Required length: 8 characters and at least one number, one uppercase letter, and one special character"/>
                         </div>
-                        <a href="/signup" class="mb-2 d-block text-start">Not registered? Sign Up</a>
+                        <a href="/FLConsole/signup" class="mb-2 d-block text-start">Not registered? Sign Up</a>
                         <div class="text-end">
                             <a class="btn btn-primary" onclick="submitLogin()">Login</a>
                         </div>
@@ -76,7 +76,7 @@
             // Send the data to the server
             $.ajax({
                 type: "POST",
-                url: "/login",
+                url: "/FLConsole/login",
                 data: {
                     email: email,
                     password: password
@@ -85,9 +85,9 @@
                     const roleCookie = getCookie("role");
 
                     if (roleCookie) {
-                        window.location.href = "/admin/dashboard";
+                        window.location.href = "/FLConsole/admin/dashboard";
                     } else {
-                        window.location.href = "/";
+                        window.location.href = "/FLConsole/";
                     }
                 },
                 error: function(){

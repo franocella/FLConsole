@@ -15,19 +15,19 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function deleteExp(id) {
-    $.post('/admin/deleteExp-' + id)
+    $.post('/FLConsole/admin/deleteExp-' + id)
         .done(() => {
             openModal("Experiment deleted", 'error', "The experiment has been deleted");
             const redirectButton = $("#error-modal button").text("Go to dashboard");
 
             const redirectAfterDelay = setTimeout(() => {
-                window.location.href = '/admin/dashboard';
+                window.location.href = '/FLConsole/admin/dashboard';
             }, 3000);
 
             stompClient.disconnect();
 
             redirectButton.on("click", () => {
-                window.location.href = '/admin/dashboard';
+                window.location.href = '/FLConsole/admin/dashboard';
                 clearTimeout(redirectAfterDelay);
             });
         })
@@ -90,7 +90,7 @@ function sendStartRequest() {
     // If the request is successful, update the status and remove the button
     $.ajax({
         type: "POST",
-        url: "/admin/start-exp",
+        url: "/FLConsole/admin/start-exp",
         data: {
             config: JSON.stringify(conf),
             expId: id

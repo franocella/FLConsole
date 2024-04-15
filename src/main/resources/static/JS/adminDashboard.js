@@ -35,7 +35,7 @@ function submitConfigForm() {
 
     $.ajax({
         type: "POST",
-        url: "/admin/newConfig",
+        url: "/FLConsole/admin/newConfig",
         contentType: "application/json",
         data: JSON.stringify(formData),
         success: () => {
@@ -75,7 +75,7 @@ function removeParameterInputField() {
 }
 
 function deleteConfig(id) {
-    $.post('/admin/deleteConfig-' + id, () => $("#" + id).remove())
+    $.post('/FLConsole/admin/deleteConfig-' + id, () => $("#" + id).remove())
         .fail(error => console.error('Error deleting config:', error));
     getMyConfigurations();
 }
@@ -92,7 +92,7 @@ function submitExpForm() {
     };
 
     $.ajax({
-        url: '/admin/newExp',
+        url: '/FLConsole/admin/newExp',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(formData),
@@ -105,7 +105,7 @@ function submitExpForm() {
 }
 
 function deleteExp(id) {
-    $.post('/admin/deleteExp-' + id)
+    $.post('/FLConsole/admin/deleteExp-' + id)
         .done(() => getMyExperiments())
         .fail(error => console.error('Error deleting experiment:', error));
 }
@@ -116,7 +116,7 @@ function getMyConfigurations(page = 0) {
     const stopCondition = $('#StopCondition').val();
     const algorithm = $('#Algorithm').val();
 
-    getData('/admin/getConfigurations', {
+    getData('/FLConsole/admin/getConfigurations', {
         name: configName,
         clientStrategy: clientStrategy,
         stopCondition: stopCondition,
@@ -130,7 +130,7 @@ function getMyExperiments(page = 0) {
     const executionName = $('#execution-name').val();
     const configName = $('#config-name').val();
 
-    getData('/admin/getExperiments', {
+    getData('/FLConsole/admin/getExperiments', {
         configName: configName,
         executionName: executionName,
         page: page
@@ -171,7 +171,7 @@ function updateExpTable(response, tableId) {
             '<td class="align-middle">' + item.name + '</td>' +
             '<td class="align-middle">' + (tableId === 'tab2Content' ? item.configName : item.expConfig.name) + '</td>' +
             '<td class="align-middle">' + formatDateString(item.creationDate) + '</td>' +
-            '<td class="align-middle"><a href="/experiment-' + item.id + '"><img src="' + contextPath + '/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>' +
+            '<td class="align-middle"><a href="/FLConsole/experiment-' + item.id + '"><img src="' + contextPath + '/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>' +
             (tableId === 'tab2Content' ?
                 '<td class="align-middle"><figure class="m-0"><img src="' + contextPath + '/Images/icon_delete.svg" alt="Delete" onclick="deleteExp(\'' + item.id + '\')" height="20px" width="20px"></figure></td>' :
                 '')

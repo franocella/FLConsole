@@ -33,7 +33,7 @@ $(document).ready(function () {
     function setCloseToRedirect() {
         const closeBtn = document.getElementById('closeBtn');
         closeBtn.onclick = function () {
-            window.location.href = '/login';
+            window.location.href = '/FLConsole/login';
         };
     }
 
@@ -46,7 +46,7 @@ $(document).ready(function () {
                 setCloseToRedirect();
                 // Wait for 10 seconds before redirecting to /login
                 setTimeout(function() {
-                    window.location.href = '/login';
+                    window.location.href = '/FLConsole/login';
                 }, 5000); // 5000 milliseconds
             },
             error: function (xhr, status, error) {
@@ -98,7 +98,7 @@ $(document).ready(function () {
         // Perform further actions (e.g., AJAX request)
         $.ajax({
             type: 'POST',
-            url: '/profile/update',
+            url: '/FLConsole/profile/update',
             data: data,
             success: function (response) {
                 openModal('Update', 'message','Profile update successful!')

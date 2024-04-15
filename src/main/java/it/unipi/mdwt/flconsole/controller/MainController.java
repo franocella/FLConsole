@@ -22,10 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.naming.AuthenticationException;
 import java.text.SimpleDateFormat;
@@ -36,6 +33,7 @@ import java.util.stream.Collectors;
 import static java.util.Optional.ofNullable;
 
 @Controller
+@RequestMapping("/FLConsole/")
 public class MainController {
 
     private final UserService userService;
@@ -111,7 +109,7 @@ public class MainController {
         cookieService.deleteCookie("role", response);
 
         // Redirect the user to the login page
-        return "redirect:/login";
+        return "redirect:/FLConsole/login";
     }
 
     /**
