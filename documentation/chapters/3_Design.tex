@@ -129,35 +129,90 @@ The message handler is implemented using the Erlang programming language. Erlang
 
 \subsection{Message Structure}
 \begin{itemize}
-    \item Error Message:
+    \item Experiment Queued:
           \begin{verbatim}
         {
-            "type": "error",
-            "cause": "error_in_collecting_data",
-            "timestamp": "2024-03-13T12:34:56"
+            "type": "experiment_queued",
+            "timestamp": "1712206255"
         }
     \end{verbatim}
 
-    \item Stop Message:
+    \item Worker Ready:
           \begin{verbatim}
         {
-            "type": "stop",
-            "cause": "experiment_finished",
-            "timestamp": "2024-03-13T12:34:56"
+            "type": "worker_ready",
+            "timestamp": "1712206257",
+            "client_id": "1"
         }
     \end{verbatim}
 
-    \item Data Message:
+    \item Strategy Server Ready:
           \begin{verbatim}
         {
-            "type": "data",
-            "parameters": {
-                "param1": "value1",
-                "param2": "value2"
-            },
-            "timestamp": "2024-03-13T12:34:56",
-            "status": "running"
+            "type": "strategy_server_ready",
+            "timestamp": "1712206257"
         }
+    \end{verbatim}
+
+    \item All Workers Ready:
+          \begin{verbatim}
+        {
+            "type": "all_workers_ready",
+            "timestamp": "1712206257"
+        }
+    \end{verbatim}
+
+    \item Start Round:
+    \begin{verbatim}
+      {
+          "type": "start_round",
+          "timestamp": "1712206257",
+          "round": "1"
+      }
+    \end{verbatim}
+    
+     \newpage
+
+    \item Woker Metrics:
+      \begin{verbatim}
+      {
+        "type": "woker_metrics",
+        "timestamp": "1712206258",
+        "round": "1"
+        "client_id": "1"
+        "hostMetrics": {
+          "cpuUsagePercentage":39.4,
+          "memoryUsagePercentage": 52.69
+        }
+        "modelMetrics":{
+          "ARI":"0.10764575464353877"
+        }
+      }
+    \end{verbatim}
+
+    \item End Round:
+      \begin{verbatim}
+      {
+        "type": "end_round",
+        "timestamp": "1712206260",
+        "round": "1"
+      }
+    \end{verbatim}
+
+    \item Strategy Server Metrics:
+      \begin{verbatim}
+      {
+        "type": "strategy_server_metrics",
+        "timestamp": "1712206264",
+        "round": "2",
+        "hostMetrics": {
+          "cpuUsagePercentage":39.4,
+          "memoryUsagePercentage": 52.69
+        }
+         "modelMetrics":{
+          "FRO":"0.13237183370436725"
+        }
+      }
     \end{verbatim}
 \end{itemize}
 
