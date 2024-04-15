@@ -25,80 +25,100 @@ Additionally, the database design will be examined, with particular attention to
 \subsubsection{Collections}
 \textbf{ExpConfig document example:} \begin{verbatim}
         {
-            "id": "example_id",
-            "name": "Example Experiment",
-            "algorithm": "example_algorithm",
-            "strategy": "example_strategy",
-            "numClients": 10,
-            "stopCondition": "example_condition",
-            "threshold": 0.5,
-            "parameters": {
-                "param1": "value1",
-                "param2": "value2",
-                "param3": "value3"
+            "_id": {
+              "$oid": "6613f8b7aed2e52b006dea10"
             },
-            "creationDate": "2024-03-14T00:00:00Z",
-            "lastUpdate": "2024-03-14T12:00:00Z"
-        }
+            "name": "TestConfig",
+            "algorithm": "fcmeans",
+            "codeLanguage": "python",
+            "clientSelectionStrategy": "probability",
+            "clientSelectionRatio": 1,
+            "minNumberClients": 2,
+            "stopCondition": "max_number_rounds",
+            "stopConditionThreshold": 5,
+            "maxNumberOfRounds": 10,
+            "parameters": {
+              "targetFeature": "16",
+              "lambdaFactor": "2",
+              "numFeatures": "16",
+              "seed": "10",
+              "numClusters": "10"
+            },
+            "creationDate": {
+              "$date": "2024-04-08T14:01:27.232Z"
+            },
+          }
     \end{verbatim}
 \textbf{Experiment document example:} \begin{verbatim}
         {
-            "id": "example_id",
-            "name": "Example Experiment",
-            "expConfigSummary": {
-                "id": "exp_config_id",
-                "name": "Example Configuration",
-                "algorithm": "example_algorithm"
+            "_id": {
+              "$oid": "661c3d780bb4be3bd9b891b9"
             },
-            "creationDate": "2024-03-14T00:00:00Z",
-            "lastUpdate": "2024-03-14T12:00:00Z",
-            "status": "Completed"
-        }
-    \end{verbatim}
+            "name": "ExpTest",
+            "expConfig": {
+              "_id": {
+                "$oid": "6613f8b7aed2e52b006dea10"
+              },
+              "name": "TestConfig",
+              "algorithm": "fcmeans"
+            },
+            "creationDate": {
+              "$date": "2024-04-14T20:32:56.022Z"
+            },
+            "status": "FINISHED",
+            "flExpId": "\"d9d1bc7c-d733-4219-b4fb-16a3849db323\"",
+            "modelPath": "\\FL_models\\exp_661c3d780bb4be3bd9b891b9.bin"
+          }
 
-    \textbf{ExperimentMetrics document example:} \begin{verbatim}
-        {
-            "id": "id",
-            "expId": "exp_id",
-            "type": "type",
-            "hostMetrics": {
-                "cpuUsage": 15.5,
-                "memoryUsage": 65,
-            },
-            "modelMetrics": {
-                "FRO": 0.154,
-                "F1": 0.654,
-            },
-            "Timestamp": "2024-03-14T00:00:00Z",
-            "expStatus": "running"
-        }
     \end{verbatim}
 
 \newpage
-\textbf{User document example:} \begin{verbatim}
+\textbf{ExperimentMetrics document example:} \begin{verbatim}
         {
-        "id": "example_user_id",
-        "email": "user@example.com",
-        "password": "example_password",
-        "creationDate": "2024-03-14T00:00:00Z",
-        "configurations": ["config_id1", "config_id2"],
-        "experiments": [
-            {
-            "id": "experiment_summary_id1",
-            "name": "Experiment 1",
-            "configName": "Configuration 1",
-            "creationDate": "2024-03-14T06:00:00Z",
+            "_id": {
+              "$oid": "66144b5337a2fd7f67582f67"
             },
-            {
-            "id": "experiment_summary_id2",
-            "name": "Experiment 2",
-            "configName": "Configuration 2",
-            "creationDate": "2024-03-14T09:00:00Z",
-            "lastUpdate": "2024-03-14T12:00:00Z"
-            }
+            "expId": "661c3d780bb4be3bd9b891b9",
+            "type": "STRATEGY_SERVER_METRICS",
+            "hostMetrics": {
+              "cpuUsagePercentage": 5,
+              "memoryUsagePercentage": 9.27
+            },
+            "modelMetrics": {
+              "FRO": 845.7339394664009
+            },
+            "timestamp": {
+              "$date": "1970-01-20T19:43:26.034Z"
+            },
+            "round": 1,
+          }
+    \end{verbatim}
+
+\textbf{User document example:} \begin{verbatim}
+    {
+        "_id": {
+          "$oid": "6611252030f96a50aebda458"
+        },
+        "email": "admin@example.com",
+        "password": "P@ssw0rd",
+        "creationDate": {
+          "$date": "2024-04-06T10:34:08.669Z"
+        },
+        "role": "admin",
+        "configurations": [
+          "6613f8b7aed2e52b006dea10"
         ],
-        "role": "example_role"
-    }
+        "experiments": [{
+            "_id": {
+              "$oid": "661c3e800bb4be3bd9b891da"
+            },
+            "name": "ExpTest",
+            "config": "TestConfig",
+            "creationDate": {
+              "$date": "2024-04-14T20:32:56.022Z"
+            }
+          }]
+      }
 
     \end{verbatim}
 \newpage
@@ -110,25 +130,25 @@ The message handler is implemented using the Erlang programming language. Erlang
 \subsection{Message Structure}
 \begin{itemize}
     \item Error Message:
-    \begin{verbatim}
+          \begin{verbatim}
         {
             "type": "error",
             "cause": "error_in_collecting_data",
             "timestamp": "2024-03-13T12:34:56"
         }
     \end{verbatim}
-    
+
     \item Stop Message:
-    \begin{verbatim}
+          \begin{verbatim}
         {
             "type": "stop",
             "cause": "experiment_finished",
             "timestamp": "2024-03-13T12:34:56"
         }
     \end{verbatim}
-    
+
     \item Data Message:
-    \begin{verbatim}
+          \begin{verbatim}
         {
             "type": "data",
             "parameters": {
