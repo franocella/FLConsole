@@ -118,7 +118,7 @@ function displayErrorModal(title, params) {
     const modalElement = $("#error-modal").empty().show();
     $("#overlay-ov").show();
     $("body").css("overflow-y", "hidden");
-    const closeButton = $("<button>").addClass("btn btn-primary").attr("id", "close-error-modal").text("Close")
+    const closeButton = $("<button>").addClass("btn btn-danger").attr("id", "close-error-modal").text("Close")
         .click(() => closeModal("error"));
 
     // append a li with key and value for each parameter

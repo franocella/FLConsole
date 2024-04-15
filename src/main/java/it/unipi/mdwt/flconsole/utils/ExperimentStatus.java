@@ -13,8 +13,7 @@ public enum ExperimentStatus {
         return ExperimentStatus.valueOf(value.toUpperCase());
     }
 
-    @Override
-    public String toString() {
+    public String frontEndFormatted() {
         return switch (this) {
             case NOT_STARTED -> "Not Started";
             case QUEUED -> "Queued";

@@ -227,7 +227,7 @@ public class AdminController {
      * @return A ResponseEntity containing a message indicating the success or failure of the task start operation.
      */
     @PostMapping("/start-exp")
-    public ResponseEntity<String> startTask(HttpServletRequest request) {
+    public ResponseEntity<String> startExp(HttpServletRequest request) {
         try {
 
             // Get the value of the 'config' parameter from the query string
