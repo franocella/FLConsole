@@ -24,6 +24,12 @@
 <!-- Header section with navbar -->
 <%@ include file="components/header.txt" %>
 
+<!-- Overlay -->
+<div id="overlay-ov" class="overlay-ov"></div>
+
+<!-- Error modal -->
+<div id="error-modal" class="myAlert-sm" style="z-index: 9999"></div>
+
 <!-- Container for the signup form -->
 <div class="container" style="margin-top: 50px;">
     <div class="row justify-content-center align-items-center g-5">

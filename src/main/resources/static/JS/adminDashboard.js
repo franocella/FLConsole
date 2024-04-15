@@ -1,6 +1,3 @@
-
-
-
 function submitConfigForm() {
     const formData = {
         name: $("#config-name-modal").val().trim(),
