@@ -2,13 +2,13 @@
 document.addEventListener("DOMContentLoaded", () => {
     if (jsonDataArray != null && jsonDataArray.length > 0)
         generateCharts();
-    if (!(status === 'FINISHED')) {
+    if (!(status === 'Finished')) {
         openConnection();
     }
 });
 
 function startTask() {
-    if (!(status === 'NOT_STARTED')) {return;}
+    if (!(status === 'Not Started')) {return;}
     sendStartRequest();
 }
 
@@ -24,25 +24,26 @@ function openConnection() {
             const progressUpdate = JSON.parse(message.body);
 
             if (progressUpdate.type != null && progressUpdate.type === 'experiment_queued') {
-                $("#statusInput").val("QUEUED");
+                $("#statusInput").val("Queued");
             }
             if (progressUpdate.type != null && progressUpdate.type === 'start_round' && progressUpdate.round === 1) {
-                openModal("Experiment started", 'message', "The experiment has started running")
-                $("#statusInput").val("RUNNING");
+                openModal("Experiment started", 'error', "The experiment has started running");
+                $("#statusInput").val("Running");
+                setTimeout(() => {closeModal("error")}, 3000);
             }
             if (progressUpdate.type != null && progressUpdate.type === 'strategy_server_metrics') {
                 jsonDataArray.push(progressUpdate);
                 generateCharts();
             }
             if (progressUpdate.type === 'END_EXPERIMENT') {
-                openModal("Experiment finished", 'message', "The experiment has finished running")
-                $("#statusInput").val("FINISHED");
+                openModal("Experiment finished", 'error', "The experiment has finished running");
+                $("#statusInput").val("Finished");
                 stompClient.disconnect();
             }
         });
     }, (error) => {
         console.error("WebSocket connection error:", error);
-        openModal("Error", 'error', "An error occurred while connecting to the WebSocket")
+        openModal("Error", 'error', "An error occurred while connecting to the WebSocket");
     });
 }
 
