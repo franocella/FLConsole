@@ -11,6 +11,7 @@ import it.unipi.mdwt.flconsole.model.ExpMetrics;
 import it.unipi.mdwt.flconsole.model.Experiment;
 import it.unipi.mdwt.flconsole.model.User;
 import it.unipi.mdwt.flconsole.service.*;
+import it.unipi.mdwt.flconsole.utils.ExperimentStatus;
 import it.unipi.mdwt.flconsole.utils.MessageType;
 import it.unipi.mdwt.flconsole.utils.exceptions.business.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -244,38 +245,39 @@ public class MainController {
 
             model.addAttribute("expConfig", Optional.ofNullable(expConfig));
 
+            if (experiment.getStatus() != ExperimentStatus.NOT_STARTED) {
+                // Retrieve the list of ExpMetrics for the given experiment ID
+                List<ExpMetrics> expMetricsList = metricsService.getMetrics(experiment.getId());
 
-            // Retrieve the list of ExpMetrics for the given experiment ID
-            List<ExpMetrics> expMetricsList = metricsService.getMetrics(experiment.getId());
+                // Process and filter ExpMetrics data for visualization
+                List<String> jsonList = expMetricsList.stream()
+                        .filter(expMetrics -> expMetrics.getType() != null && expMetrics.getType().equals(MessageType.STRATEGY_SERVER_METRICS))
+                        .map(expMetrics -> {
+                            try {
+                                // Configure ObjectMapper to exclude null fields
+                                ObjectMapper mapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-            // Process and filter ExpMetrics data for visualization
-            List<String> jsonList = expMetricsList.stream()
-                    .filter(expMetrics -> expMetrics.getType() != null && expMetrics.getType().equals(MessageType.STRATEGY_SERVER_METRICS))
-                    .map(expMetrics -> {
-                        try {
-                            // Configure ObjectMapper to exclude null fields
-                            ObjectMapper mapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+                                // Create a temporary map to remove the expId field
+                                Map<String, Object> tempMap = mapper.convertValue(expMetrics, new TypeReference<>() {});
+                                tempMap.remove("expId");
+                                tempMap.remove("type");
 
-                            // Create a temporary map to remove the expId field
-                            Map<String, Object> tempMap = mapper.convertValue(expMetrics, new TypeReference<>() {});
-                            tempMap.remove("expId");
-                            tempMap.remove("type");
+                                // Convert the map to JSON string
+                                return mapper.writeValueAsString(tempMap);
+                            } catch (JsonProcessingException e) {
+                                applicationLogger.severe("Error converting ExpMetrics to JSON: " + e.getMessage());
+                                return null;
+                            }
+                        })
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
 
-                            // Convert the map to JSON string
-                            return mapper.writeValueAsString(tempMap);
-                        } catch (JsonProcessingException e) {
-                            applicationLogger.severe("Error converting ExpMetrics to JSON: " + e.getMessage());
-                            return null;
-                        }
-                    })
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                // Convert the list of filtered ExpMetrics JSON strings to a single JSON array
+                String jsonArray = "[" + String.join(",", jsonList) + "]";
 
-            // Convert the list of filtered ExpMetrics JSON strings to a single JSON array
-            String jsonArray = "[" + String.join(",", jsonList) + "]";
-
-            // Add the JSON array of metrics data to the model
-            model.addAttribute("metrics", jsonArray);
+                // Add the JSON array of metrics data to the model
+                model.addAttribute("metrics", jsonArray);
+            }
 
             // Return the name of the experiment details view page
             return "experimentDetails";
