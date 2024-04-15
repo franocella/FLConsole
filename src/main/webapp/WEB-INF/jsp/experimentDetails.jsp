@@ -25,6 +25,16 @@
         <!-- WebSocket connection and dynamic data display with JavaScript -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.2/sockjs.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+        <!-- Existing script tags for jQuery and Bootstrap -->
+        <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+                integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+                crossorigin="anonymous">
+        </script>
+        <!-- Custom JS -->
+        <script src="${pageContext.request.contextPath}/JS/modals.js"></script>
+        <script src="${pageContext.request.contextPath}/JS/main.js"></script>
+        <script src="${pageContext.request.contextPath}/JS/expDetails.js"></script>
     </head>
 
     <body style="background-color: #f8f8fe;">
@@ -145,16 +155,19 @@
                             <span class="input-group-text"
                                 style="font-weight: bold; font-size: large; width: 240px;">Status:</span>
                             <input type="text" id="statusInput" disabled aria-label="Finished At" class="form-control"
-                                value="${experiment.status.toString()}">
+                                value="${experiment.status.frontEndFormatted()}">
                         </div>
-                        <c:if test="${experiment.status.toString() == 'Not Started'}">
+
+                        <div class="float-end">
                             <c:if test="${isAuthor}">
-                                <c:if test="${expConfig.present}">
-                                    <button id="startTaskBtn" class="btn btn-primary mt-4 float-end" onclick="startTask()">Start
-                                        Experiment</button>
+                                <c:if test="${experiment.status.frontEndFormatted() == 'Not Started' && expConfig.present}">
+                                    <button id="startTaskBtn" class="btn btn-primary mt-4 mx-3" onclick="startTask()">Start Experiment</button>
                                 </c:if>
+
+                                <button id="deleteExpBtn" class="btn btn-danger mt-4 " onclick="deleteExp('${experiment.id}')">Delete
+                                    Experiment</button>
                             </c:if>
-                        </c:if>
+                        </div>
                 </div>
             </div>
         </div>
@@ -207,13 +220,11 @@
                 </tbody>
             </table>
         </div>
-        <script src="${pageContext.request.contextPath}/JS/main.js"></script>
-        <script src="${pageContext.request.contextPath}/JS/expDetails.js"></script>
 
         <script>
             let jsonDataArray = null;
             let conf = null;
-            let status = "${experiment.status.toString()}";
+            let status = "${experiment.status.frontEndFormatted()}";
             const id = "${experiment.id}";
 
             <c:if test="${metrics != null}">
@@ -222,15 +233,13 @@
             <c:if test="${expConfig.present}">
                 conf = ${expConfig.get().toJson()};
             </c:if>
-        </script>
 
-        <!-- Your existing script tags for jQuery and Bootstrap -->
-        <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-                integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-                crossorigin="anonymous">
+            $(function () {
+                const status = "${experiment.status.frontEndFormatted()}";
+                if (status === "Running" || status === "Queued") {
+                    $("#deleteExpBtn").prop("disabled", true);
+                }
+            });
         </script>
-        <script src="${pageContext.request.contextPath}/JS/modals.js"></script>
-
     </body>
 </html>

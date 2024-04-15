@@ -226,6 +226,9 @@ public class MainController {
 
             // Retrieve details of the experiment
             Experiment experiment = experimentService.getExpDetails(id);
+            if (experiment == null) {
+                return "error";
+            }
             model.addAttribute("experiment", experiment);
 
             // Add experiment formatted creation date to the model
