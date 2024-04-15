@@ -44,28 +44,35 @@ function startTask() {
 
 function openConnection() {
     stompClient.connect({}, () => {
-        console.log("Connected to WebSocket");
-
         stompClient.subscribe("/experiment/" + id + "/metrics", (message) => {
             const progressUpdate = JSON.parse(message.body);
 
-            if (progressUpdate.type != null && progressUpdate.type === 'experiment_queued') {
-                $("#statusInput").val("Queued");
-            }
-            if (progressUpdate.type != null && progressUpdate.type === 'start_round' && progressUpdate.round === 1) {
-                openModal("Experiment started", 'error', "The experiment has started running");
-                $("#statusInput").val("Running");
-                setTimeout(() => {closeModal("error")}, 3000);
-            }
-            if (progressUpdate.type != null && progressUpdate.type === 'strategy_server_metrics') {
-                jsonDataArray.push(progressUpdate);
-                generateCharts();
-            }
-            if (progressUpdate.type === 'END_EXPERIMENT') {
-                openModal("Experiment finished", 'error', "The experiment has finished running");
-                $("#statusInput").val("Finished");
-                $("#deleteExpBtn").prop("disabled", false);
-                stompClient.disconnect();
+            if (progressUpdate.type != null) {
+                const statusInput = $("#statusInput");
+                switch (progressUpdate.type) {
+                    case 'experiment_queued':
+                        statusInput.val("Queued");
+                        break;
+                    case 'start_round':
+                        if (progressUpdate.round === 1) {
+                            openModal("Experiment started", 'error', "The experiment has started running");
+                            statusInput.val("Running");
+                            setTimeout(() => { closeModal("error") }, 3000);
+                        }
+                        break;
+                    case 'strategy_server_metrics':
+                        jsonDataArray.push(progressUpdate);
+                        generateCharts();
+                        break;
+                    case 'END_EXPERIMENT':
+                        openModal("Experiment finished", 'error', "The experiment has finished running");
+                        statusInput.val("Finished");
+                        $("#deleteExpBtn").prop("disabled", false);
+                        stompClient.disconnect();
+                        break;
+                    default:
+                        break;
+                }
             }
         });
     }, (error) => {

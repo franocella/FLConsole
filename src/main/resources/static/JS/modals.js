@@ -136,7 +136,6 @@ function displayErrorModal(title, params) {
         );
     // append a simple message
     } else if (typeof params === "string") {
-        console.log("params is a string");
         modalElement.append(
             $("<div>").addClass("myAlertBody").css("z-index", "9999").append(
                 $("<h3>").attr("id", "Err-Title").text(title),

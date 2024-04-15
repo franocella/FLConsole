@@ -8,7 +8,7 @@ most important aspects. In this section, it is specified that the necessary tool
 \begin{itemize}
     \item \textbf{Programming Language:} Java is used for creating a Web Application. Erlang is used for facilitation the development of middleware component and FL director is an Erlang node.
     So that effective communication between the Web Application and the FL director is provided.
-    \item \textbf{Frameworks:}Spring is used for Java framework. It ensures to integrate dependencies for WebSocket communication and MongoDB support.
+    \item \textbf{Frameworks:}  Spring is used for Java framework. It ensures to integrate dependencies for WebSocket communication and MongoDB support.
     WebSocket is implemented to provide real-time communication between frontend and backend components.
     \item \textbf{Database Management:} MongoDB is chosen as a database to ensure storing data for experiment statistics and user information.
     \item \textbf{Version Control:} Git is used for version control. It is used to manage the source code of the project. GitHub is used to provide a collaborative development with its version control system. Efficient code management and collaboration is ensured by using repositories which is provided by the platform itself.
@@ -42,15 +42,15 @@ logging, execution, HTTP request handling, MVC setup and WebSocket communication
 
 %The data access layer of the project is described in this section.
 The data access classes are fulfilling the requirements of interacting with the database layers, providing data retrieval, storage, and manipulation. This module includes classes includes CRUD
-(create, read, update, delete) operations and query executions. With the Data Access classes such as ExpConfigDao, ExperimentDao, MetricsDao, UserDao the applications guarantee effective operations,
+(create, read, update, delete) operations and query executions. With the Data Access classes such as ExpConfigDao, ExperimentDao, ExpProgressDao, UserDao the applications guarantee effective operations,
 management of experiments and tracking of the progress.
 
 
 \section{Data Transfer}
 
 %The data transfer mechanisms used in the project are described in this section.
-Data Transfer layer contains a ExpConfigSummary, ExperimentSummary and UserSummary classes to ensure the functionality of transferring data structure between different layers and components of the application. With the help of the DTO classes,
-related information will be able to be transferred between frontend, backend, and service layers. User information is transferred in a more standardized way
+Data Transfer layer contains a UserDto class to ensure the functionality of transferring data structure between different layers and components of the application. With the help of the UserDto class,
+user related information such as email, password and description will be able to be transferred between frontend, backend, and service layers. User information is transferred in a more standardized way
 for achieving better communication.
 
 \section{Service}
@@ -62,8 +62,6 @@ Service module includes business logic and operations for ensuring the fully fun
     \item Experiment Configuration Service is for implementing business logic for experiment configuration includes creation, deletion, retrieval and searching by some parameters.
     \item Experiment Service is for creating operations that are related with experiment like creation, running, deletion, retrieval and searching.
     \item User Service is implemented for ensuring business logic for user-based operations. Those operations include authentication of user, sign up, deletion of account, updating user information and retrieval of the user
-    \item Message Service is implemented for managing communication with Erlang node for sending experiment configuration and monitoring the progress.
-    \item Metrics Service is created to handle operations of retrieving experiment metrics from the database with the related experiment ID.
 \end{itemize}
 
 \section{User Interface}

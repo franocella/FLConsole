@@ -8,7 +8,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Access denied</title>
+    <title>Error</title>
     <!-- External stylesheets for icons and fonts -->
 
     <!-- Bootstrap stylesheet -->
@@ -48,8 +48,7 @@
 <!-- Container -->
 <div class="container">
     <div class="access-denied-box">
-        <h1 style="color: #333;">Access Denied</h1>
-        <img src="${pageContext.request.contextPath}/images/access-denied.png" alt="Access denied" style="width: 300px; height: 300px; margin-top: 20px;" />
+        <img src="${pageContext.request.contextPath}/images/error-page-.png" alt="Page Not Found" style="width: 300px; height: 300px; margin-top: 20px;" />
 
     </div>
     <button type="button" class="btn btn-lg btn-danger mt-5" onclick="window.history.back()">Go back</button>
