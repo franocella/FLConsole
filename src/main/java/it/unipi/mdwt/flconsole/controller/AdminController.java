@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 import static it.unipi.mdwt.flconsole.utils.Constants.PAGE_SIZE;
 
 @Controller
-@RequestMapping("/FLConsole/admin")
+@RequestMapping("/admin")
 public class AdminController {
 
     private final UserService userService;

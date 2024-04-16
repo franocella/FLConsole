@@ -47,7 +47,7 @@
 <!-- Container -->
 <div class="container">
     <div class="access-denied-box">
-        <img src="${pageContext.request.contextPath}/images/error-page.png" alt="Page Not Found" style="width: 500px; height: auto; margin-top: 20px;" />
+        <img src="${pageContext.request.contextPath}/Images/error-page.png" alt="Page Not Found" style="width: 500px; height: auto; margin-top: 20px;" />
 
     </div>
     <button type="button" class="btn btn-lg btn-danger mt-5" onclick="goHomePage()">Go to User Dashboard</button>

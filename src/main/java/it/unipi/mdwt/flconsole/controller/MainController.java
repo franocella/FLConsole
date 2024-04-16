@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 import static java.util.Optional.ofNullable;
 
 @Controller
-@RequestMapping("/FLConsole/")
+@RequestMapping("/")
 public class MainController {
 
     private final UserService userService;
