@@ -1,4 +1,4 @@
-const stompClient = Stomp.over(new SockJS('http://10.2.1.102:8080/ws'));
+const stompClient = Stomp.over(new SockJS('http://10.2.1.102/FLConsole/ws'));
 $(window).on('beforeunload', function() {
     if (stompClient && stompClient.connected) {
         stompClient.disconnect();
