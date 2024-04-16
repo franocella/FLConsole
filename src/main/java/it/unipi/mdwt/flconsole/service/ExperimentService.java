@@ -1,5 +1,6 @@
 package it.unipi.mdwt.flconsole.service;
 
+import it.unipi.mdwt.flconsole.config.ExecutorConfig;
 import it.unipi.mdwt.flconsole.dao.ExperimentDao;
 import it.unipi.mdwt.flconsole.dao.UserDao;
 import it.unipi.mdwt.flconsole.dto.ExperimentSummary;
@@ -37,16 +38,14 @@ public class ExperimentService {
     private final Logger applicationLogger;
     private final MessageService messageService;
     private final MongoTemplate mongoTemplate;
-    private final ExecutorService experimentExecutor;
     private final UserDao userDao;
 
     @Autowired
-    public ExperimentService(ExperimentDao experimentDao, Logger applicationLogger, MessageService messageService, MongoTemplate mongoTemplate, ExecutorService executorService, UserDao userDao) {
+    public ExperimentService(ExperimentDao experimentDao, Logger applicationLogger, MessageService messageService, MongoTemplate mongoTemplate, UserDao userDao) {
         this.experimentDao = experimentDao;
         this.applicationLogger = applicationLogger;
         this.messageService = messageService;
         this.mongoTemplate = mongoTemplate;
-        this.experimentExecutor = executorService;
         this.userDao = userDao;
     }
 
@@ -61,9 +60,9 @@ public class ExperimentService {
      * @throws BusinessException If an error occurs during the experiment execution.
      */
     public void runExp(String config, String expId) throws BusinessException {
+        ExecutorService experimentExecutor = ExecutorConfig.getInstance();
         experimentExecutor.execute(() -> messageService.sendAndMonitor(config, expId));
     }
-
 
     /**
      * Retrieves details of an experiment with the specified ID.
@@ -123,7 +122,6 @@ public class ExperimentService {
 
         } catch (Exception e) {
             // Log any errors that occur during the process
-            applicationLogger.severe("Error searching experiments: " + e.getMessage());
             throw new BusinessException(BusinessTypeErrorsEnum.INTERNAL_SERVER_ERROR);
         }
     }

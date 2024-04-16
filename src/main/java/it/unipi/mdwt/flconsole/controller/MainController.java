@@ -395,5 +395,16 @@ public class MainController {
         }
     }
 
+    @GetMapping("/error")
+    public String errorPageGET(Model model, HttpServletRequest request) {
+        String role = cookieService.getCookieValue(request.getCookies(), "role");
+        applicationLogger.severe("Role:" + role);
+        if (role != null && role.equals("admin")) {
+            model.addAttribute("isAdmin", true);
+        } else {
+            model.addAttribute("isAdmin", false);
+        }
+        return "error";
+    }
 }
 

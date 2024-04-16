@@ -20,6 +20,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script src="${pageContext.request.contextPath}/JS/modals.js"></script>
     <script src="${pageContext.request.contextPath}/JS/main.js"></script>
+    <script src="${pageContext.request.contextPath}/JS/authentication.js"></script>
 </head>
 
 <body style="background-color: #f8f8fe;">
@@ -63,52 +64,5 @@
         </div>
     </div>
 </div>
-
-<script>
-    function submitLogin(){
-        // Get the values of the email and password fields
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-        // Check if are empty and if the format of the email is correct
-        if(email === "" || password === ""){
-            openModal("Error", "error", "Please fill in all the fields")
-        } else {
-            // Send the data to the server
-            $.ajax({
-                type: "POST",
-                url: "/FLConsole/login",
-                data: {
-                    email: email,
-                    password: password
-                },
-                success: function (response) {
-                    const roleCookie = getCookie("role");
-
-                    if (roleCookie) {
-                        window.location.href = "/FLConsole/admin/dashboard";
-                    } else {
-                        window.location.href = "/FLConsole/";
-                    }
-                },
-                error: function(){
-                    openModal("Error", "error", "Invalid email or password")
-                }
-            });
-        }
-    }
-
-    function getCookie(name) {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.startsWith(name + '=')) {
-                return cookie.substring(name.length + 1);
-            }
-        }
-        return null;
-    }
-
-</script>
-
 </body>
 </html>

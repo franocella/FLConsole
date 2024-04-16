@@ -17,6 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script src="${pageContext.request.contextPath}/JS/modals.js"></script>
     <script src="${pageContext.request.contextPath}/JS/main.js"></script>
+    <script src="${pageContext.request.contextPath}/JS/authentication.js"></script>
 </head>
 
 <body style="background-color: #f8f8fe;">
@@ -65,47 +66,5 @@
         </div>
     </div>
 </div>
-
-<script>
-    function submitSignup() {
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value.trim();
-        const confirmPassword = document.getElementById("confirmPassword").value.trim();
-
-        if (email === "" || password === "" || confirmPassword === "") {
-            openModal("Error", "error", "Please fill in all the fields")
-        } else if (password !== confirmPassword) {
-            openModal("Error", "error", "Passwords do not match. Please enter the same password in both fields.")
-        } else {
-            // Send the data to the server for signup
-            $.ajax({
-                type: "POST",
-                url: "/signup",
-                data: {
-                    email: email,
-                    password: password,
-                },
-                success: function(response) {
-                    window.location.href = "/FLConsole/";
-                },
-                error: function(error) {
-                    let message;
-
-                    if (error.responseJSON && error.responseJSON.error) {
-                        message = error.responseJSON.error;
-                    } else {
-                        try {
-                            const parsedError = JSON.parse(error.responseText);
-                            message = parsedError.error || "An error occurred during signup";
-                        } catch (e) {
-                            message = "An error occurred during signup";
-                        }
-                    }
-                    openModal("Error", "error", message)
-                }
-            });
-        }
-    }
-</script>
 </body>
 </html>
