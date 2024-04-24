@@ -234,6 +234,8 @@ public class MainController {
             String experimentDate = new SimpleDateFormat("dd/MM/yyyy, HH:mm:ss").format(experiment.getCreationDate());
             model.addAttribute("experimentDate", experimentDate);
 
+            applicationLogger.severe("Configuration: " + experiment.getExpConfig().getId());
+
             // Retrieve details of the experiment configuration
             ExpConfig expConfig = expConfigService.getExpConfigById(experiment.getExpConfig().getId());
             Optional<ExpConfig> optionalExpConfig = Optional.ofNullable(expConfig);
