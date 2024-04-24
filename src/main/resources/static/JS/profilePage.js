@@ -30,31 +30,6 @@ $(document).ready(function () {
         }
     });
 
-    function setCloseToRedirect() {
-        const closeBtn = document.getElementById('closeBtn');
-        closeBtn.onclick = function () {
-            window.location.href = '/FLConsole/login';
-        };
-    }
-
-    $('#deleteBtn').click(function () {
-        $.ajax({
-            type: 'GET',
-            url: '/profile/delete',
-            success: function (response) {
-                openModal('Delete', 'message','Profile deleted successful!')
-                setCloseToRedirect();
-                // Wait for 10 seconds before redirecting to /login
-                setTimeout(function() {
-                    window.location.href = '/FLConsole/login';
-                }, 5000); // 5000 milliseconds
-            },
-            error: function (xhr, status, error) {
-                openModal('Error', 'error','An error occurred while deleting the profile.')
-            }
-        });
-    });
-
     // Function to handle submit button click
     $('#submitBtn').click(function () {
         // Check if fields have been modified
@@ -108,5 +83,24 @@ $(document).ready(function () {
             }
         });
     });
-
+    function deleteUser() {
+        $.ajax({
+            type: 'POST',
+            url: '/FLConsole/profile/delete',
+            success: function (response) {
+                openModal('Delete', 'error','Profile deleted successful!')
+                const closeBtn = document.getElementById('close-error-modal');
+                closeBtn.onclick = function () {
+                    window.location.href = '/FLConsole/login';
+                };
+                // Wait for 10 seconds before redirecting to /login
+                setTimeout(function() {
+                    window.location.href = '/FLConsole/login';
+                }, 3000); // 3000 milliseconds
+            },
+            error: function () {
+                openModal('Error', 'error','An error occurred while deleting the profile.')
+            }
+        });
+    }
 });

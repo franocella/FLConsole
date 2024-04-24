@@ -371,7 +371,7 @@ public class MainController {
      * @param response The HTTP servlet response used to delete cookies.
      * @return A ResponseEntity indicating the success or failure of the profile deletion.
      */
-    @GetMapping("/profile/delete")
+    @PostMapping("/profile/delete")
     public ResponseEntity<String> deleteUserGET(HttpServletRequest request, HttpServletResponse response) {
         try {
             // Retrieve user email from cookies
