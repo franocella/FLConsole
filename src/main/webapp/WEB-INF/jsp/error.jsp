@@ -47,7 +47,7 @@
 <!-- Container -->
 <div class="container">
     <div class="access-denied-box">
-        <img src="${pageContext.request.contextPath}/images/error-page-8.png" alt="Page Not Found" style="width: 500px; height: auto; margin-top: 20px;" />
+        <img src="${pageContext.request.contextPath}/Images/error-page.png" alt="Page Not Found" style="width: 500px; height: auto; margin-top: 20px;" />
 
     </div>
     <button type="button" class="btn btn-lg btn-danger mt-5" onclick="goHomePage()">Go to User Dashboard</button>
@@ -56,8 +56,17 @@
 
 
 <script>
+    let isAdmin = false;
+    <c:if test="${isAdmin}">
+    isAdmin = true;
+    </c:if>
+
     function goHomePage() {
-           window.location.href = "${pageContext.request.contextPath}/";
+        if (isAdmin) {
+            window.location.href = "/FLConsole/admin/dashboard";
+        } else {
+            window.location.href = "/FLConsole/";
+        }
     }
 </script>
 </html>

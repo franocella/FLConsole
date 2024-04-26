@@ -57,7 +57,7 @@ function displayConfigDetailsModal(configId) {
     let table = $("<table>").addClass("table").attr("id", "config-table-details");
     let tableBody = $("<tbody>");
 
-    $.get('/admin/getConfigDetails', {id: configId}, function(response) {
+    $.get('/FLConsole/admin/getConfigDetails', {id: configId}, function(response) {
         $.each(response, function(key, value) {
             if (key === "parameters") {
                 $.each(value, function(paramKey, paramValue) {

@@ -242,7 +242,7 @@
                             <td class='align-middle'>${exp.name}</td>
                             <td class='align-middle'>${exp.configName}</td>
                             <td class='align-middle'>${experimentsDate[exp.id]}</td>
-                            <td class='align-middle'><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
+                            <td class='align-middle'><a href="/FLConsole/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
                             <td class='align-middle'><figure class="m-0"><img src="${pageContext.request.contextPath}/Images/icon_delete.svg" alt="Delete" onclick="deleteExp('${exp.id}')" height="20px" width="20px"></figure></td>
                         </tr>
                     </c:forEach>

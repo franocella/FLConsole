@@ -12,7 +12,7 @@ import java.util.Set;
 @Component
 public class HttpInterceptor implements HandlerInterceptor {
 
-    private static final Set<String> ALLOWED_URIS = Set.of("/login", "/signup", "/CSS", "/JS", "/Images");
+    private static final Set<String> ALLOWED_URIS = Set.of("/FLConsole/login", "/FLConsole/signup", "/FLConsole/CSS", "/FLConsole/JS", "/FLConsole/Images", "/CSS", "/JS", "/Images");
 
     private final CookieService cookieService;
 
@@ -33,20 +33,20 @@ public class HttpInterceptor implements HandlerInterceptor {
 
         if (emailCookie != null) {
             // Check if the requested page is an admin page
-            if (uri.startsWith("/admin")) {
+            if (uri.startsWith("/FLConsole/admin")) {
                 // If it's an admin page, also check for the "role" cookie
                 String roleCookie = cookieService.getCookieValue(request.getCookies(), "role");
                 if (roleCookie != null && roleCookie.equals("admin")) {
                     return true;
                 }
                 // If "role" cookie is not present or not equal to "admin", redirect to access denied page
-                response.sendRedirect("/access-denied");
+                response.sendRedirect("/FLConsole/access-denied");
                 return false;
             }
             return true;
         }
 
-        response.sendRedirect("/login");
+        response.sendRedirect("/FLConsole/login");
         return false;
     }
 }

@@ -20,6 +20,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script src="${pageContext.request.contextPath}/JS/modals.js"></script>
     <script src="${pageContext.request.contextPath}/JS/main.js"></script>
+    <script src="${pageContext.request.contextPath}/JS/authentication.js"></script>
 </head>
 
 <body style="background-color: #f8f8fe;">
@@ -37,7 +38,7 @@
 <div class="container" style="margin-top: 50px;">
     <div class="row justify-content-center align-items-center g-5">
         <div class="col-md-6">
-            <img src="Images/FedLearningPic.png" class="img-fluid" alt="">
+            <img src="${pageContext.request.contextPath}/Images/FedLearningPic.png" class="img-fluid" alt="">
         </div>
         <div class="col-md-6">
             <div class="card">
@@ -53,7 +54,7 @@
                             <label for="password" class="form-label">Password</label>
                             <input type="password" class="form-control" id="password" required title="Required length: 8 characters and at least one number, one uppercase letter, and one special character"/>
                         </div>
-                        <a href="/signup" class="mb-2 d-block text-start">Not registered? Sign Up</a>
+                        <a href="/FLConsole/signup" class="mb-2 d-block text-start">Not registered? Sign Up</a>
                         <div class="text-end">
                             <a class="btn btn-primary" onclick="submitLogin()">Login</a>
                         </div>
@@ -63,52 +64,5 @@
         </div>
     </div>
 </div>
-
-<script>
-    function submitLogin(){
-        // Get the values of the email and password fields
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-        // Check if are empty and if the format of the email is correct
-        if(email === "" || password === ""){
-            openModal("Error", "error", "Please fill in all the fields")
-        } else {
-            // Send the data to the server
-            $.ajax({
-                type: "POST",
-                url: "/login",
-                data: {
-                    email: email,
-                    password: password
-                },
-                success: function (response) {
-                    const roleCookie = getCookie("role");
-
-                    if (roleCookie) {
-                        window.location.href = "/admin/dashboard";
-                    } else {
-                        window.location.href = "/";
-                    }
-                },
-                error: function(){
-                    openModal("Error", "error", "Invalid email or password")
-                }
-            });
-        }
-    }
-
-    function getCookie(name) {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.startsWith(name + '=')) {
-                return cookie.substring(name.length + 1);
-            }
-        }
-        return null;
-    }
-
-</script>
-
 </body>
 </html>

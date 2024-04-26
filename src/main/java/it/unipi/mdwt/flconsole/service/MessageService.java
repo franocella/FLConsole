@@ -54,13 +54,12 @@ public class MessageService {
             // Get the instance of the webConsoleNode
             webConsoleNode = new OtpNode(expId, COOKIE);
 
-            applicationLogger.severe("WebConsole node created.");
+            applicationLogger.info("WebConsole node created.");
             // Create a mailbox to send a request to the director
             OtpMbox mboxSender = webConsoleNode.createMbox("mboxSender");
-            applicationLogger.severe("Mailbox created.");
 
             if (webConsoleNode.ping(DIRECTOR_NODE_NAME, 2000)) {
-                applicationLogger.severe("Director node is up.");
+                applicationLogger.info("Director node is up.");
             } else {
                 applicationLogger.severe("Director node is down.");
                 mboxSender.close();
@@ -70,15 +69,14 @@ public class MessageService {
 
             // Create the message
             OtpErlangTuple message = createRequestMessage(mboxSender.self(), config);
-
-            applicationLogger.severe("Sending the experiment request...");
+            applicationLogger.info("Sending the experiment request...");
             mboxSender.send(DIRECTOR_MAILBOX, DIRECTOR_NODE_NAME, message);
-            applicationLogger.severe("request sent.");
+            applicationLogger.info("Experiment request sent.");
 
-            applicationLogger.severe("Waiting for ack message...");
+            // Wait for the ack message from the director
             OtpErlangObject erlMessage;
+            applicationLogger.info("Waiting for ack message...");
             erlMessage = mboxSender.receive();
-            applicationLogger.severe("Ack received: " + erlMessage.toString());
             if (
                     erlMessage instanceof OtpErlangTuple tuple && tuple.arity() == 2 &&
                             tuple.elementAt(0) instanceof OtpErlangAtom atom && tuple.elementAt(1) instanceof OtpErlangString info &&
@@ -87,7 +85,6 @@ public class MessageService {
                 String jsonMessage = info.stringValue();
                 ObjectMapper objectMapper = new ObjectMapper();
                 ExpMetrics expMetrics = objectMapper.readValue(jsonMessage, ExpMetrics.class);
-                applicationLogger.severe("expMetrics: " + expMetrics.toString());
 
                 if (expMetrics.getType() == MessageType.EXPERIMENT_QUEUED) {
                     // try to send a message to the WebSocket topic
@@ -102,7 +99,7 @@ public class MessageService {
                     Update update = new Update().set("status", ExperimentStatus.QUEUED.toString());
                     mongoTemplate.updateFirst(query, update, Experiment.class);
 
-                    applicationLogger.severe("Received ack message.");
+                    applicationLogger.info("Ack message received.");
                 } else {
                     applicationLogger.severe("Invalid ack message type.");
                     throw new MessageException(MessageTypeErrorsEnum.INVALID_MESSAGE);
@@ -112,16 +109,15 @@ public class MessageService {
                 throw new MessageException(MessageTypeErrorsEnum.INVALID_MESSAGE);
             }
 
+            // Wait for messages from the Erlang nodes
             while (true) {
                 try {
-                    applicationLogger.severe("Waiting for message...");
+                    applicationLogger.info("Waiting for message...");
                     OtpErlangObject received = mboxSender.receive();
-                    applicationLogger.severe("Receiver: Message received: " + received.toString());
+                    applicationLogger.info("Receiver: Message received: " + received.toString());
 
                     if (received instanceof OtpErlangTuple tuple2 && tuple2.elementAt(0) instanceof OtpErlangAtom atom4 &&
                             atom4.atomValue().equals("fl_end_str_run")){
-                        applicationLogger.severe("Second elem is a string? " + (tuple2.elementAt(1) instanceof OtpErlangString));
-                        applicationLogger.severe("Third elem is a binary? " + (tuple2.elementAt(2) instanceof OtpErlangBinary));
                     }
                     if (
                             received instanceof OtpErlangTuple tuple2 && tuple2.arity() == 2 &&

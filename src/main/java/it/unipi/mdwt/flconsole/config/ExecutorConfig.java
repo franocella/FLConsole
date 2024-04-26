@@ -3,15 +3,18 @@ package it.unipi.mdwt.flconsole.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Configuration
-@EnableAsync
+@Component
 public class ExecutorConfig {
-    @Bean
-    public ExecutorService executorService() {
-        return Executors.newFixedThreadPool(20);
+    private static ExecutorService executorService = null;
+    public static ExecutorService getInstance() {
+        if (executorService == null) {
+            executorService = Executors.newFixedThreadPool(10);
+        }
+        return executorService;
     }
 }

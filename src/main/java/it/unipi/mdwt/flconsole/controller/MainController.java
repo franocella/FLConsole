@@ -22,10 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.naming.AuthenticationException;
 import java.text.SimpleDateFormat;
@@ -36,6 +33,7 @@ import java.util.stream.Collectors;
 import static java.util.Optional.ofNullable;
 
 @Controller
+@RequestMapping("/")
 public class MainController {
 
     private final UserService userService;
@@ -111,7 +109,7 @@ public class MainController {
         cookieService.deleteCookie("role", response);
 
         // Redirect the user to the login page
-        return "redirect:/login";
+        return "redirect:/FLConsole/login";
     }
 
     /**
@@ -235,6 +233,8 @@ public class MainController {
             // Add experiment formatted creation date to the model
             String experimentDate = new SimpleDateFormat("dd/MM/yyyy, HH:mm:ss").format(experiment.getCreationDate());
             model.addAttribute("experimentDate", experimentDate);
+
+            applicationLogger.severe("Configuration: " + experiment.getExpConfig().getId());
 
             // Retrieve details of the experiment configuration
             ExpConfig expConfig = expConfigService.getExpConfigById(experiment.getExpConfig().getId());
@@ -384,7 +384,7 @@ public class MainController {
      * @param response The HTTP servlet response used to delete cookies.
      * @return A ResponseEntity indicating the success or failure of the profile deletion.
      */
-    @GetMapping("/profile/delete")
+    @PostMapping("/profile/delete")
     public ResponseEntity<String> deleteUserGET(HttpServletRequest request, HttpServletResponse response) {
         try {
             // Retrieve user email from cookies
@@ -408,5 +408,16 @@ public class MainController {
         }
     }
 
+    @GetMapping("/error")
+    public String errorPageGET(Model model, HttpServletRequest request) {
+        String role = cookieService.getCookieValue(request.getCookies(), "role");
+        applicationLogger.severe("Role:" + role);
+        if (role != null && role.equals("admin")) {
+            model.addAttribute("isAdmin", true);
+        } else {
+            model.addAttribute("isAdmin", false);
+        }
+        return "error";
+    }
 }
 

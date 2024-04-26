@@ -136,12 +136,9 @@ public class ExpConfigService {
 
             // Retrieve the matching ExpConfig objects from the database
             List<ExpConfig> matchingConfigs = mongoTemplate.find(query, ExpConfig.class);
-            applicationLogger.severe("Matching configs: " + matchingConfigs);
 
             // Retrieve the total count of matching ExpConfig objects
             long totalCount = mongoTemplate.count(query, ExpConfig.class);
-
-            applicationLogger.severe("Total count: " + totalCount);
 
             // Create a Page object using the retrieved ExpConfig objects, the requested page, and the total count
             return new PageImpl<>(matchingConfigs, PageRequest.of(page, PAGE_SIZE), totalCount);

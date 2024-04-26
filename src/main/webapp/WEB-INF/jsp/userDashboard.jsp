@@ -74,7 +74,7 @@
                         <td>${exp.name}</td>
                         <td>${exp.expConfig.name}</td>
                         <td>${experimentsDate[exp.id]}</td>
-                        <td><a href="/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
+                        <td><a href="/FLConsole/experiment-${exp.id}"><img src="${pageContext.request.contextPath}/Images/icon _chevron circle right alt_.svg" alt="Open" width="25px" height="25px"></a></td>
                     </tr>
                 </c:forEach>
                 </tbody>

@@ -31,6 +31,13 @@
     <!-- Header section with navbar -->
     <%@ include file="components/header.txt" %>
 
+
+    <!-- Overlay -->
+    <div id="overlay-ov" class="overlay-ov"></div>
+
+    <!-- Error modal -->
+    <div id="error-modal" class="myAlert-sm" style="z-index: 9999"></div>
+
     <!-- Main container -->
     <div class="container my-5">
         <div class="row">
@@ -61,10 +68,12 @@
                 <!-- Submit button -->
                 <div class="d-flex justify-content-end gap-3">
                     <button id="submitBtn" class="btn btn-primary">Update Profile</button>
-                    <button id="deleteBtn" class="btn btn-danger">Delete Profile</button>
+                    <button id="deleteBtn" onclick="deleteUser()" class="btn btn-danger">Delete Profile</button>
                 </div>
             </div>
         </div>
     </div>
+
+
 </body>
 </html>

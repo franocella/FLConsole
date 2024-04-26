@@ -7,9 +7,9 @@ To be able to have efficient and successful implementation of Federated Learning
 most important aspects. In this section, it is specified that the necessary tools, frameworks, and configuration requirements of the project. \\
 \begin{itemize}
     \item \textbf{Programming Language:} Java is used for creating a Web Application. Erlang is used for facilitation the development of middleware component and FL director is an Erlang node.
-    So that effective communication between the Web Application and the FL director is provided.
-    \item \textbf{Frameworks:}  Spring is used for Java framework. It ensures to integrate dependencies for WebSocket communication and MongoDB support.
-    WebSocket is implemented to provide real-time communication between frontend and backend components.
+          So that effective communication between the Web Application and the FL director is provided.
+    \item \textbf{Frameworks:}Spring is used for Java framework. It ensures to integrate dependencies for WebSocket communication and MongoDB support.
+          WebSocket is implemented to provide real-time communication between frontend and backend components.
     \item \textbf{Database Management:} MongoDB is chosen as a database to ensure storing data for experiment statistics and user information.
     \item \textbf{Version Control:} Git is used for version control. It is used to manage the source code of the project. GitHub is used to provide a collaborative development with its version control system. Efficient code management and collaboration is ensured by using repositories which is provided by the platform itself.
     \item \textbf{Integrated Development Environment:} IntelliJ IDEA is used as an IDE. It is a Java integrated development environment for developing computer software. It is developed by JetBrains. It is used to write, compile, and run the code. It also provides a user-friendly interface for developers.
@@ -42,15 +42,15 @@ logging, execution, HTTP request handling, MVC setup and WebSocket communication
 
 %The data access layer of the project is described in this section.
 The data access classes are fulfilling the requirements of interacting with the database layers, providing data retrieval, storage, and manipulation. This module includes classes includes CRUD
-(create, read, update, delete) operations and query executions. With the Data Access classes such as ExpConfigDao, ExperimentDao, ExpProgressDao, UserDao the applications guarantee effective operations,
+(create, read, update, delete) operations and query executions. With the Data Access classes such as ExpConfigDao, ExperimentDao, MetricsDao, UserDao the applications guarantee effective operations,
 management of experiments and tracking of the progress.
 
 
 \section{Data Transfer}
 
 %The data transfer mechanisms used in the project are described in this section.
-Data Transfer layer contains a UserDto class to ensure the functionality of transferring data structure between different layers and components of the application. With the help of the UserDto class,
-user related information such as email, password and description will be able to be transferred between frontend, backend, and service layers. User information is transferred in a more standardized way
+Data Transfer layer contains a ExpConfigSummary, ExperimentSummary and UserSummary classes to ensure the functionality of transferring data structure between different layers and components of the application. With the help of the DTO classes,
+related information will be able to be transferred between frontend, backend, and service layers. User information is transferred in a more standardized way
 for achieving better communication.
 
 \section{Service}
@@ -62,6 +62,8 @@ Service module includes business logic and operations for ensuring the fully fun
     \item Experiment Configuration Service is for implementing business logic for experiment configuration includes creation, deletion, retrieval and searching by some parameters.
     \item Experiment Service is for creating operations that are related with experiment like creation, running, deletion, retrieval and searching.
     \item User Service is implemented for ensuring business logic for user-based operations. Those operations include authentication of user, sign up, deletion of account, updating user information and retrieval of the user
+    \item Message Service is implemented for managing communication with Erlang node for sending experiment configuration and monitoring the progress.
+    \item Metrics Service is created to handle operations of retrieving experiment metrics from the database with the related experiment ID.
 \end{itemize}
 
 \section{User Interface}
@@ -82,15 +84,157 @@ User Interface module is responsible for providing a user-friendly interface for
 
 During the implementation of the Federated Learning Web Console project, various patterns and techniques are adopted to ensure the efficiency, scalability, and maintainability of the application. These are some of the used patterns and techniques:\\
 
-\subsection*{Model-View-Controller (MVC) Pattern}
+\subsection{Model-View-Controller (MVC) Pattern}
 The Federated Learning Web Console project is implemented by following the Model-View-Controller (MVC) pattern. This pattern is used to separate the application into three main components: Model, View, and Controller. The Model represents the data and business logic
 of the application, the View represents the presentation layer, and the Controller handles the user input and updates the model and view accordingly. This pattern ensures a clean separation of concerns and makes the application easier to maintain and extend.\\
 
-\subsection*{WebSocket Communication}
+\subsection{WebSocket Communication}
 WebSocket communication is implemented to provide real-time communication between the frontend and backend. This allows the application to send and receive messages in real-time without the need for polling or long-polling. WebSocket communication is used to update the user interface with the latest data and provide a seamless user experience.\\
 
-\subsection*{Asynchronous Processing}
+\subsection{Asynchronous Processing}
 Asynchronous processing techniques like Java threads and ExecutorService are e used to manage concurrent execution of experiments and other tasks. This allows the application to handle multiple requests and tasks simultaneously and improve performance and scalability.\\
 
-\subsection*{Message Passing Protocol}
+\subsection{Message Passing Protocol}
 To achieve seamless communication between Erlang FL director and Java web application, a customized and well specified message passing protocol is defined. This protocol guarantees the reliable and well-defined exchange of messages and data.
+
+
+% \section{System configuration}
+% \subsection{MongoDB}
+% Per ogni replica che si vuole aggiungere al replica set è necessario avviare un'istanza di MongoDB con il comando:
+% mongod --replSet SETNAME --dbpath PATH --port PORT --bind_ip localhost,IP --oplogSize 200
+
+% nel nostro caso è stato fatto con tutti i cluster forniti.
+% mongod --replSet DSMT --dbpath ~/data --port 27017 --bind_ip localhost,10.2.1.109 --oplogSize 200
+
+% una volta che i cluster sono tutti online bisogna connettersi al primary, nel nostro caso
+
+% mongosh --host 10.2.1.109 --port 27017
+
+% fornire la configurazione
+% rsconf = {_id: "dsmt", members: [{_id: 0, host: "10.2.1.103", priority:1},{_id: 1, host: "10.2.1.106", priority:2},{_id: 3, host: "10.2.1.107", priority:3},{_id: 4, host: "10.2.1.108", priority:4},{_id: 2, host: "10.2.1.109", priority:5}]};
+
+% e inizializzare il replica set con il comando
+
+% rs.initiate()
+
+% Dopo ciò le repliche saranno operative e sarà possibile connettersi.
+
+% \subsection{Tomcat}
+% La prima cosa da fare è copiare il file .war all'interno della cartella webapps di Tomcat. per farlo abbiamo usato scp
+% scp MY_LOCAL_PATH root@REMOTE_IP:/REMOTE_PATH/apache-tomcat-10.1.16/webapps/FILENAME.war
+
+% Per avviare il server Tomcat è necessario entrare nel path dove è installato ed eseguire il comando:
+
+% bin/startup.sh
+
+% nel nostro caso :
+% ./servers/apache-tomcat-10.1.16/bin/startup.sh
+
+% \subsection{Nginx}
+% Una volta scaricato Nginx è necessario configurare il file di configurazione per farlo abbiamo usato nano
+% nano /etc/nginx/nginx.conf
+
+% aggiungendo
+
+% server {
+% listen 80;
+% server_name 10.2.1.102;  # IP pubblico del server
+
+% location / {
+% proxy_pass http://localhost:8080;  # Inoltra le richieste a Tomcat su localhost:8080
+% proxy_set_header Host $host;
+%     proxy_set_header X-Real-IP $remote_addr;
+% proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+%     proxy_set_header X-Forwarded-Proto $scheme;
+% }
+% }
+
+% in questo modo tutto il traffico in arrivo sulla porta 80 viene inoltrato a Tomcat sulla porta 8080
+
+% poi si riavvia Nginx con il comando
+% sudo systemctl restart nginx
+
+% Ed il sistema è operativo.
+
+% \subsection{EPMD Erlang}
+% Per avviare il servizio EPMD è necessario eseguire il comando
+% epmd
+
+% \subsection{Una volta effettuate queste configurazioni è possibile usare l'applicazione FL Web Console}
+\newpage
+\section{System Configuration}
+\subsection{MongoDB}
+To add each replica to the replica set, the initiation of a MongoDB instance is required using the command:
+\begin{verbatim}
+    mongod --replSet SETNAME --dbpath PATH --port PORT --bind_ip localhost,IP 
+    --oplogSize 200
+\end{verbatim}
+This procedure has been executed across all provided clusters. For instance:
+\begin{verbatim}
+    mongod --replSet DSMT --dbpath ~/data --port 27017 --bind_ip localhost,10.2.1.109 
+    --oplogSize 200
+\end{verbatim}
+Once all clusters are online, connecting to the primary is necessary, for example, using:
+\begin{verbatim}
+    mongosh --host 10.2.1.109 --port 27017
+\end{verbatim}
+Subsequently, providing the replica set configuration is required:
+\begin{verbatim}
+    rsconf = {_id: "dsmt", members: [{_id: 0, host: "10.2.1.103", priority:1},
+    {_id: 1, host: "10.2.1.106", priority:2},{_id: 3, host: "10.2.1.107", priority:3},
+    {_id: 4, host: "10.2.1.108", priority:4},{_id: 2, host: "10.2.1.109", priority:5}]};
+\end{verbatim}
+Finally, initializing the replica set using the command:
+\begin{verbatim}
+rs.initiate()
+\end{verbatim}
+Upon completion of these operations, the replicas will be operational, and connections can be made.
+
+\subsection{Tomcat}
+The initial step involves copying the .war file to the webapps directory of Tomcat. This can be achieved via scp:
+\begin{verbatim}
+    scp MY_LOCAL_PATH root@REMOTE_IP:/REMOTE_PATH/apache-tomcat-10.1.16/webapps/FILENAME.war
+\end{verbatim}
+To start the Tomcat server, navigating to the installation directory and executing the command is necessary:
+\begin{verbatim}
+    bin/startup.sh
+\end{verbatim}
+For example:
+\begin{verbatim}
+    ./servers/apache-tomcat-10.1.16/bin/startup.sh
+\end{verbatim}
+
+\subsection{Nginx}
+After downloading Nginx, configuring the configuration file using the nano editor is required:
+\begin{verbatim}
+    nano /etc/nginx/nginx.conf   
+\end{verbatim}
+Within the file, adding the following directives to route incoming traffic on port 80 to Tomcat on port 8080 is necessary:
+\begin{verbatim}
+server {
+        listen 80;
+        server_name 10.2.1.102;  
+
+        location / {
+            proxy_pass http://localhost:8080;  
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+\end{verbatim}
+Subsequently, restarting Nginx using the command:
+\begin{verbatim}
+    sudo systemctl restart nginx
+\end{verbatim}
+After this operation, the system will be operational.
+
+\subsection{EPMD Erlang}
+To start the EPMD service, executing the command is sufficient:
+\begin{verbatim}
+    epmd
+\end{verbatim}
+
+\subsection{Using the FL Web Console Application}
+Once the above configurations are completed, the FL Web Console application is ready for use.
