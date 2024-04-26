@@ -114,36 +114,42 @@ In the following tables, we present several key use cases related to the managem
         \textbf{Pre-Conditions}          & Actor must be logged in and have admin privileges                           \\ \hline
         \textbf{Main event steps}        & 1. Admin selects the experiment and reaches the details page.               \\
                                          & 2. If the experiment has not started yet                                         \\
-                                         & \hspace{1em} 2.1 when the start button is clicked \\
-                                         & \hspace{2.5em} the system will start the experiment.                      \\
-        \textbf{Post-Conditions}         & 3. The experiment statistics are shown on the experiment details page          \\
+                                         & \hspace{1em} 2.1 When the start button is clicked \\
+                                         & \hspace{2.5em} 2.2 The system will send a request to start the experiment \\
+                                         & \hspace{2.5em} 2.3 If the experiment is successfully started, the system will \\
+                                         & \hspace{2.5em} display a success message \\ \hline
+        \textbf{Post-Conditions}         & The experiment statistics are shown on the experiment details page          \\
                                          & and saved in the database.                                                  \\ \hline
         \textbf{Correlated Use cases}    &                                                                             \\ \hline
         \textbf{Alternative event steps} & --                                                                          \\ \hline
     \end{tabularx}
 \end{table}
 
-
-% Use case table template
-% \begin{table}[ht!]
-%     \centering
-%     \caption{Use Case: Title}
-%     \begin{tabularx}{\textwidth}{|Sl|S{X}|}
-%         \hline
-%         \textbf{\textit{Use Case}}       & \textbf{Title}             \\ \hline
-%         \textbf{Primary Actor}           & Actor name                 \\ \hline
-%         \textbf{Secondary Actor}         & Actor name                 \\ \hline
-%         \textbf{Description}             & Description                \\ \hline
-%         \textbf{Pre-Conditions}          & Pre-condition              \\ \hline
-%         \textbf{Main event steps}        & 1. First line.             \\
-%                                          & 2. Second line.            \\
-%                                          & 3. Third line              \\ \hline
-%         \textbf{Post-Conditions}         & Post condition first line  \\
-%                                          & post condition second line \\ \hline
-%         \textbf{Correlated Use cases}    &                            \\ \hline
-%         \textbf{Alternative event steps} & --                         \\ \hline
-%     \end{tabularx}
-% \end{table}
+\begin{table}[ht!]
+    \centering
+    \caption{Use Case: View Experiment Progress}
+    \begin{tabularx}{\textwidth}{|Sl|S{X}|}
+        \hline
+        \textbf{\textit{Use Case}}       & \textbf{View Experiment Progress}                                                     \\ \hline
+        \textbf{Primary Actor}           & User, Admin                                                        \\ \hline
+        \textbf{Secondary Actor}         & --                                                                          \\ \hline
+        \textbf{Description}             & Allows the admin to view a specific experiment progress                            \\ \hline
+        \textbf{Pre-Conditions}          & Actor must be logged in and have admin privileges                           \\ \hline
+        \textbf{Main event steps}        & 1. The actor selects the experiment and reaches the details page.               \\
+                                        & 2. If the experiment is started                                        \\
+                                        & \hspace{1em} 2.1 Retrieve the stored progresses from the database \\
+                                        & \hspace{1em} 2.2 Display the progress on the experiment details page\\
+                                        & 3. If the experiment is running                    \\
+                                        & \hspace{1em} 3.1 Connect to the websocket\\
+                                        & \hspace{1em} 3.2 Subscribe to the experiment progress topic\\
+                                        & \hspace{1em} 3.3 While the experiment is running, display the progress in  \\
+                                        & \hspace{1em} real-time each time a new message is received\\
+                                        & \hspace{1em} 3.4 Unsubscribe from the topic when the experiment is finished\\ \hline
+        \textbf{Post-Conditions}       & The experiment progress is displayed on the experiment details page.          \\ \hline
+        \textbf{Correlated Use cases}    &                                                                             \\ \hline
+        \textbf{Alternative event steps} & --                                                                          \\ \hline
+    \end{tabularx}
+\end{table}
 
 \newpage
 \section{Analysis Class Diagram}
@@ -157,7 +163,9 @@ In the following tables, we present several key use cases related to the managem
 
 \newpage
 \section{Sequence Diagrams}
-
+The following sequence diagrams illustrate the interactions between the actors and the system for the key use
+cases described in the previous section: the request to start an experiment and the request to view the progress
+of an experiment.
 \begin{figure}[ht!]
     \centering
     \includegraphics[width=0.9\textwidth]{images/2_analisys/sequence-diagram-start-exp.png}

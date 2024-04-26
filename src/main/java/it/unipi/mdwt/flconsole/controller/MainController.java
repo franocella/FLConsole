@@ -225,6 +225,7 @@ public class MainController {
 
             // Retrieve details of the experiment
             Experiment experiment = experimentService.getExpDetails(id);
+            applicationLogger.severe("Experiment: " + experiment);
             if (experiment == null) {
                 return "error";
             }

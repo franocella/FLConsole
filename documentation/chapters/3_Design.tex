@@ -12,7 +12,7 @@ Additionally, the database design will be examined, with particular attention to
 
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=0.8\textwidth]{images/2_analisys/FL_proj_Arch_FINAL.png}
+    \includegraphics[width=0.8\textwidth]{images/2_analisys/FL_proj_Arch..png}
     \caption{System Architecture}
     \label{fig:system_architecture}
 \end{figure}
@@ -128,9 +128,12 @@ Additionally, the database design will be examined, with particular attention to
 The message handler is implemented using the Erlang programming language. Erlang is a functional programming language designed for building scalable and fault-tolerant systems. It is particularly well-suited for building distributed systems, thanks to its lightweight processes and built-in support for message passing. In this project, it's utilized the Jinterface library, which allows to write Java code that can communicate with Erlang processes to send and receive messages, arriving from the FLang Infrastructure and vice versa.
 
 \subsection{Message Structure}
+Almost all the messages sent from the FLang Infrastructure to the Erlang message handler are tuples containing one atom to specify the
+message type and a string for the message body in Json format. The json string contains the information about the message, such as the timestamp,
+the round number, the client id, and the metrics. The following are some examples of message bodies in json format:
 \begin{itemize}
     \item Experiment Queued:
-          \begin{verbatim}
+    \begin{verbatim}
         {
             "type": "experiment_queued",
             "timestamp": "1712206255"
@@ -138,7 +141,7 @@ The message handler is implemented using the Erlang programming language. Erlang
     \end{verbatim}
 
     \item Worker Ready:
-          \begin{verbatim}
+    \begin{verbatim}
         {
             "type": "worker_ready",
             "timestamp": "1712206257",
@@ -147,7 +150,7 @@ The message handler is implemented using the Erlang programming language. Erlang
     \end{verbatim}
 
     \item Strategy Server Ready:
-          \begin{verbatim}
+    \begin{verbatim}
         {
             "type": "strategy_server_ready",
             "timestamp": "1712206257"
@@ -155,7 +158,7 @@ The message handler is implemented using the Erlang programming language. Erlang
     \end{verbatim}
 
     \item All Workers Ready:
-          \begin{verbatim}
+    \begin{verbatim}
         {
             "type": "all_workers_ready",
             "timestamp": "1712206257"
@@ -170,11 +173,28 @@ The message handler is implemented using the Erlang programming language. Erlang
           "round": "1"
       }
     \end{verbatim}
-    
-     \newpage
+
+    \newpage
+
+    \item Woker Metrics:
+    \begin{verbatim}
+      {
+        "type": "woker_metrics",
+        "timestamp": "1712206258",
+        "round": "1"
+        "client_id": "1"
+        "hostMetrics": {
+          "cpuUsagePercentage":39.4,
+          "memoryUsagePercentage": 52.69
+        }
+        "modelMetrics":{
+          "ARI":"0.10764575464353877"
+        }
+      }
+    \end{verbatim}
 
     \item End Round:
-      \begin{verbatim}
+    \begin{verbatim}
       {
         "type": "end_round",
         "timestamp": "1712206260",
@@ -183,7 +203,7 @@ The message handler is implemented using the Erlang programming language. Erlang
     \end{verbatim}
 
     \item Strategy Server Metrics:
-      \begin{verbatim}
+    \begin{verbatim}
       {
         "type": "strategy_server_metrics",
         "timestamp": "1712206264",
@@ -197,7 +217,16 @@ The message handler is implemented using the Erlang programming language. Erlang
         }
       }
     \end{verbatim}
+    \item
 \end{itemize}
+
+The trained model is sent at the end of the experiment in a special message that consists of a tuple with arity 3, \
+where the first element is the message type's atom ``fl\_end\_str\_run'',
+the second element is the identifier used by the FLang Infrastructure to identify the experiment, and the third element is the model in binary format.
+
+The message structure is designed to be flexible and extensible, allowing for easy integration of new message types and
+additional information as needed. This design choice enables the system to adapt to changing requirements and accommodate
+future enhancements without significant modifications to the existing codebase.
 
 \subsection{Description of the Erlang Message Handler Module}
 The Erlang message handler module is a crucial component of the system responsible for managing incoming messages, processing them accordingly, and facilitating communication between different parts of the distributed system. It encapsulates the logic for handling various types of messages, such as error notifications, stop signals, and data updates, ensuring proper routing and processing. Additionally, the module provides interfaces for sending and receiving messages, abstracting the underlying communication mechanisms and enabling seamless integration with other system components. Its robust design and fault-tolerant features contribute to the overall reliability and performance of the distributed system.
