@@ -8,7 +8,7 @@ most important aspects. In this section, it is specified that the necessary tool
 \begin{itemize}
     \item \textbf{Programming Language:} Java is used for creating a Web Application. Erlang is used for facilitation the development of middleware component and FL director is an Erlang node.
           So that effective communication between the Web Application and the FL director is provided.
-    \item \textbf{Frameworks:}Spring is used for Java framework. It ensures to integrate dependencies for WebSocket communication and MongoDB support.
+    \item \textbf{Frameworks:} Spring is used for Java framework. It ensures to integrate dependencies for WebSocket communication and MongoDB support.
           WebSocket is implemented to provide real-time communication between frontend and backend components.
     \item \textbf{Database Management:} MongoDB is chosen as a database to ensure storing data for experiment statistics and user information.
     \item \textbf{Version Control:} Git is used for version control. It is used to manage the source code of the project. GitHub is used to provide a collaborative development with its version control system. Efficient code management and collaboration is ensured by using repositories which is provided by the platform itself.
@@ -41,8 +41,8 @@ logging, execution, HTTP request handling, MVC setup and WebSocket communication
 \section{Data Access}
 
 %The data access layer of the project is described in this section.
-The data access classes are fulfilling the requirements of interacting with the database layers, providing data retrieval, storage, and manipulation. This module includes classes includes CRUD
-(create, read, update, delete) operations and query executions. With the Data Access classes such as ExpConfigDao, ExperimentDao, MetricsDao, UserDao the applications guarantee effective operations,
+The data access classes are fulfilling the requirements of interacting with the database layers, providing data retrieval, storage, and manipulation. This module includes classes with CRUD
+(create, read, update, delete) operations and query executions. With the Data Access classes such as ExpConfigDao, ExperimentDao, MetricsDao, UserDao the application guarantees effective operations,
 management of experiments and tracking of the progress.
 
 
@@ -66,6 +66,21 @@ Service module includes business logic and operations for ensuring the fully fun
     \item Metrics Service is created to handle operations of retrieving experiment metrics from the database with the related experiment ID.
 \end{itemize}
 
+\section{Controller}
+
+The Controller module within our MVC pattern web application encompasses two primary classes: the Main
+Controller and the Admin Controller. These classes serve as the intermediaries between the user's requests 
+and the application's backend logic. Their main function is to interpret user requests, process any input 
+parameters provided, and then direct the flow of control accordingly, often rendering dynamic content 
+onto static pages for the user to interact with.
+
+\section{Utils}
+
+The Utils module serves as a foundational component within our application, housing a collection of 
+classes that provide essential functionality utilized across our Java codebase. These classes encompass 
+a wide range of utilities, including enumerations, exception handling, email and password validation 
+mechanisms, and the management of constants and cryptographic operations.
+
 \section{User Interface}
 
 %The user interface of the project is described in this section.
@@ -74,7 +89,7 @@ User Interface module is responsible for providing a user-friendly interface for
     \item Login and Sign Up Page: This page is for user authentication and registration. Users can log in to the system by providing their email and password. If the user does not have an account, they can sign up by providing their email, password, and description.
     \item User Dashboard: This page is for displaying the experiments to the user. Users can see experiments and their progress on this page.
     \item Experiment Page: This page is for displaying the details of the experiment. The page shows the details of the experiment and its progress on this page.
-    \item Admin Dashboard: This page is for displaying all experiments. Admins can see all experiments and their progress on this page and also it provides creating new experiments for the admin.
+    \item Admin Dashboard: This page is for displaying all experiments and admin's own configurations. Admins can see all experiments and their progress on this page and also it provides creating and deleting experiments and configurations for the admin.
     \item Profile Page: The profile page allows users to view and manage their account settings and profile information.
 \end{itemize}
 
@@ -92,7 +107,7 @@ of the application, the View represents the presentation layer, and the Controll
 WebSocket communication is implemented to provide real-time communication between the frontend and backend. This allows the application to send and receive messages in real-time without the need for polling or long-polling. WebSocket communication is used to update the user interface with the latest data and provide a seamless user experience.\\
 
 \subsection{Asynchronous Processing}
-Asynchronous processing techniques like Java threads and ExecutorService are e used to manage concurrent execution of experiments and other tasks. This allows the application to handle multiple requests and tasks simultaneously and improve performance and scalability.\\
+Asynchronous processing techniques like Java threads and ExecutorService are e used to manage concurrent execution of experiments. This allows the application to handle multiple requests and tasks simultaneously and improve performance and scalability.\\
 
 \subsection{Message Passing Protocol}
 To achieve seamless communication between Erlang FL director and Java web application, a customized and well specified message passing protocol is defined. This protocol guarantees the reliable and well-defined exchange of messages and data.

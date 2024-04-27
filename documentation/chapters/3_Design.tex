@@ -12,7 +12,7 @@ Additionally, the database design will be examined, with particular attention to
 
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=0.8\textwidth]{images/2_analisys/FL_proj_Arch..png}
+    \includegraphics[width=0.8\textwidth]{images/2_analisys/FL_proj_Arch_FINAL.png}
     \caption{System Architecture}
     \label{fig:system_architecture}
 \end{figure}
@@ -101,6 +101,7 @@ Additionally, the database design will be examined, with particular attention to
         },
         "email": "admin@example.com",
         "password": "P@ssw0rd",
+        "description": "example description of a user",
         "creationDate": {
           "$date": "2024-04-06T10:34:08.669Z"
         },
@@ -124,8 +125,15 @@ Additionally, the database design will be examined, with particular attention to
 \newpage
 \section{Message Handler}
 
-\subsection{Erlang for Message Passing}
-The message handler is implemented using the Erlang programming language. Erlang is a functional programming language designed for building scalable and fault-tolerant systems. It is particularly well-suited for building distributed systems, thanks to its lightweight processes and built-in support for message passing. In this project, it's utilized the Jinterface library, which allows to write Java code that can communicate with Erlang processes to send and receive messages, arriving from the FLang Infrastructure and vice versa.
+\subsection{JInterface for Message Passing}
+The message handler is implemented using the Erlang programming language. Erlang is a functional
+programming language designed for building scalable and fault-tolerant systems. It is
+particularly well-suited for building distributed systems, thanks to its lightweight
+processes and built-in support for message passing. In this project, it's utilized the 
+JInterface library, which allows to write Java code that can communicate with Erlang 
+processes to send and receive messages. Rather than using directly Erlang nodes with Erlang language and communicate with them
+through web socket, the choice of adopting JInterface library provides manipulation of messages directly in 
+Java, storing the information contained in the messages in database and sending them to frontend.
 
 \subsection{Message Structure}
 Almost all the messages sent from the FLang Infrastructure to the Erlang message handler are tuples containing one atom to specify the
@@ -217,13 +225,14 @@ the round number, the client id, and the metrics. The following are some example
         }
       }
     \end{verbatim}
-    \item
+   
 \end{itemize}
 
+\subsection{}
 The trained model is sent at the end of the experiment in a special message that consists of a tuple with arity 3, \
 where the first element is the message type's atom ``fl\_end\_str\_run'',
 the second element is the identifier used by the FLang Infrastructure to identify the experiment, and the third element is the model in binary format.
-
+\\
 The message structure is designed to be flexible and extensible, allowing for easy integration of new message types and
 additional information as needed. This design choice enables the system to adapt to changing requirements and accommodate
 future enhancements without significant modifications to the existing codebase.

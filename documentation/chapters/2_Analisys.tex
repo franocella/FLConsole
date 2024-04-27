@@ -2,8 +2,6 @@
 
 \section{Requirements}
 
-In this section, we outline the functional and non-functional requirements necessary for the successful implementation of the project.
-
 \subsection{Functional Requirements}
 
 \subsubsection{For Administrators:}
@@ -16,6 +14,7 @@ In this section, we outline the functional and non-functional requirements neces
     \item Administrators must be able to initiate experiments and oversee their execution.
     \item Administrators must be able to view other administrators' experiments.
     \item Administrators must possess the authority to perform CRUD operations on configurations and experiments.
+    \item Administrators must be able to modify his/her own account information and delete account.
 \end{itemize}
 
 \subsubsection{For Users:}
@@ -26,6 +25,7 @@ In this section, we outline the functional and non-functional requirements neces
     \item Users must be able to register for a new account within the application.
     \item Users must be able to search for experiments based on configuration and experiment names.
     \item Users must be able to monitor real-time progress of experiments.
+    \item Users must be able to modify his/her own account information and delete account.
 \end{itemize}
 
 \newpage
@@ -46,8 +46,8 @@ In this section, we outline the functional and non-functional requirements neces
 
 The actors who can interact with the web console system consist of the following:
 \begin{itemize}
-    \item \textbf{User:} The user is the actor who can browse the system to view running and completed experiments and their results.
-    \item \textbf{Admin:} The admin is the actor who can manage the system, including creating and deleting configurations and experiments, and viewing the results of experiments.
+    \item \textbf{User:} The user is the actor who can access to the system to browse all the experiments and view their progress.
+    \item \textbf{Admin:} The admin is the actor who can manage the system, including creation and deletion of configurations and experiments, running the experiments and view their progress.
 \end{itemize}
 
 \begin{figure}[ht!]
@@ -59,7 +59,7 @@ The actors who can interact with the web console system consist of the following
 
 \newpage
 \subsection{Scenarios}
-In the following tables, we present several key use cases related to the management and execution of experiments within the application. These use cases cover actions performed by different actors, including users and administrators, and describe the steps involved in each scenario, along with pre-conditions and post-conditions.
+In the following tables, several key use cases related to the management and execution of experiments within the application are presented. These use cases cover actions performed by different actors, including users and administrators, and describe the steps involved in each scenario, along with pre-conditions and post-conditions.
 \begin{table}[ht!]
     \centering
     \caption{Use Case: Find Experiment}
@@ -144,7 +144,8 @@ In the following tables, we present several key use cases related to the managem
                                         & \hspace{1em} 3.2 Subscribe to the experiment progress topic\\
                                         & \hspace{1em} 3.3 While the experiment is running, display the progress in  \\
                                         & \hspace{1em} real-time each time a new message is received\\
-                                        & \hspace{1em} 3.4 Unsubscribe from the topic when the experiment is finished\\ \hline
+                                        & \hspace{1em} 3.4 Unsubscribe from the topic and disconnect from websocket \\ 
+                                        & \hspace{1em} when the experiment is finished\\ \hline
         \textbf{Post-Conditions}       & The experiment progress is displayed on the experiment details page.          \\ \hline
         \textbf{Correlated Use cases}    &                                                                             \\ \hline
         \textbf{Alternative event steps} & --                                                                          \\ \hline

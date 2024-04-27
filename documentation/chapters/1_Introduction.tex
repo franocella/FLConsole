@@ -2,7 +2,24 @@
 
 \section{Context and Project Objective}
 
-The goal of this project is to develop a system to manage Federated Learning (FL) experiments. FL is a decentralized machine learning approach where multiple devices collaborate to train a shared model while keeping their data locally. The project aims to provide a graphic interface with a web console to run FL experiments, enabling users to monitor their progress and analyze results. The system will use the Federated Learning Director (FL Director) to coordinate the execution of experiments among the devices. The FL Director is an Erlang node that manages the communication between the devices and the Web Console. The system will be designed to support concurrent execution of multiple FL experiments, real-time analytics, and flexible storage of experiment statistics. The project will adopt the Model-View-Controller (MVC) pattern to structure the Web Console, promoting separation of concerns and maintainability. The system will utilize DocumentDB for flexible storage of experiment statistics and its horizontal scalability. Concurrent execution of experiments will be implemented using Java threads and ExecutorService to optimize resource utilization. WebSocket communication will be established for real-time data exchange, enabling seamless interaction between the frontend and backend. The project will define message formats and outline the structure of Erlang nodes for efficient communication. The system will provide a user-friendly Web Console to initiate and manage FL experiments, as well as centralized access to experiment statistics for easy monitoring and analysis.
+The goal of this project is to develop a system to manage Federated Learning (FL) experiments. 
+FL is a decentralized machine learning approach where multiple devices collaborate to train a 
+shared model while keeping their data locally. The project aims to provide a graphic interface
+ with a web console to run FL experiments, enabling users to monitor their progress and analyze 
+ results. The system will use the Federated Learning Director (FL Director) to coordinate the 
+ execution of experiments among the devices. The FL Director is an Erlang node that handle the 
+ request of new experiments to propagate to the participants' devices. The system will be designed to support
+  concurrent execution of multiple FL experiments, real-time analytics, and flexible storage
+   of experiment statistics. The project will adopt the Model-View-Controller (MVC) pattern 
+   to structure the Web Console, promoting separation of concerns and maintainability. The 
+   system will utilize DocumentDB for flexible storage of experiment statistics and its
+    horizontal scalability. Concurrent execution of experiments will be implemented using Java 
+    threads and ExecutorService to optimize resource utilization. WebSocket communication 
+    will be established for real-time data exchange, enabling seamless interaction between
+     the frontend and backend. The project will define message formats and outline the structure
+      of Erlang nodes for efficient communication. The system will provide a user-friendly
+       Web Console to initiate and manage FL experiments, as well as centralized access to 
+       experiment statistics for easy monitoring and analysis.
 
 \section{Project Key Points}
 \begin{itemize}
